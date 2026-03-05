@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SUN VENDING — Cabinet Database</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:#F9FAFB;min-height:100vh;}
+:root{
+  --red:#D72B2B;--red-dark:#B01E1E;--red-bg:#FFF5F5;
+  --white:#fff;--g50:#F9FAFB;--g100:#F3F4F6;--g200:#E5E7EB;
+  --g300:#D1D5DB;--g400:#9CA3AF;--g600:#4B5563;--g800:#1F2937;
+  --green:#16A34A;--green-bg:#F0FDF4;
+  --blue:#2563EB;--blue-bg:#EFF6FF;--blue-light:#BFDBFE;
+}
+button{cursor:pointer;font-family:'DM Sans',sans-serif;}
+input{font-family:'DM Sans',sans-serif;}
+.page{display:none;min-height:100vh;}
+.page.active{display:block;}
+.header{background:var(--white);border-bottom:1px solid var(--g200);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.logo{display:flex;align-items:center;gap:8px;cursor:pointer;}
+.logo-s{width:36px;height:36px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:22px;}
+.logo-text .l1{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--red);letter-spacing:2px;line-height:1;}
+.logo-text .l2{font-size:9px;color:var(--g400);letter-spacing:1px;}
+.container{max-width:520px;margin:0 auto;padding:24px 16px 80px;}
+.card{background:var(--white);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:24px;border:1px solid var(--g200);}
+.card+.card{margin-top:14px;}
+.btn{border:none;border-radius:10px;padding:12px 18px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;cursor:pointer;}
+.btn:hover{opacity:.88;transform:translateY(-1px);}
+.btn:active{transform:translateY(0);}
+.btn-red{background:linear-gradient(135deg,var(--red-dark),var(--red));color:#fff;box-shadow:0 4px 12px rgba(215,43,43,.25);}
+.btn-blue{background:linear-gradient(135deg,#1D4ED8,var(--blue));color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.25);}
+.btn-green{background:linear-gradient(135deg,#15803D,var(--green));color:#fff;box-shadow:0 4px 12px rgba(22,163,74,.25);}
+.btn-outline{background:var(--white);border:1.5px solid var(--g200);color:var(--g600);}
+.btn-sm{padding:7px 12px;font-size:12px;border-radius:8px;}
+.btn-full{width:100%;}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.stat-card{background:var(--white);border-radius:12px;padding:14px;border:1px solid var(--g200);}
+.stat-label{font-size:11px;color:var(--g400);margin-bottom:2px;display:flex;align-items:center;gap:4px;}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--g800);}
+
+/* Search */
+.search-wrap{position:relative;margin-bottom:14px;}
+.search-wrap input{width:100%;padding:11px 13px 11px 36px;border:1px solid var(--g200);border-radius:10px;font-size:13px;color:var(--g800);outline:none;background:var(--white);transition:border .2s;}
+.search-wrap input:focus{border-color:var(--red);}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;}
+
+/* Record cards */
+.rec-card{background:var(--white);border-radius:12px;border:1px solid var(--g200);display:flex;gap:12px;padding:14px;cursor:pointer;margin-bottom:10px;transition:all .2s;}
+.rec-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);border-color:var(--g300);}
+.rec-thumb{width:68px;height:68px;border-radius:10px;overflow:hidden;background:var(--g100);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:26px;}
+.rec-thumb img{width:100%;height:100%;object-fit:cover;}
+.rec-info{flex:1;min-width:0;}
+.rec-model{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--g800);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rec-tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}
+.tag{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--g100);color:var(--g600);}
+.tag.green{background:var(--green-bg);color:var(--green);}
+.tag.blue{background:var(--blue-bg);color:var(--blue);}
+.rec-date{font-size:11px;color:var(--g400);margin-top:5px;}
+.empty{text-align:center;padding:60px 0;color:var(--g400);}
+
+/* Wizard */
+.wiz-wrap{min-height:100vh;background:var(--g50);display:flex;flex-direction:column;align-items:center;padding:20px 16px 60px;}
+.wiz-header{width:100%;max-width:500px;margin-bottom:20px;}
+.prog-wrap{width:100%;height:6px;background:var(--g200);border-radius:3px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--red-dark),var(--red));border-radius:3px;transition:width .4s;}
+.dots-wrap{display:flex;gap:3px;margin-top:10px;justify-content:center;flex-wrap:wrap;}
+.dot{width:6px;height:6px;border-radius:3px;background:var(--g200);transition:all .3s;}
+.dot.wide{width:18px;}
+.dot.done,.dot.active{background:var(--red);}
+.dot.inactive{opacity:.3;}
+
+.wiz-card{width:100%;max-width:500px;background:var(--white);border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.08);padding:28px 24px;min-height:440px;display:flex;flex-direction:column;}
+.wiz-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.wiz-nav{display:flex;gap:10px;margin-top:20px;}
+.step-icon{width:68px;height:68px;border-radius:18px;background:var(--red-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:36px;}
+.step-title{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--red);letter-spacing:2px;text-align:center;}
+.step-sub{font-size:13px;color:var(--g400);text-align:center;margin-top:4px;margin-bottom:16px;}
+.field input{width:100%;padding:13px 16px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;transition:border .2s;}
+.field input:focus{border-color:var(--red);}
+
+/* Multi-photo upload */
+.photo-section{width:100%;max-width:460px;}
+.photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:10px;}
+.photo-thumb{position:relative;border-radius:10px;overflow:hidden;background:var(--g100);aspect-ratio:1;}
+.photo-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+.photo-thumb .del-btn{position:absolute;top:5px;right:5px;width:26px;height:26px;background:rgba(215,43,43,.9);border:none;border-radius:50%;color:#fff;font-size:13px;display:flex;align-items:center;justify-content:center;}
+.photo-thumb .img-num{position:absolute;bottom:5px;left:6px;background:rgba(0,0,0,.5);color:#fff;font-size:10px;padding:2px 5px;border-radius:8px;font-weight:600;}
+.add-photo-btn{border:2px dashed var(--g300);border-radius:10px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;background:var(--g50);transition:all .2s;font-size:24px;}
+.add-photo-btn:hover,.add-photo-btn.drag{border-color:var(--red);background:var(--red-bg);}
+.add-photo-btn p{font-size:11px;color:var(--g400);text-align:center;line-height:1.3;}
+
+/* Tracker — single wrap row, all steps visible */
+.tracker{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:14px;width:100%;max-width:520px;padding:0 8px;}
+.tracker-row{display:contents;}
+.tracker-item{display:flex;align-items:center;gap:3px;padding:4px 9px;border-radius:20px;font-size:9.5px;font-weight:500;white-space:nowrap;transition:all .2s;}
+.tracker-item.done{background:var(--green-bg);border:1px solid var(--green);color:var(--green);}
+.tracker-item.active{background:var(--red-bg);border:1.5px solid var(--red);color:var(--red);font-weight:700;box-shadow:0 2px 8px rgba(215,43,43,.15);}
+.tracker-item.upcoming{background:var(--g100);border:1px solid var(--g200);color:var(--g400);}
+
+/* Summary */
+.sum-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--g100);}
+.sum-key{font-size:13px;color:var(--g400);}
+.sum-val{font-size:13px;color:var(--g800);font-weight:600;}
+.photo-mini-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:10px;}
+.photo-mini{text-align:center;}
+.photo-mini-img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;border:1.5px solid var(--green);}
+.photo-mini-empty{width:100%;aspect-ratio:1;border-radius:6px;background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:16px;}
+.photo-mini p{font-size:8px;color:var(--g400);margin-top:2px;line-height:1.2;}
+.photo-mini.has p{color:var(--green);}
+.count-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;margin-left:2px;}
+
+/* Upload progress */
+.up-step{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--g100);}
+.up-step:last-child{border-bottom:none;}
+.up-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;}
+.up-icon.pending{background:var(--g100);}
+.up-icon.loading{background:var(--blue-bg);animation:pulse 1s infinite;}
+.up-icon.done{background:var(--green-bg);}
+.up-icon.error{background:#FEE2E2;}
+.up-label{font-size:13px;}
+.up-label.pending{color:var(--g400);}
+.up-label.loading{color:var(--blue);font-weight:600;}
+.up-label.done{color:var(--g800);}
+.up-label.error{color:#991B1B;}
+
+/* Login button */
+.login-btn{display:flex;align-items:center;gap:5px;padding:7px 13px;background:var(--blue-bg);border:1px solid var(--blue-light);border-radius:20px;color:var(--blue);font-size:12px;font-weight:600;}
+
+/* Detail */
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.detail-card{border-radius:10px;overflow:hidden;border:1px solid var(--g200);}
+.detail-card.has-photo{border-color:var(--green);}
+.detail-photos-strip{display:flex;gap:4px;flex-wrap:wrap;padding:6px;}
+.detail-photos-strip img{height:70px;width:70px;object-fit:cover;border-radius:6px;border:1px solid var(--g200);}
+.detail-card-label{padding:7px 10px;font-size:12px;font-weight:600;color:var(--g600);background:var(--white);border-top:1px solid var(--g200);}
+
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5};}
+@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
+.spin{display:inline-block;animation:spin 1s linear infinite;}
+</style>
+</head>
+<body>
+
+<!-- LIST PAGE -->
+<div id="page-list" class="page active">
+  <div class="header">
+    <div class="logo"><div class="logo-s">S</div><div class="logo-text"><div class="l1">SUN VENDING</div><div class="l2">CAN DATABASE</div></div></div>
+    <div style="display:flex;gap:8px;align-items:center;">
+      <span id="list-user-badge" style="display:none;font-size:12px;color:var(--green);background:var(--green-bg);padding:4px 10px;border-radius:20px;"></span>
+      <button onclick="showPage('config')" class="btn btn-outline btn-sm">⚙️ ตั้งค่า</button>
+      <button id="btn-list-logout" onclick="doLogout()" style="display:none;" class="btn btn-outline btn-sm">🚪</button>
+      <button id="btn-sync" onclick="syncFromSharePoint()" style="display:none;" class="btn btn-outline btn-sm">🔄 ซิงค์</button>
+      <button onclick="startWizard()" class="btn btn-red">+ เพิ่มตู้</button>
+    </div>
+  </div>
+  <div class="container">
+    <div class="stats">
+      <div class="stat-card"><div class="stat-label">📦 ตู้ทั้งหมด</div><div class="stat-val" id="stat-total">0</div></div>
+      <div class="stat-card"><div class="stat-label">📷 รูปภาพรวม</div><div class="stat-val" id="stat-photos">0</div></div>
+    </div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input type="text" placeholder="ค้นหา Brand / Model / Year..." oninput="renderList(this.value)"/>
+    </div>
+    <div id="list-container"></div>
+  </div>
+</div>
+
+<!-- DETAIL PAGE -->
+<div id="page-detail" class="page">
+  <div class="header">
+    <button class="btn btn-outline btn-sm" onclick="showPage('list')">← กลับ</button>
+    <span id="detail-title" style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--g800);"></span>
+    <div style="width:80px;"></div>
+  </div>
+  <div class="container">
+    <div class="card" id="detail-info"></div>
+    <div class="card" style="margin-top:14px;">
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:12px;color:var(--red);letter-spacing:2px;margin-bottom:12px;">รูปภาพ</div>
+      <div class="detail-grid" id="detail-photos"></div>
+    </div>
+  </div>
+</div>
+
+<!-- CONFIG PAGE -->
+<div id="page-config" class="page">
+  <div class="header">
+    <div class="logo"><div class="logo-s">S</div><div class="logo-text"><div class="l1">SUN VENDING</div><div class="l2">CAN DATABASE</div></div></div>
+    <button class="btn btn-outline btn-sm" onclick="showPage('list')">✕ ปิด</button>
+  </div>
+  <div class="container">
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:18px;">
+        <div style="width:44px;height:44px;border-radius:12px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;font-size:22px;">⚙️</div>
+        <div><div style="font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:1px;">ตั้งค่า Azure + SharePoint</div><div style="font-size:11px;color:var(--g400);">Config ครั้งเดียว จำไว้เสมอ</div></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">Client ID (Azure App)</label>
+          <input id="cfg-client" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="bfb978c2-2df7-4598-8b29-63df63f724cc"/></div>
+        <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">Tenant ID (Azure)</label>
+          <input id="cfg-tenant" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="34f5f15c-d8ec-4aaa-8240-5b8a5cd8fbb1"/></div>
+        <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">SharePoint Site Host</label>
+          <input id="cfg-site" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="sun108.sharepoint.com"/></div>
+        <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">SharePoint Site Name</label>
+          <div style="font-size:11px;color:var(--g400);margin-bottom:5px;">ชื่อที่เห็นใน URL: sharepoint.com/sites/<strong>CanDataBase</strong></div>
+          <input id="cfg-site-name" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="CanDataBase"/></div>
+        <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">Path โฟลเดอร์ Model (ใน Documents)</label>
+          <div style="font-size:11px;color:var(--g400);margin-bottom:5px;">ถ้าสร้างโฟลเดอร์ Model ไว้ใน Documents ตรงๆ ใส่แค่ Model</div>
+          <input id="cfg-model-path" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="Model"/></div>
+        <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">ชื่อไฟล์ Excel หลัก</label>
+          <input id="cfg-excel-name" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="Used_Can_250619.xlsx"/></div>
+      </div>
+      <button class="btn btn-red btn-full" style="margin-top:20px;" onclick="saveConfig()">💾 บันทึกการตั้งค่า</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIZARD PAGE -->
+<div id="page-wizard" class="page">
+  <div class="wiz-wrap">
+    <div class="wiz-header">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+        <div class="logo" style="cursor:pointer;" onclick="cancelWizard()">
+          <div class="logo-s">S</div><div class="logo-text"><div class="l1">SUN VENDING</div><div class="l2">CAN DATABASE</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span id="wiz-user-badge" style="display:none;font-size:11px;color:var(--green);background:var(--green-bg);padding:4px 10px;border-radius:20px;"></span>
+          <button id="btn-wiz-login" onclick="doLogin(true)" class="login-btn">🔐 Login Microsoft</button>
+          <span id="wiz-step-num" style="font-size:12px;color:var(--g400);"></span>
+        </div>
+      </div>
+      <div class="prog-wrap"><div class="prog-fill" id="wiz-prog"></div></div>
+      <div class="dots-wrap" id="wiz-dots"></div>
+    </div>
+    <div class="wiz-card">
+      <div class="wiz-content" id="wiz-content"></div>
+      <div>
+        <div class="wiz-nav">
+          <button id="wiz-btn-back" class="btn btn-outline" style="flex:1;display:none;" onclick="wizBack()">← กลับ</button>
+          <button id="wiz-btn-next" class="btn btn-red" style="flex:2;" onclick="wizNext()">ถัดไป →</button>
+        </div>
+        <div style="text-align:center;margin-top:10px;">
+          <button id="wiz-btn-skip" style="display:none;background:none;border:none;color:var(--g400);font-size:12px;text-decoration:underline;" onclick="wizStep++; renderWiz()">ข้ามขั้นตอนนี้</button>
+        </div>
+      </div>
+    </div>
+    <div class="tracker" id="wiz-tracker"></div>
+  </div>
+</div>
+
+<!-- UPLOADING PAGE -->
+<div id="page-uploading" class="page">
+  <div style="min-height:100vh;background:var(--g50);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;">
+    <div style="width:100%;max-width:500px;">
+      <div style="text-align:center;margin-bottom:28px;">
+        <div id="up-main-icon" style="width:64px;height:64px;border-radius:20px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:34px;">☁️</div>
+        <div id="up-title" style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--g800);letter-spacing:2px;">กำลังอัปโหลด...</div>
+        <div style="margin-top:10px;">
+          <div class="prog-wrap"><div class="prog-fill" id="up-prog" style="width:0%;background:linear-gradient(90deg,#1D4ED8,var(--blue));"></div></div>
+          <div id="up-prog-label" style="font-size:12px;color:var(--g400);margin-top:6px;"></div>
+        </div>
+      </div>
+      <div class="card"><div id="up-steps"></div></div>
+      <div id="up-error" style="display:none;margin-top:14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px;font-size:13px;color:#991B1B;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- SUCCESS PAGE -->
+<div id="page-success" class="page">
+  <div style="min-height:100vh;background:var(--white);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;">
+    <div style="width:80px;height:80px;border-radius:24px;background:var(--green-bg);display:flex;align-items:center;justify-content:center;font-size:44px;">✅</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:42px;color:var(--red);letter-spacing:4px;">บันทึกสำเร็จ!</div>
+    <div id="success-detail" style="font-size:13px;color:var(--g400);text-align:center;max-width:340px;line-height:1.8;"></div>
+    <button class="btn btn-red" style="margin-top:8px;font-size:16px;padding:14px 32px;" onclick="showPage('list')">ดูรายการทั้งหมด</button>
+    <button class="btn btn-outline" style="font-size:14px;" onclick="startWizard()">+ บันทึกตู้ถัดไป</button>
+  </div>
+</div>
+
+<script>
+// ═══════════════════ CONFIG ═══════════════════
+let CFG = {
+  clientId:"bfb978c2-2df7-4598-8b29-63df63f724cc",
+  tenantId:"34f5f15c-d8ec-4aaa-8240-5b8a5cd8fbb1",
+  spSite:"sun108.sharepoint.com",
+  spSiteName:"CanDataBase",
+  modelPath:"Model",
+  excelName:"Used_Can_250619.xlsx",
+  excelPath:"",
+};
+
+// ═══════════════════ PHOTO STEPS ═══════════════════
+const PS = [
+  {key:"nameplate",      label:"Nameplate",               sub:"ป้ายข้อมูลหลักของตู้",         prefix:"Nameplate",      icon:"🏷️"},
+  {key:"other_nameplate",label:"Other Nameplate",         sub:"ป้ายข้อมูลเพิ่มเติม",          prefix:"OtherNameplate", icon:"📋"},
+  {key:"outside",        label:"Outside",                 sub:"ภาพรวมภายนอกตู้",             prefix:"Outside",        icon:"📦"},
+  {key:"button",         label:"Button Panel",            sub:"แผงปุ่มกดควบคุม",             prefix:"ButtonPanel",    icon:"🔘"},
+  {key:"breaker",        label:"Breaker",                 sub:"เบรกเกอร์ / Circuit Breaker", prefix:"Breaker",        icon:"⚡"},
+  {key:"smps",           label:"Power Supply (SMPS)",     sub:"Switched-Mode Power Supply",  prefix:"PowerSupply",    icon:"🔌"},
+  {key:"door_side",      label:"Door Side",               sub:"ด้านในประตูตู้",              prefix:"DoorSide",       icon:"🚪"},
+  {key:"master_box",     label:"Master Box & Remote",     sub:"กล่องควบคุมหลักและรีโมต",      prefix:"MasterBox",      icon:"🖲️"},
+  {key:"boards_inside",  label:"Boards Inside Power Box", sub:"บอร์ดภายในกล่องไฟ",           prefix:"BoardsInside",   icon:"🔧"},
+  {key:"inventory_side", label:"Inventory Side",          sub:"ด้านช่องสินค้า",              prefix:"InventorySide",  icon:"📊"},
+  {key:"master_board",   label:"Master Board",            sub:"บอร์ดควบคุมหลัก",             prefix:"MasterBoard",    icon:"🖥️"},
+  {key:"compressor",     label:"Compressor",              sub:"คอมเพรสเซอร์ระบบทำความเย็น",   prefix:"Compressor",     icon:"❄️"},
+];
+const TOTAL = 3 + PS.length + 1; // brand, model, year + photos + summary
+
+// ═══════════════════ STATE ═══════════════════
+let records = [];
+let msalApp = null, accessToken = null, currentUser = null;
+
+// Wizard state
+let wizStep = 0;
+let wizData = { brand:"", model:"", year:"", photos:{} };
+// photos[key] = [{file, preview, name}, ...]  (ARRAY per section)
+
+// ═══════════════════ INIT ═══════════════════
+(function init(){
+  const sc = localStorage.getItem("sp_config");
+  if(sc) try{ CFG = {...CFG,...JSON.parse(sc)}; }catch{}
+  const sr = localStorage.getItem("cabinet_records");
+  if(sr) try{ records = JSON.parse(sr); }catch{}
+  renderList();
+})();
+
+// ═══════════════════ ROUTING ═══════════════════
+function showPage(name){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.getElementById("page-"+name).classList.add("active");
+  if(name==="list") renderList();
+}
+
+// ═══════════════════ CONFIG ═══════════════════
+function saveConfig(){
+  CFG.clientId = document.getElementById("cfg-client").value.trim();
+  CFG.tenantId = document.getElementById("cfg-tenant").value.trim();
+  CFG.spSite    = document.getElementById("cfg-site").value.trim();
+  CFG.spSiteName= document.getElementById("cfg-site-name").value.trim();
+  CFG.modelPath = document.getElementById("cfg-model-path").value.trim();
+  CFG.excelName = document.getElementById("cfg-excel-name").value.trim();
+  CFG.excelPath = "";
+  localStorage.setItem("sp_config",JSON.stringify(CFG));
+  msalApp=null;
+  alert("✅ บันทึกสำเร็จ");
+  showPage("list");
+}
+
+// ═══════════════════ MSAL / AUTH ═══════════════════
+function getMsal(){
+  if(!msalApp) msalApp = new msal.PublicClientApplication({
+    auth:{clientId:CFG.clientId, authority:"https://login.microsoftonline.com/"+CFG.tenantId, redirectUri:"http://localhost"},
+    cache:{cacheLocation:"sessionStorage"},
+  });
+  return msalApp;
+}
+
+async function doLogin(fromWiz=false){
+  try{
+    const app = getMsal();
+    const r = await app.loginPopup({scopes:["Files.ReadWrite.All","Sites.ReadWrite.All"]});
+    accessToken = r.accessToken;
+    currentUser = r.account.name || r.account.username;
+    updateUserUI();
+    if(!fromWiz) syncFromSharePoint();
+    return true;
+  }catch(e){
+    alert("❌ Login ไม่สำเร็จ: "+e.message);
+    return false;
+  }
+}
+
+async function ensureToken(){
+  if(accessToken) return true;
+  return doLogin();
+}
+
+function doLogout(){ accessToken=null; currentUser=null; msalApp=null; updateUserUI(); }
+
+function updateUserUI(){
+  const lb = document.getElementById("list-user-badge");
+  const lo = document.getElementById("btn-list-logout");
+  const wb = document.getElementById("wiz-user-badge");
+  const wl = document.getElementById("btn-wiz-login");
+  const bs = document.getElementById("btn-sync");
+  if(currentUser){
+    if(lb){lb.style.display="inline-flex";lb.textContent="☁️ "+currentUser;}
+    if(lo) lo.style.display="flex";
+    if(wb){wb.style.display="inline-flex";wb.textContent="☁️ "+currentUser;}
+    if(wl) wl.style.display="none";
+    if(bs) bs.style.display="flex";
+  }else{
+    if(lb) lb.style.display="none";
+    if(lo) lo.style.display="none";
+    if(wb) wb.style.display="none";
+    if(wl) wl.style.display="flex";
+    if(bs) bs.style.display="none";
+  }
+}
+
+// ═══════════════════ SYNC FROM SHAREPOINT ═══════════════════
+async function syncFromSharePoint(){
+  if(!accessToken){ alert("กรุณา Login ก่อนครับ"); return; }
+  const btn = document.getElementById("btn-sync");
+  if(btn){ btn.innerHTML="⏳ กำลังซิงค์..."; btn.disabled=true; }
+
+  try{
+    const H = {Authorization:"Bearer "+accessToken};
+
+    // Get site + drive
+    const siteRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});
+    if(!siteRes.ok) throw new Error("ไม่พบ Site: "+await siteRes.text());
+    const siteId = (await siteRes.json()).id;
+    const drivesRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,{headers:H});
+    const drivesData = await drivesRes.json();
+    const drive = drivesData.value?.find(d=>d.name==="Documents")||drivesData.value?.[0];
+    if(!drive) throw new Error("ไม่พบ Document Library");
+    const driveId = drive.id;
+
+    // Read Excel file
+    const excelPath = CFG.excelPath ? `${CFG.excelPath}/${CFG.excelName}` : `${CFG.modelPath.split("/").slice(0,-1).join("/")}/${CFG.excelName}`;
+    const exRes = await fetch(
+      `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelPath)}:/content`,
+      {headers:H}
+    );
+    if(!exRes.ok) throw new Error("ไม่พบไฟล์ Excel: "+CFG.excelName);
+    const buf = await exRes.arrayBuffer();
+    const wb = XLSX.read(buf, {type:"array"});
+
+    // Parse each sheet → record
+    const spRecords = [];
+    for(const sheetName of wb.SheetNames){
+      const ws = wb.Sheets[sheetName];
+      const brand = ws["C1"]?.v||"";
+      const model = ws["C2"]?.v||"";
+      const year  = String(ws["C3"]?.v||"");
+      if(!model && !brand) continue;
+
+      // Try get folder photos list
+      const folderName = [model,brand,year].filter(Boolean).join("_");
+      let photos = {};
+      PS.forEach(p=>photos[p.key]=[]);
+      try{
+        const folderRes = await fetch(
+          `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(CFG.modelPath+"/"+folderName)}:/children?$select=name,@microsoft.graph.downloadUrl`,
+          {headers:H}
+        );
+        if(folderRes.ok){
+          const folderData = await folderRes.json();
+          for(const f of (folderData.value||[])){
+            const lower = f.name.toLowerCase();
+            for(const p of PS){
+              if(lower.includes(p.prefix.toLowerCase())){
+                const dlUrl = f["@microsoft.graph.downloadUrl"];
+                if(dlUrl) photos[p.key].push({preview:dlUrl, savedName:f.name, name:f.name});
+                break;
+              }
+            }
+          }
+        }
+      }catch(e){}
+
+      spRecords.push({
+        id: "sp_"+sheetName,
+        brand, model, year,
+        uploaded: true,
+        folderName,
+        photos,
+        date: "SharePoint",
+        fromSP: true,
+      });
+    }
+
+    // Merge: SP records take priority, keep local-only records
+    const localOnly = records.filter(r=>!r.fromSP && !spRecords.find(s=>s.folderName===r.folderName));
+    records = [...spRecords, ...localOnly];
+    localStorage.setItem("cabinet_records", JSON.stringify(records));
+    renderList();
+    if(btn){ btn.innerHTML=`🔄 ซิงค์ (${spRecords.length} ตู้)`; btn.disabled=false; }
+  }catch(e){
+    if(btn){ btn.innerHTML="⚠️ ซิงค์ไม่ได้"; btn.disabled=false; }
+    alert("❌ ซิงค์ไม่ได้: "+e.message);
+  }
+}
+
+// ═══════════════════ LIST ═══════════════════
+function renderList(search=""){
+  const s = search.toLowerCase();
+  const filtered = records.filter(r=>[r.brand,r.model,r.year].join(" ").toLowerCase().includes(s));
+  document.getElementById("stat-total").textContent=records.length;
+  const totalPhotos = records.reduce((a,r)=>a+PS.reduce((b,p)=>b+(r.photos?.[p.key]?.length||0),0),0);
+  document.getElementById("stat-photos").textContent=totalPhotos;
+
+  const c = document.getElementById("list-container");
+  if(!filtered.length){
+    c.innerHTML=`<div class="empty"><div style="font-size:48px;margin-bottom:10px;">📂</div><p>${search?"ไม่พบข้อมูลที่ค้นหา":"ยังไม่มีข้อมูลตู้ กด + เพิ่มตู้เพื่อเริ่ม"}</p></div>`;
+    return;
+  }
+  c.innerHTML=filtered.map(r=>{
+    const ri = records.indexOf(r);
+    const thumbArr = PS.find(p=>r.photos?.[p.key]?.length>0);
+    const thumb = thumbArr ? r.photos[thumbArr.key][0]?.preview : null;
+    const cnt = PS.reduce((a,p)=>a+(r.photos?.[p.key]?.length||0),0);
+    const sects = PS.filter(p=>r.photos?.[p.key]?.length>0).length;
+    return `<div class="rec-card" onclick="showDetail(${ri})">
+      <div class="rec-thumb">${thumb?`<img src="${thumb}"/>`:"📦"}</div>
+      <div class="rec-info">
+        <div class="rec-model">${r.model||"ไม่ระบุ Model"}</div>
+        <div class="rec-tags">
+          ${r.brand?`<span class="tag">${r.brand}</span>`:""}
+          ${r.year?`<span class="tag">${r.year}</span>`:""}
+          <span class="tag ${cnt>0?"green":""}"}>📷 ${cnt} รูป (${sects}/${PS.length} ส่วน)</span>
+          ${r.uploaded?`<span class="tag blue">☁️ SharePoint</span>`:""}
+        </div>
+        <div class="rec-date">📅 ${r.date}</div>
+      </div>
+      <span style="align-self:center;color:var(--g300);font-size:20px;">›</span>
+    </div>`;
+  }).join("");
+}
+
+// ═══════════════════ DETAIL ═══════════════════
+function showDetail(idx){
+  const r = records[idx];
+  document.getElementById("detail-title").textContent = r.model||"ไม่ระบุ";
+  document.getElementById("detail-info").innerHTML=`
+    ${[["Brand",r.brand],["Model",r.model],["Year",r.year],["บันทึกวันที่",r.date]].filter(([,v])=>v).map(([k,v])=>`
+      <div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v}</span></div>`).join("")}
+    ${r.uploaded?`<div style="margin-top:10px;padding:8px 12px;background:var(--blue-bg);border-radius:8px;font-size:12px;color:var(--blue);font-weight:600;">☁️ อัปโหลดใน SharePoint แล้ว · 📁 ${r.folderName||""}</div>`:""}
+  `;
+  document.getElementById("detail-photos").innerHTML=PS.map(p=>{
+    const photos = r.photos?.[p.key]||[];
+    return `<div class="detail-card ${photos.length>0?"has-photo":""}">
+      ${photos.length>0
+        ?`<div class="detail-photos-strip">${photos.map(ph=>`<img src="${ph.preview}" title="${ph.savedName||ph.name}"/>`).join("")}</div>`
+        :`<div style="height:80px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:28px;">${p.icon}</div>`}
+      <div class="detail-card-label">${p.icon} ${p.label} ${photos.length>0?`<span class="count-badge">${photos.length}</span>`:""}</div>
+    </div>`;
+  }).join("");
+  showPage("detail");
+}
+
+// ═══════════════════ WIZARD ═══════════════════
+function startWizard(){
+  wizStep=0;
+  wizData={brand:"",model:"",year:"",photos:{}};
+  PS.forEach(p=>wizData.photos[p.key]=[]);
+  showPage("wizard");
+  renderWiz();
+  updateUserUI();
+}
+
+function cancelWizard(){
+  document.getElementById("cancel-modal").style.display="flex";
+}
+
+function confirmCancel(){
+  document.getElementById("cancel-modal").style.display="none";
+  wizStep=0;
+  wizData={brand:"",model:"",year:"",photos:{}};
+  PS.forEach(p=>wizData.photos[p.key]=[]);
+  showPage("list");
+}
+
+function renderWiz(){
+  const s = wizStep;
+  const pct = Math.round((s/(TOTAL-1))*100);
+  document.getElementById("wiz-prog").style.width=pct+"%";
+  document.getElementById("wiz-step-num").textContent=(s+1)+" / "+TOTAL;
+
+  // dots
+  let dots="";
+  for(let i=0;i<TOTAL;i++){
+    const wide = i<3?"wide":"";
+    const cls = i<s?"done":i===s?"active":"inactive";
+    dots+=`<div class="dot ${wide} ${cls}"></div>`;
+  }
+  document.getElementById("wiz-dots").innerHTML=dots;
+
+  document.getElementById("wiz-btn-back").style.display = s>0?"flex":"none";
+  document.getElementById("wiz-btn-skip").style.display = s<3?"block":"none";
+
+  const isSummary = s===TOTAL-1;
+  const nextBtn = document.getElementById("wiz-btn-next");
+  nextBtn.className = isSummary?"btn btn-blue":"btn btn-red";
+  nextBtn.style.flex="2";
+  nextBtn.innerHTML = isSummary?"☁️ อัปโหลด SharePoint + บันทึก Excel":"ถัดไป →";
+
+  // content
+  const content = document.getElementById("wiz-content");
+  if(s===0) content.innerHTML=textStepHtml("Brand","เช่น Fuji, Mitsubishi, Yaskawa","🏭","wiz-brand",wizData.brand);
+  else if(s===1) content.innerHTML=textStepHtml("Model","เช่น FE-KA36-LHPAP","🔢","wiz-model",wizData.model);
+  else if(s===2) content.innerHTML=textStepHtml("Year","เช่น 2012, 2015, 2018","📅","wiz-year",wizData.year);
+  else if(s<TOTAL-1){
+    const pi = s-3;
+    content.innerHTML=photoStepHtml(PS[pi]);
+    bindDropZone(PS[pi].key);
+  }
+  else content.innerHTML=summaryHtml();
+
+  // tracker — flat single wrap row, all 12 steps visible
+  if(s>=3&&s<TOTAL-1){
+    document.getElementById("wiz-tracker").innerHTML=PS.map((p,i)=>{
+      const state=i+3<s?"done":i+3===s?"active":"upcoming";
+      const cnt=wizData.photos[p.key]?.length||0;
+      return `<div class="tracker-item ${state}">${p.icon} ${p.label}${cnt>0?` <span class="count-badge">${cnt}</span>`:""}</div>`;
+    }).join("");
+  } else document.getElementById("wiz-tracker").innerHTML="";
+}
+
+function textStepHtml(label,hint,icon,id,val){
+  return `<div style="width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;">
+    <div class="step-icon">${icon}</div>
+    <div class="step-title">${label}</div>
+    <div class="step-sub">${hint}</div>
+    <div style="width:100%;max-width:360px;margin-top:16px;">
+      <input id="${id}" type="text" value="${val}" placeholder="พิมพ์ ${label}..." autocomplete="off"
+        style="width:100%;padding:13px 18px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;transition:border .2s;text-align:center;"
+        onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"/>
+    </div>
+  </div>`;
+}
+
+function photoStepHtml(ps){
+  const photos = wizData.photos[ps.key]||[];
+  return `<div class="photo-section" style="width:100%;max-width:460px;">
+    <div class="step-icon">${ps.icon}</div>
+    <div class="step-title">${ps.label}</div>
+    <div class="step-sub">${ps.sub}<br><span style="color:var(--blue);font-size:12px;">📌 ถ่ายได้หลายรูป — กด + เพื่อเพิ่ม</span></div>
+    <div class="photo-grid" id="photo-grid-${ps.key}">
+      ${photos.map((ph,i)=>`
+        <div class="photo-thumb">
+          <img src="${ph.preview}"/>
+          <button class="del-btn" onclick="removePhoto('${ps.key}',${i})">✕</button>
+          <span class="img-num">รูปที่ ${i+1}</span>
+        </div>`).join("")}
+      <div class="add-photo-btn" id="drop-${ps.key}" onclick="triggerFileInput('${ps.key}')">
+        <span>📷</span>
+        <p>เพิ่มรูป<br/>${photos.length===0?"(คลิกหรือลาก)":"(เพิ่มอีก)"}</p>
+      </div>
+    </div>
+    <input type="file" id="file-input-${ps.key}" accept="image/*" multiple style="display:none" onchange="handleFiles(event,'${ps.key}')"/>
+    <input type="file" id="file-camera-${ps.key}" accept="image/*" capture="environment" style="display:none" onchange="handleFiles(event,'${ps.key}')"/>
+    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;">
+      <button class="btn btn-red btn-sm" onclick="triggerFileInput('${ps.key}')">📁 เลือกไฟล์</button>
+      <button class="btn btn-outline btn-sm" onclick="document.getElementById('file-camera-${ps.key}').click()">📷 ถ่ายรูป</button>
+    </div>
+  </div>`;
+}
+
+function bindDropZone(key){
+  const zone = document.getElementById("drop-"+key);
+  if(!zone) return;
+  zone.addEventListener("dragover",e=>{e.preventDefault();zone.classList.add("drag");});
+  zone.addEventListener("dragleave",()=>zone.classList.remove("drag"));
+  zone.addEventListener("drop",e=>{
+    e.preventDefault();zone.classList.remove("drag");
+    addFiles(key, Array.from(e.dataTransfer.files));
+  });
+}
+
+function triggerFileInput(key){
+  document.getElementById("file-input-"+key)?.click();
+}
+
+function handleFiles(event, key){
+  addFiles(key, Array.from(event.target.files));
+  event.target.value="";
+}
+
+function addFiles(key, files){
+  files.filter(f=>f.type.startsWith("image/")).forEach(f=>{
+    const url = URL.createObjectURL(f);
+    wizData.photos[key].push({file:f, preview:url, name:f.name});
+  });
+  renderWiz();
+}
+
+function removePhoto(key, idx){
+  wizData.photos[key].splice(idx,1);
+  renderWiz();
+}
+
+function summaryHtml(){
+  const folderName = getFolderName();
+  const totalPhotos = PS.reduce((a,p)=>a+(wizData.photos[p.key]?.length||0),0);
+  return `<div style="width:100%;">
+    <div style="text-align:center;margin-bottom:16px;">
+      <div style="width:60px;height:60px;border-radius:18px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:32px;">☁️</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--blue);letter-spacing:2px;">พร้อมอัปโหลด SharePoint!</div>
+    </div>
+    <div style="background:var(--white);border-radius:12px;padding:12px;border:1px solid var(--g200);margin-bottom:10px;">
+      ${[["Brand",wizData.brand],["Model",wizData.model],["Year",wizData.year]].map(([k,v])=>`
+        <div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v||"—"}</span></div>`).join("")}
+    </div>
+    <div style="background:var(--blue-bg);border-radius:10px;padding:10px 14px;border:1px solid var(--blue-light);margin-bottom:10px;font-size:12px;color:var(--blue);line-height:1.8;">
+      📁 <strong>${CFG.modelPath}/${folderName}/</strong><br>
+      📷 ${totalPhotos} รูป (ชื่อเปลี่ยนตามส่วน เช่น <em>${folderName}_MasterBoard_1.jpg</em>)<br>
+      📊 บันทึก Sheet ใหม่ใน <strong>${CFG.excelName}</strong>
+    </div>
+    <div class="photo-mini-grid">
+      ${PS.map(p=>{
+        const photos=wizData.photos[p.key]||[];
+        return `<div class="photo-mini ${photos.length>0?"has":""}">
+          ${photos.length>0
+            ?`<img class="photo-mini-img" src="${photos[0].preview}"/>`
+            :`<div class="photo-mini-empty">${p.icon}</div>`}
+          <p>${photos.length>0?"✓ ":""}${p.label}${photos.length>1?` (${photos.length})`:""}</p>
+        </div>`;
+      }).join("")}
+    </div>
+  </div>`;
+}
+
+function getFolderName(){
+  return [wizData.model, wizData.brand, wizData.year].filter(Boolean).join("_") || "Cabinet_"+Date.now();
+}
+
+function wizBack(){ if(wizStep>0){wizStep--; renderWiz();} }
+
+async function wizNext(){
+  if(wizStep===0) wizData.brand = document.getElementById("wiz-brand")?.value||wizData.brand;
+  if(wizStep===1) wizData.model = document.getElementById("wiz-model")?.value||wizData.model;
+  if(wizStep===2) wizData.year  = document.getElementById("wiz-year")?.value||wizData.year;
+  if(wizStep===TOTAL-1){ await doUpload(); return; }
+  wizStep++;
+  renderWiz();
+}
+
+// ═══════════════════ SHAREPOINT UPLOAD ═══════════════════
+async function doUpload(){
+  const ok = await ensureToken();
+  if(!ok) return;
+  showPage("uploading");
+
+  const folderName = getFolderName();
+  const allPhotos = PS.flatMap(p=>(wizData.photos[p.key]||[]).map((ph,i)=>({...ph, step:p, idx:i})));
+
+  const steps = [
+    {label:"🔐 เชื่อมต่อ SharePoint"},
+    {label:"📁 สร้างโฟลเดอร์: "+folderName},
+    ...allPhotos.map((ph,i)=>({label:`📷 ${ph.step.label} รูปที่ ${ph.idx+1}: ${getRenamedFile(folderName,ph.step.prefix,ph.idx,ph.name)}`})),
+    {label:"📊 อ่านไฟล์ Excel: "+CFG.excelName},
+    {label:"📝 เพิ่ม Sheet: "+wizData.model},
+    {label:"💾 บันทึก Excel กลับ SharePoint"},
+  ];
+
+  let done=0;
+  const setStatus=(idx,status)=>{
+    steps[idx].status=status;
+    const pct=Math.round((done/steps.length)*100);
+    document.getElementById("up-prog").style.width=pct+"%";
+    document.getElementById("up-prog-label").textContent=done+" / "+steps.length+" ขั้นตอน";
+    document.getElementById("up-steps").innerHTML=steps.map(s=>`
+      <div class="up-step">
+        <div class="up-icon ${s.status||"pending"}">${s.status==="done"?"✅":s.status==="loading"?"⏳":s.status==="error"?"❌":"⬜"}</div>
+        <span class="up-label ${s.status||"pending"}">${s.label}</span>
+      </div>`).join("");
+  };
+  steps.forEach((_,i)=>setStatus(i,"pending"));
+
+  try{
+    const H={Authorization:"Bearer "+accessToken};
+
+    // Step 0: Get site+drive
+    setStatus(0,"loading");
+    const siteRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});
+    if(!siteRes.ok) throw new Error("ไม่พบ Site SharePoint: "+await siteRes.text());
+    const siteId = (await siteRes.json()).id;
+    const drivesRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,{headers:H});
+    const drivesData = await drivesRes.json();
+    const drive = drivesData.value?.find(d=>d.name==="Documents")||drivesData.value?.[0];
+    if(!drive) throw new Error("ไม่พบ Document Library");
+    const driveId = drive.id;
+    setStatus(0,"done"); done++;
+
+    // Step 1: Create folder
+    setStatus(1,"loading");
+    const parentPath = CFG.modelPath;
+    const createRes = await fetch(
+      `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(parentPath)}:/children`,
+      {method:"POST",headers:{...H,"Content-Type":"application/json"},
+       body:JSON.stringify({name:folderName,folder:{},["@microsoft.graph.conflictBehavior"]:"rename"})}
+    );
+    if(!createRes.ok&&createRes.status!==409) throw new Error("สร้างโฟลเดอร์ไม่ได้: "+await createRes.text());
+    setStatus(1,"done"); done++;
+
+    // Upload photos
+    const savedPhotos={};
+    PS.forEach(p=>savedPhotos[p.key]=[]);
+
+    for(let i=0;i<allPhotos.length;i++){
+      const ph=allPhotos[i];
+      const stepIdx=i+2;
+      setStatus(stepIdx,"loading");
+      const newName = getRenamedFile(folderName, ph.step.prefix, ph.idx, ph.name);
+      const uploadPath=`${CFG.modelPath}/${folderName}/${newName}`;
+      const upRes = await fetch(
+        `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(uploadPath)}:/content`,
+        {method:"PUT",headers:{...H,"Content-Type":ph.file.type||"image/jpeg"},body:ph.file}
+      );
+      if(!upRes.ok) throw new Error(`อัปโหลด ${newName} ไม่ได้`);
+      savedPhotos[ph.step.key].push({preview:ph.preview, savedName:newName, name:ph.name});
+      setStatus(stepIdx,"done"); done++;
+    }
+
+    // Step: Read Excel
+    const excelStepBase = 2+allPhotos.length;
+    setStatus(excelStepBase,"loading");
+    let existingExcelBuf = null;
+    const excelSpPath = CFG.excelPath
+      ? `${CFG.excelPath}/${CFG.excelName}`
+      : `${CFG.modelPath.split("/").slice(0,-1).join("/")}/${CFG.excelName}`;
+    try{
+      const exRes = await fetch(
+        `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelSpPath)}:/content`,
+        {headers:H}
+      );
+      if(exRes.ok) existingExcelBuf=await exRes.arrayBuffer();
+    }catch{}
+    setStatus(excelStepBase,"done"); done++;
+
+    // Step: Add sheet
+    setStatus(excelStepBase+1,"loading");
+    let wb;
+    if(existingExcelBuf){
+      wb = XLSX.read(existingExcelBuf,{type:"array"});
+    } else {
+      wb = XLSX.utils.book_new();
+    }
+    const sheetName = (wizData.model||"Cabinet").substring(0,31);
+    const ws = buildSheet(folderName,wizData.brand,wizData.model,wizData.year,savedPhotos);
+    if(wb.SheetNames.includes(sheetName)) delete wb.Sheets[sheetName];
+    XLSX.utils.book_append_sheet(wb,ws,sheetName);
+    setStatus(excelStepBase+1,"done"); done++;
+
+    // Step: Upload Excel back
+    setStatus(excelStepBase+2,"loading");
+    const excelBuf = XLSX.write(wb,{bookType:"xlsx",type:"array"});
+    const excelBlob = new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
+    const exUpRes = await fetch(
+      `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelSpPath)}:/content`,
+      {method:"PUT",headers:{...H,"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},body:excelBlob}
+    );
+    if(!exUpRes.ok) throw new Error("อัปโหลด Excel ไม่ได้: "+await exUpRes.text());
+    setStatus(excelStepBase+2,"done"); done++;
+
+    // Save record locally
+    const newRecord={
+      id:Date.now(), brand:wizData.brand, model:wizData.model, year:wizData.year,
+      uploaded:true, folderName,
+      photos:savedPhotos,
+      date:new Date().toLocaleDateString("th-TH",{year:"numeric",month:"short",day:"numeric"}),
+    };
+    records.unshift(newRecord);
+    localStorage.setItem("cabinet_records",JSON.stringify(records));
+
+    document.getElementById("up-main-icon").textContent="✅";
+    document.getElementById("up-title").textContent="บันทึกสำเร็จ!";
+    document.getElementById("up-title").style.color="var(--green)";
+
+    const totalPhotos = PS.reduce((a,p)=>a+(savedPhotos[p.key]?.length||0),0);
+    document.getElementById("success-detail").innerHTML=
+      `📁 สร้างโฟลเดอร์ <strong>${folderName}</strong><br>`+
+      `📷 อัปโหลด <strong>${totalPhotos} รูป</strong> พร้อมชื่อไฟล์ใหม่<br>`+
+      `📊 เพิ่ม Sheet <strong>"${sheetName}"</strong> ใน ${CFG.excelName}`;
+
+    setTimeout(()=>showPage("success"),800);
+
+  }catch(e){
+    const el=document.getElementById("up-error");
+    el.style.display="block";
+    el.innerHTML=`<strong>❌ Error:</strong> ${e.message}<br><br><button class="btn btn-outline btn-sm" onclick="showPage('wizard');renderWiz()">← กลับแก้ไข</button>`;
+    document.getElementById("up-title").textContent="เกิดข้อผิดพลาด";
+    document.getElementById("up-title").style.color="var(--red)";
+  }
+}
+
+function getRenamedFile(folderName, prefix, idx, originalName){
+  const ext = originalName.split(".").pop()||"jpg";
+  return `${folderName}_${prefix}_${idx+1}.${ext}`;
+}
+
+function encPath(p){
+  return p.split("/").map(encodeURIComponent).join("/");
+}
+
+// ═══════════════════ BUILD EXCEL SHEET ═══════════════════
+// Layout เหมือน Template: Brand/Model/Year ด้านบน, ภาพจัดตาราง 3 คอลัมน์
+function buildSheet(folderName, brand, model, year, savedPhotos){
+  const ws={};
+  // Header info (matches CSV: Brand,Fuji,Nameplate,,Other nameplate,, << กลับ)
+  ws["B1"]={v:"Brand",t:"s"};   ws["C1"]={v:brand||"",t:"s"};
+  ws["D1"]={v:"Nameplate",t:"s"};
+  ws["F1"]={v:"Other nameplate",t:"s"};
+  ws["H1"]={v:"<< กลับไปที่ Index",t:"s"};
+  ws["B2"]={v:"Model",t:"s"};   ws["C2"]={v:model||"",t:"s"};
+  ws["B3"]={v:"Year",t:"s"};    ws["C3"]={v:year||"",t:"s"};
+
+  // Photo layout: 3 columns per row of sections (B,D,F)
+  // Row 1-3: header, rows 4-12: Nameplate+OtherNameplate photos
+  // Row 13: Outside,Button,Breaker | rows 14-21
+  // Row 22: DoorSide,MasterBox,BoardsInside | ...
+  // Row 29: InventorySide,MasterBoard,Compressor | ...
+
+  const layout=[
+    ["nameplate","other_nameplate"],          // row 4-12
+    ["outside","button","breaker"],           // row 13-21
+    ["door_side","master_box","boards_inside"],// row 22-29
+    ["inventory_side","master_board","compressor"], // row 30-37
+  ];
+
+  let row=4;
+  for(const group of layout){
+    const cols=["B","D","F"];
+    // Write section labels
+    group.forEach((key,ci)=>{
+      const p=PS.find(x=>x.key===key);
+      if(p&&cols[ci]) ws[`${cols[ci]}${row}`]={v:p.label,t:"s"};
+    });
+    row++;
+    // Write photo file references (rows +7)
+    for(let r2=0;r2<7;r2++){
+      group.forEach((key,ci)=>{
+        const photos=savedPhotos[key]||[];
+        if(photos.length>0&&cols[ci]&&r2===0){
+          const fileList=photos.map(ph=>ph.savedName).join(", ");
+          ws[`${cols[ci]}${row+r2}`]={v:fileList,t:"s"};
+        }
+      });
+    }
+    row+=7;
+  }
+
+  const lastRow=row;
+  ws["!ref"]=`A1:H${lastRow}`;
+  ws["!cols"]=[{wch:3},{wch:18},{wch:30},{wch:30},{wch:5},{wch:30},{wch:5},{wch:20}];
+  ws["!rows"]=[...Array(lastRow)].map(()=>({hpt:50}));
+
+  return ws;
+}
+</script>
+<!-- Custom Cancel Modal -->
+<div id="cancel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.2);">
+    <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--g800);letter-spacing:1px;margin-bottom:8px;">ออกจากการกรอกข้อมูล?</div>
+    <div style="font-size:13px;color:var(--g400);margin-bottom:22px;">ข้อมูลที่กรอกไปจะหายทั้งหมด</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="document.getElementById('cancel-modal').style.display='none'" class="btn btn-outline" style="flex:1;">กรอกต่อ</button>
+      <button onclick="confirmCancel()" class="btn btn-red" style="flex:1;">ออกเลย</button>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
