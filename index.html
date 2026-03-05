@@ -156,7 +156,6 @@ input{font-family:'DM Sans',sans-serif;}
       <span id="list-user-badge" style="display:none;font-size:12px;color:var(--green);background:var(--green-bg);padding:4px 10px;border-radius:20px;"></span>
       <button onclick="showPage('config')" class="btn btn-outline btn-sm">⚙️ ตั้งค่า</button>
       <button id="btn-list-logout" onclick="doLogout()" style="display:none;" class="btn btn-outline btn-sm">🚪</button>
-      <button id="btn-sync" onclick="syncFromSharePoint()" style="display:none;" class="btn btn-outline btn-sm">🔄 ซิงค์</button>
       <button onclick="startWizard()" class="btn btn-red">+ เพิ่มตู้</button>
     </div>
   </div>
@@ -356,7 +355,7 @@ function saveConfig(){
 // ═══════════════════ MSAL / AUTH ═══════════════════
 function getMsal(){
   if(!msalApp) msalApp = new msal.PublicClientApplication({
-    auth:{clientId:CFG.clientId, authority:"https://login.microsoftonline.com/"+CFG.tenantId, redirectUri:"http://localhost"},
+    auth:{clientId:CFG.clientId, authority:"https://login.microsoftonline.com/"+CFG.tenantId, redirectUri:"https://phalaphon-khamthaeng.github.io/Can-database-CDB2.0-/"},
     cache:{cacheLocation:"sessionStorage"},
   });
   return msalApp;
@@ -369,7 +368,6 @@ async function doLogin(fromWiz=false){
     accessToken = r.accessToken;
     currentUser = r.account.name || r.account.username;
     updateUserUI();
-    if(!fromWiz) syncFromSharePoint();
     return true;
   }catch(e){
     alert("❌ Login ไม่สำเร็จ: "+e.message);
@@ -389,104 +387,16 @@ function updateUserUI(){
   const lo = document.getElementById("btn-list-logout");
   const wb = document.getElementById("wiz-user-badge");
   const wl = document.getElementById("btn-wiz-login");
-  const bs = document.getElementById("btn-sync");
   if(currentUser){
     if(lb){lb.style.display="inline-flex";lb.textContent="☁️ "+currentUser;}
     if(lo) lo.style.display="flex";
     if(wb){wb.style.display="inline-flex";wb.textContent="☁️ "+currentUser;}
     if(wl) wl.style.display="none";
-    if(bs) bs.style.display="flex";
   }else{
     if(lb) lb.style.display="none";
     if(lo) lo.style.display="none";
     if(wb) wb.style.display="none";
     if(wl) wl.style.display="flex";
-    if(bs) bs.style.display="none";
-  }
-}
-
-// ═══════════════════ SYNC FROM SHAREPOINT ═══════════════════
-async function syncFromSharePoint(){
-  if(!accessToken){ alert("กรุณา Login ก่อนครับ"); return; }
-  const btn = document.getElementById("btn-sync");
-  if(btn){ btn.innerHTML="⏳ กำลังซิงค์..."; btn.disabled=true; }
-
-  try{
-    const H = {Authorization:"Bearer "+accessToken};
-
-    // Get site + drive
-    const siteRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});
-    if(!siteRes.ok) throw new Error("ไม่พบ Site: "+await siteRes.text());
-    const siteId = (await siteRes.json()).id;
-    const drivesRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,{headers:H});
-    const drivesData = await drivesRes.json();
-    const drive = drivesData.value?.find(d=>d.name==="Documents")||drivesData.value?.[0];
-    if(!drive) throw new Error("ไม่พบ Document Library");
-    const driveId = drive.id;
-
-    // Read Excel file
-    const excelPath = CFG.excelPath ? `${CFG.excelPath}/${CFG.excelName}` : `${CFG.modelPath.split("/").slice(0,-1).join("/")}/${CFG.excelName}`;
-    const exRes = await fetch(
-      `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelPath)}:/content`,
-      {headers:H}
-    );
-    if(!exRes.ok) throw new Error("ไม่พบไฟล์ Excel: "+CFG.excelName);
-    const buf = await exRes.arrayBuffer();
-    const wb = XLSX.read(buf, {type:"array"});
-
-    // Parse each sheet → record
-    const spRecords = [];
-    for(const sheetName of wb.SheetNames){
-      const ws = wb.Sheets[sheetName];
-      const brand = ws["C1"]?.v||"";
-      const model = ws["C2"]?.v||"";
-      const year  = String(ws["C3"]?.v||"");
-      if(!model && !brand) continue;
-
-      // Try get folder photos list
-      const folderName = [model,brand,year].filter(Boolean).join("_");
-      let photos = {};
-      PS.forEach(p=>photos[p.key]=[]);
-      try{
-        const folderRes = await fetch(
-          `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(CFG.modelPath+"/"+folderName)}:/children?$select=name,@microsoft.graph.downloadUrl`,
-          {headers:H}
-        );
-        if(folderRes.ok){
-          const folderData = await folderRes.json();
-          for(const f of (folderData.value||[])){
-            const lower = f.name.toLowerCase();
-            for(const p of PS){
-              if(lower.includes(p.prefix.toLowerCase())){
-                const dlUrl = f["@microsoft.graph.downloadUrl"];
-                if(dlUrl) photos[p.key].push({preview:dlUrl, savedName:f.name, name:f.name});
-                break;
-              }
-            }
-          }
-        }
-      }catch(e){}
-
-      spRecords.push({
-        id: "sp_"+sheetName,
-        brand, model, year,
-        uploaded: true,
-        folderName,
-        photos,
-        date: "SharePoint",
-        fromSP: true,
-      });
-    }
-
-    // Merge: SP records take priority, keep local-only records
-    const localOnly = records.filter(r=>!r.fromSP && !spRecords.find(s=>s.folderName===r.folderName));
-    records = [...spRecords, ...localOnly];
-    localStorage.setItem("cabinet_records", JSON.stringify(records));
-    renderList();
-    if(btn){ btn.innerHTML=`🔄 ซิงค์ (${spRecords.length} ตู้)`; btn.disabled=false; }
-  }catch(e){
-    if(btn){ btn.innerHTML="⚠️ ซิงค์ไม่ได้"; btn.disabled=false; }
-    alert("❌ ซิงค์ไม่ได้: "+e.message);
   }
 }
 
@@ -815,9 +725,7 @@ async function doUpload(){
     const excelStepBase = 2+allPhotos.length;
     setStatus(excelStepBase,"loading");
     let existingExcelBuf = null;
-    const excelSpPath = CFG.excelPath
-      ? `${CFG.excelPath}/${CFG.excelName}`
-      : `${CFG.modelPath.split("/").slice(0,-1).join("/")}/${CFG.excelName}`;
+    const excelSpPath=`${CFG.excelPath}/${CFG.excelName}`;
     try{
       const exRes = await fetch(
         `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelSpPath)}:/content`,
