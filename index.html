@@ -887,9 +887,9 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
   if(existing) wb.removeWorksheet(existing.id);
   const ws = wb.addWorksheet(sheetName);
 
-  const IMG_W = 160;
-  const IMG_H = 160;
-  const IMG_ROW_PT = 120; // row height in points for photo row
+  const IMG_W = 280;
+  const IMG_H = 280;
+  const IMG_ROW_PT = 210; // row height in points for photo row
   const COL_W = 23;
 
   // Set column widths (up to 15 columns)
@@ -898,15 +898,21 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
   let r = 1;
 
   // ── Info ──
-  const writeInfo = (row, label, val) => {
-    ws.getRow(row).height = 18;
-    ws.getCell(row,1).value = label;
-    ws.getCell(row,1).font = {bold:true};
-    ws.getCell(row,2).value = val||"-";
-  };
-  writeInfo(r++, "Brand", brand);
-  writeInfo(r++, "Model", model);
-  writeInfo(r++, "Year",  year);
+  const infoColors = ["FFD72B2B","FF1D4ED8","FF16A34A"]; // แดง, น้ำเงิน, เขียว
+  const infoRows = [["Brand",brand],["Model",model],["Year",year]];
+  for(let i=0;i<infoRows.length;i++){
+    ws.getRow(i+1).height = 28;
+    const labelCell = ws.getCell(i+1, 1);
+    const valCell   = ws.getCell(i+1, 2);
+    labelCell.value = infoRows[i][0];
+    labelCell.font  = {bold:true, size:13, color:{argb:"FFFFFFFF"}};
+    labelCell.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:infoColors[i]}};
+    labelCell.alignment = {vertical:"middle"};
+    valCell.value = infoRows[i][1]||"-";
+    valCell.font  = {bold:true, size:13};
+    valCell.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:"FFFFF5F5"}};
+    valCell.alignment = {vertical:"middle"};
+  }
   ws.getRow(r++).height = 8; // spacer
 
   // ── Photo sections ──
