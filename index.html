@@ -914,11 +914,11 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
     const photos = savedPhotos[p.key]||[];
 
     // Section label — เด่น มีสีเข้ม
-    ws.getRow(r).height = 26;
+    ws.getRow(r).height = 30;
     const secCell = ws.getCell(r,1);
-    secCell.value = `  ${p.icon}  ${p.label}`;
-    secCell.font = {bold:true, size:13, color:{argb:"FFFFFFFF"}};
-    secCell.fill = {type:"pattern",pattern:"solid",fgColor:{argb:"FF374151"}};
+    secCell.value = `  ${p.icon}  ${p.label.toUpperCase()}`;
+    secCell.font = {bold:true, size:15, color:{argb:"FFFFFFFF"}};
+    secCell.fill = {type:"pattern",pattern:"solid",fgColor:{argb:"FFD72B2B"}};
     secCell.alignment = {vertical:"middle"};
     r++;
 
