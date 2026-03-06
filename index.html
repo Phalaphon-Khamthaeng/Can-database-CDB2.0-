@@ -350,13 +350,14 @@ function clearData(){
 }
 
 function saveConfig(){
-  CFG.clientId = document.getElementById("cfg-client").value.trim();
-  CFG.tenantId = document.getElementById("cfg-tenant").value.trim();
+  CFG.clientId  = document.getElementById("cfg-client").value.trim();
+  CFG.tenantId  = document.getElementById("cfg-tenant").value.trim();
   CFG.spSite    = document.getElementById("cfg-site").value.trim();
   CFG.spSiteName= document.getElementById("cfg-site-name").value.trim();
   CFG.modelPath = document.getElementById("cfg-model-path").value.trim();
   CFG.excelName = document.getElementById("cfg-excel-name").value.trim();
-  CFG.excelPath = "";
+  // คำนวณ excelPath จาก modelPath อัตโนมัติ (ตัด /Model ออก)
+  CFG.excelPath = CFG.modelPath.split("/").slice(0,-1).join("/");
   localStorage.setItem("sp_config",JSON.stringify(CFG));
   msalApp=null;
   alert("✅ บันทึกสำเร็จ");
