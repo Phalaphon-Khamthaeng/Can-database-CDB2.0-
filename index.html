@@ -887,9 +887,9 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
   if(existing) wb.removeWorksheet(existing.id);
   const ws = wb.addWorksheet(sheetName);
 
-  const IMG_W = 280;
-  const IMG_H = 280;
-  const IMG_ROW_PT = 210; // row height in points for photo row
+  const IMG_W = 250;
+  const IMG_H = 250;
+  const IMG_ROW_PT = 250; // ต้องเท่ากับ IMG_H เสมอ
   const COL_W = 23;
 
   // Set column widths (up to 15 columns)
@@ -913,7 +913,8 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
     valCell.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:"FFFFF5F5"}};
     valCell.alignment = {vertical:"middle"};
   }
-  ws.getRow(r++).height = 8; // spacer
+  ws.getRow(4).height = 8; // spacer
+  r = 5; // sections start at row 5
 
   // ── Photo sections ──
   for(const p of PS){
