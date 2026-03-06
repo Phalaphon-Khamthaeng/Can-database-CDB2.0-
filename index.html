@@ -910,36 +910,33 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
 
   let r = 1;
 
-  // ── Brand color ──
-  function getBrandColor(b){
+  // ── Brand tab color ──
+  function getBrandTabColor(b){
     const bl = (b||"").toLowerCase();
-    if(bl.includes("national")||bl.includes("panasonic")) return {bg:"FFFDE68A", font:"FF78350F"}; // เหลือง
-    if(bl.includes("fuji"))    return {bg:"FFBFDBFE", font:"FF1E3A5F"}; // ฟ้า
-    if(bl.includes("sanden"))  return {bg:"FF1E3A5F", font:"FFFFFFFF"}; // น้ำเงินเข้ม
+    if(bl.includes("national")||bl.includes("panasonic")) return "FFFDE68A"; // เหลือง
+    if(bl.includes("fuji"))    return "FF93C5FD"; // ฟ้า
+    if(bl.includes("sanden"))  return "FF1E3A5F"; // น้ำเงินเข้ม
     return null;
   }
-
-  const brandColor = getBrandColor(brand);
+  const tabColor = getBrandTabColor(brand);
+  if(tabColor) ws.properties = { tabColor:{argb:tabColor} };
 
   // ── Info ──
-  const infoRows2 = [
-    ["Brand", brand],
-    ["Model", model],
-    ["Year",  year],
+  const infoData = [
+    ["Brand", brand,  "FFD72B2B"],
+    ["Model", model,  "FF1D4ED8"],
+    ["Year",  year,   "FF16A34A"],
   ];
-  const labelColors = ["FFD72B2B","FF374151","FF374151"];
-  for(let i=0;i<infoRows2.length;i++){
+  for(const [label, val, color] of infoData){
     ws.getRow(r).height = 28;
     const lc = ws.getCell(r, 1);
-    lc.value = infoRows2[i][0];
+    lc.value = label;
     lc.font  = {bold:true, size:13, color:{argb:"FFFFFFFF"}};
-    lc.fill  = {type:"pattern",pattern:"solid",fgColor:{argb: i===0 && brandColor ? brandColor.bg : labelColors[i]}};
+    lc.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:color}};
     lc.alignment = {vertical:"middle"};
-    if(i===0 && brandColor) lc.font = {bold:true, size:13, color:{argb:brandColor.font}};
     const vc = ws.getCell(r, 2);
-    vc.value = infoRows2[i][1]||"-";
-    vc.font  = {bold:true, size:13, color:{argb: i===0 && brandColor ? brandColor.font : "FF1F2937"}};
-    if(i===0 && brandColor) vc.fill = {type:"pattern",pattern:"solid",fgColor:{argb:brandColor.bg}};
+    vc.value = val||"-";
+    vc.font  = {bold:true, size:13};
     vc.alignment = {vertical:"middle"};
     r++;
   }
