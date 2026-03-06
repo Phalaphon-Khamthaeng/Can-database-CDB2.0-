@@ -888,13 +888,14 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
   if(existing) wb.removeWorksheet(existing.id);
   const ws = wb.addWorksheet(sheetName);
 
-  const IMG_W = 250;
-  const IMG_H = 250;
-  const IMG_ROW_PT = 250; // ต้องเท่ากับ IMG_H เสมอ
-  const COL_W = 23;
+  const IMG_W = 250; // px
+  const IMG_H = 250; // px
+  const IMG_ROW_PT = IMG_H * 0.75;  // px → pt
+  const IMG_COL_W  = IMG_W / 7;     // px → excel char width (approx 7px per char)
 
-  // Set column widths (up to 15 columns)
-  for(let c=1;c<=15;c++) ws.getColumn(c).width = COL_W;
+  // Set column widths to match image width (col 1 = label, rest = photo cols)
+  ws.getColumn(1).width = 20; // label column
+  for(let c=2;c<=16;c++) ws.getColumn(c).width = IMG_COL_W;
 
   let r = 1;
 
@@ -952,8 +953,9 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
           const b64 = await blobUrlToBase64(photos[i].preview);
           const imgId = wb.addImage({base64:b64, extension:ext==="jpg"?"jpeg":ext});
           ws.addImage(imgId,{
-            tl:{col:i, row:r-1},
-            ext:{width:IMG_W, height:IMG_H}
+            tl:{col:i,   row:r-1},
+            br:{col:i+1, row:r},
+            editAs:"oneCell"
           });
         }catch(e){}
       }
