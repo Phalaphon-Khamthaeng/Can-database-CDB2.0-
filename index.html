@@ -217,6 +217,7 @@ input{font-family:'DM Sans',sans-serif;}
           <input id="cfg-excel-name" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="Used_Can_250619.xlsx"/></div>
       </div>
       <button class="btn btn-red btn-full" style="margin-top:20px;" onclick="saveConfig()">💾 บันทึกการตั้งค่า</button>
+      <button class="btn btn-outline btn-full" style="margin-top:10px;border-color:#FECACA;color:#991B1B;" onclick="clearData()">🗑️ ล้างข้อมูลทั้งหมด (Local)</button>
     </div>
   </div>
 </div>
@@ -338,6 +339,15 @@ function showPage(name){
 }
 
 // ═══════════════════ CONFIG ═══════════════════
+function clearData(){
+  if(!confirm("⚠️ ล้างรายการตู้ทั้งหมดใน Browser นี้?\n\n(ไฟล์ใน SharePoint ไม่ถูกลบ)")) return;
+  localStorage.removeItem("cabinet_records");
+  records=[];
+  renderList();
+  alert("✅ ล้างข้อมูลเรียบร้อย");
+  showPage("list");
+}
+
 function saveConfig(){
   CFG.clientId = document.getElementById("cfg-client").value.trim();
   CFG.tenantId = document.getElementById("cfg-tenant").value.trim();
@@ -774,7 +784,7 @@ async function doUpload(){
     document.getElementById("success-detail").innerHTML=
       `📁 สร้างโฟลเดอร์ <strong>${folderName}</strong><br>`+
       `📷 อัปโหลด <strong>${totalPhotos} รูป</strong> พร้อมชื่อไฟล์ใหม่<br>`+
-      `📊 เพิ่ม Sheet <strong>"${sheetName}"</strong> ใน ${CFG.excelName}`;
+      `📊 เพิ่ม Sheet <strong>"${(wizData.model||"Cabinet").substring(0,31)}"</strong> ใน ${CFG.excelName}`;
 
     setTimeout(()=>showPage("success"),800);
 
