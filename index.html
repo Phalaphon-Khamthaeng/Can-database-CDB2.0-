@@ -960,10 +960,14 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
       }
       r++;
 
-      // Filename row
+      // Filename row — แต่ละชื่ออยู่ใต้รูปของมันเอง
       ws.getRow(r).height = 14;
-      ws.getCell(r,1).value = photos.map((ph,i)=>`${i+1}. ${ph.savedName}`).join("   ");
-      ws.getCell(r,1).font = {size:8, color:{argb:"FF6B7280"}};
+      for(let i=0;i<photos.length;i++){
+        const fnCell = ws.getCell(r, i+2); // col B = i+2 (1-indexed)
+        fnCell.value = `${i+1}. ${photos[i].savedName}`;
+        fnCell.font = {size:8, color:{argb:"FF6B7280"}};
+        fnCell.alignment = {wrapText:true, vertical:"top"};
+      }
       r++;
     }
 
