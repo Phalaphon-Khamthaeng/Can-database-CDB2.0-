@@ -952,9 +952,8 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
           const b64 = await blobUrlToBase64(photos[i].preview);
           const imgId = wb.addImage({base64:b64, extension:ext==="jpg"?"jpeg":ext});
           ws.addImage(imgId,{
-            tl:{col:i+1, row:r-1},   // +1 = เริ่มจาก col B
+            tl:{col:i+1, row:r-1},
             br:{col:i+2, row:r},
-            editAs:"oneCell"
           });
         }catch(e){}
       }
