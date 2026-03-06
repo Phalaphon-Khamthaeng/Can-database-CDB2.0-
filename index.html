@@ -887,131 +887,64 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
   if(existing) wb.removeWorksheet(existing.id);
   const ws = wb.addWorksheet(sheetName);
 
-  const IMG_W = 150;
-  const IMG_H = 150;
-  const IMG_PT = 113; // row height in points ≈ IMG_H px
-  const COL_W = 22;
-  const MAX_COLS = 10;
+  const IMG_W = 160;
+  const IMG_H = 160;
+  const IMG_ROW_PT = 120; // row height in points for photo row
+  const COL_W = 23;
 
-  // Set all columns width
-  for(let c=1;c<=MAX_COLS+1;c++) ws.getColumn(c).width = COL_W;
+  // Set column widths (up to 15 columns)
+  for(let c=1;c<=15;c++) ws.getColumn(c).width = COL_W;
 
-  // ── Styles ──
-  const headerStyle = {
-    font:{bold:true, size:12, color:{argb:"FFFFFFFF"}},
-    fill:{type:"pattern",pattern:"solid",fgColor:{argb:"FF1F2937"}},
-    alignment:{vertical:"middle",horizontal:"left"},
-    border:{
-      top:{style:"thin",color:{argb:"FF9CA3AF"}},
-      bottom:{style:"thin",color:{argb:"FF9CA3AF"}},
-    }
-  };
-  const infoLabelStyle = {
-    font:{bold:true,size:11,color:{argb:"FF4B5563"}},
-    fill:{type:"pattern",pattern:"solid",fgColor:{argb:"FFF3F4F6"}},
-    alignment:{vertical:"middle"},
-  };
-  const infoValStyle = {
-    font:{size:11,color:{argb:"FF1F2937"}},
-    alignment:{vertical:"middle"},
-  };
-  const sectionStyle = {
-    font:{bold:true,size:11,color:{argb:"FF1F2937"}},
-    fill:{type:"pattern",pattern:"solid",fgColor:{argb:"FFE5E7EB"}},
-    alignment:{vertical:"middle",horizontal:"left"},
-    border:{bottom:{style:"medium",color:{argb:"FFD72B2B"}}},
-  };
-  const filenameStyle = {
-    font:{size:8,italic:true,color:{argb:"FF9CA3AF"}},
-    alignment:{wrapText:true,vertical:"top"},
-  };
-  const emptyStyle = {
-    font:{italic:true,size:10,color:{argb:"FFBFBFBF"}},
-    alignment:{vertical:"middle",horizontal:"center"},
-    fill:{type:"pattern",pattern:"solid",fgColor:{argb:"FFFAFAFA"}},
-  };
+  let r = 1;
 
-  function applyStyle(cell, style){
-    if(style.font) cell.font = style.font;
-    if(style.fill) cell.fill = style.fill;
-    if(style.alignment) cell.alignment = style.alignment;
-    if(style.border) cell.border = style.border;
-  }
-
-  // ── Title Header ──
-  ws.getRow(1).height = 36;
-  ws.mergeCells(1,1,1,MAX_COLS);
-  const titleCell = ws.getCell(1,1);
-  titleCell.value = `🗂️  ${model||"Cabinet"}  —  ${brand||""}  (${year||""})`;
-  titleCell.font = {bold:true,size:14,color:{argb:"FFFFFFFF"}};
-  titleCell.fill = {type:"pattern",pattern:"solid",fgColor:{argb:"FFD72B2B"}};
-  titleCell.alignment = {vertical:"middle",horizontal:"center"};
-
-  // ── Info rows ──
-  const infoRows = [["Brand",brand],["Model",model],["Year",year]];
-  for(let i=0;i<infoRows.length;i++){
-    const r = i+2;
-    ws.getRow(r).height = 22;
-    ws.getCell(r,1).value = infoRows[i][0];
-    applyStyle(ws.getCell(r,1), infoLabelStyle);
-    ws.mergeCells(r,2,r,MAX_COLS);
-    ws.getCell(r,2).value = infoRows[i][1]||"";
-    applyStyle(ws.getCell(r,2), infoValStyle);
-  }
-
-  // blank spacer
-  ws.getRow(5).height = 8;
-  let currentRow = 6;
+  // ── Info ──
+  const writeInfo = (row, label, val) => {
+    ws.getRow(row).height = 18;
+    ws.getCell(row,1).value = label;
+    ws.getCell(row,1).font = {bold:true};
+    ws.getCell(row,2).value = val||"-";
+  };
+  writeInfo(r++, "Brand", brand);
+  writeInfo(r++, "Model", model);
+  writeInfo(r++, "Year",  year);
+  ws.getRow(r++).height = 8; // spacer
 
   // ── Photo sections ──
   for(const p of PS){
     const photos = savedPhotos[p.key]||[];
+    if(!photos.length) continue; // ข้ามส่วนที่ไม่มีรูป
 
-    // Section label row
-    ws.getRow(currentRow).height = 24;
-    ws.mergeCells(currentRow,1,currentRow,MAX_COLS);
-    const secCell = ws.getCell(currentRow,1);
-    secCell.value = `  ${p.icon}  ${p.label.toUpperCase()}`;
-    applyStyle(secCell, sectionStyle);
-    currentRow++;
+    // Section label
+    ws.getRow(r).height = 20;
+    ws.getCell(r,1).value = `${p.icon} ${p.label}`;
+    ws.getCell(r,1).font = {bold:true, size:11};
+    ws.getCell(r,1).fill = {type:"pattern",pattern:"solid",fgColor:{argb:"FFE5E7EB"}};
+    r++;
 
-    if(photos.length === 0){
-      // Empty placeholder row
-      ws.getRow(currentRow).height = 40;
-      ws.mergeCells(currentRow,1,currentRow,MAX_COLS);
-      const emptyCell = ws.getCell(currentRow,1);
-      emptyCell.value = "(ไม่มีรูป)";
-      applyStyle(emptyCell, emptyStyle);
-      currentRow++;
-    } else {
-      // Photo row — fixed height
-      ws.getRow(currentRow).height = IMG_PT;
-      for(let i=0;i<photos.length;i++){
-        if(!photos[i].preview) continue;
-        try{
-          const ext=(photos[i].name||"jpg").split(".").pop().toLowerCase();
-          const b64=await blobUrlToBase64(photos[i].preview);
-          const imgId=wb.addImage({base64:b64,extension:ext==="jpg"?"jpeg":ext});
-          ws.addImage(imgId,{
-            tl:{col:i, row:currentRow-1},
-            ext:{width:IMG_W, height:IMG_H}
-          });
-        }catch(e){}
-      }
-      currentRow++;
-
-      // Filename row
-      ws.getRow(currentRow).height = 28;
-      ws.mergeCells(currentRow,1,currentRow,MAX_COLS);
-      const fnCell = ws.getCell(currentRow,1);
-      fnCell.value = photos.map((ph,i)=>`${i+1}. ${ph.savedName}`).join("   ");
-      applyStyle(fnCell, filenameStyle);
-      currentRow++;
+    // Photo row
+    ws.getRow(r).height = IMG_ROW_PT;
+    for(let i=0;i<photos.length;i++){
+      if(!photos[i].preview) continue;
+      try{
+        const ext = (photos[i].name||"jpg").split(".").pop().toLowerCase();
+        const b64 = await blobUrlToBase64(photos[i].preview);
+        const imgId = wb.addImage({base64:b64, extension:ext==="jpg"?"jpeg":ext});
+        ws.addImage(imgId,{
+          tl:{col:i, row:r-1},
+          ext:{width:IMG_W, height:IMG_H}
+        });
+      }catch(e){}
     }
+    r++;
 
-    // spacer between sections
-    ws.getRow(currentRow).height = 6;
-    currentRow++;
+    // Filename row
+    ws.getRow(r).height = 14;
+    ws.getCell(r,1).value = photos.map((ph,i)=>`${i+1}. ${ph.savedName}`).join("   ");
+    ws.getCell(r,1).font = {size:8, color:{argb:"FF6B7280"}};
+    r++;
+
+    // Spacer
+    ws.getRow(r++).height = 6;
   }
 }
 </script>
