@@ -599,12 +599,19 @@ function renderWiz(){
 }
 
 function textStepHtml(label,hint,icon,id,val){
+  const isBrand = id==="wiz-brand";
   return `<div style="width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;">
     <div class="step-icon">${icon}</div>
     <div class="step-title">${label}</div>
     <div class="step-sub">${hint}</div>
-    <div style="width:100%;max-width:360px;margin-top:16px;">
-      <input id="${id}" type="text" value="${val}" placeholder="พิมพ์ ${label}..." autocomplete="off"
+    ${isBrand?`
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0;">
+      <button onclick="setBrand('National')" class="btn btn-sm" style="background:#FDE68A;color:#78350F;border:2px solid #F59E0B;">🟡 National / Panasonic</button>
+      <button onclick="setBrand('Fuji')"     class="btn btn-sm" style="background:#BFDBFE;color:#1E3A5F;border:2px solid #3B82F6;">🔵 Fuji</button>
+      <button onclick="setBrand('Sanden')"   class="btn btn-sm" style="background:#1E3A5F;color:#fff;border:2px solid #1E3A5F;">🔷 Sanden</button>
+    </div>`:""}
+    <div style="width:100%;max-width:360px;margin-top:${isBrand?4:16}px;">
+      <input id="${id}" type="text" value="${val}" placeholder="${isBrand?"หรือพิมพ์เอง...":"พิมพ์ "+label+"..."}" autocomplete="off"
         style="width:100%;padding:13px 18px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;transition:border .2s;text-align:center;"
         onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"/>
     </div>
@@ -704,6 +711,11 @@ function summaryHtml(){
 
 function getFolderName(){
   return [wizData.model, wizData.brand, wizData.year].filter(Boolean).join("_") || "Cabinet_"+Date.now();
+}
+
+function setBrand(name){
+  wizData.brand = name;
+  document.getElementById("wiz-brand").value = name;
 }
 
 function wizBack(){ if(wizStep>0){wizStep--; renderWiz();} }
@@ -898,22 +910,36 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
 
   let r = 1;
 
+  // ── Brand color ──
+  function getBrandColor(b){
+    const bl = (b||"").toLowerCase();
+    if(bl.includes("national")||bl.includes("panasonic")) return {bg:"FFFDE68A", font:"FF78350F"}; // เหลือง
+    if(bl.includes("fuji"))    return {bg:"FFBFDBFE", font:"FF1E3A5F"}; // ฟ้า
+    if(bl.includes("sanden"))  return {bg:"FF1E3A5F", font:"FFFFFFFF"}; // น้ำเงินเข้ม
+    return null;
+  }
+
+  const brandColor = getBrandColor(brand);
+
   // ── Info ──
-  const infoData = [
-    ["Brand", brand,  "FFD72B2B"],
-    ["Model", model,  "FF1D4ED8"],
-    ["Year",  year,   "FF16A34A"],
+  const infoRows2 = [
+    ["Brand", brand],
+    ["Model", model],
+    ["Year",  year],
   ];
-  for(const [label, val, color] of infoData){
+  const labelColors = ["FFD72B2B","FF374151","FF374151"];
+  for(let i=0;i<infoRows2.length;i++){
     ws.getRow(r).height = 28;
     const lc = ws.getCell(r, 1);
-    lc.value = label;
+    lc.value = infoRows2[i][0];
     lc.font  = {bold:true, size:13, color:{argb:"FFFFFFFF"}};
-    lc.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:color}};
+    lc.fill  = {type:"pattern",pattern:"solid",fgColor:{argb: i===0 && brandColor ? brandColor.bg : labelColors[i]}};
     lc.alignment = {vertical:"middle"};
+    if(i===0 && brandColor) lc.font = {bold:true, size:13, color:{argb:brandColor.font}};
     const vc = ws.getCell(r, 2);
-    vc.value = val||"-";
-    vc.font  = {bold:true, size:13};
+    vc.value = infoRows2[i][1]||"-";
+    vc.font  = {bold:true, size:13, color:{argb: i===0 && brandColor ? brandColor.font : "FF1F2937"}};
+    if(i===0 && brandColor) vc.fill = {type:"pattern",pattern:"solid",fgColor:{argb:brandColor.bg}};
     vc.alignment = {vertical:"middle"};
     r++;
   }
