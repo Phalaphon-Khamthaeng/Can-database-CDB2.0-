@@ -209,10 +209,10 @@ input{font-family:'DM Sans',sans-serif;}
           <input id="cfg-site" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="sun108.sharepoint.com"/></div>
         <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">SharePoint Site Name</label>
           <div style="font-size:11px;color:var(--g400);margin-bottom:5px;">ชื่อที่เห็นใน URL: sharepoint.com/sites/<strong>CanDataBase</strong></div>
-          <input id="cfg-site-name" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="CanDataBase"/></div>
+          <input id="cfg-site-name" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="ITRDmanagement"/></div>
         <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">Path โฟลเดอร์ Model (ใน Documents)</label>
           <div style="font-size:11px;color:var(--g400);margin-bottom:5px;">ถ้าสร้างโฟลเดอร์ Model ไว้ใน Documents ตรงๆ ใส่แค่ Model</div>
-          <input id="cfg-model-path" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="Model"/></div>
+          <input id="cfg-model-path" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="RD/Knowledge/Used Can Database/CDB(Web app)/Model"/></div>
         <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">ชื่อไฟล์ Excel หลัก</label>
           <input id="cfg-excel-name" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="Used_Can_250619.xlsx"/></div>
       </div>
@@ -289,10 +289,10 @@ let CFG = {
   clientId:"bfb978c2-2df7-4598-8b29-63df63f724cc",
   tenantId:"34f5f15c-d8ec-4aaa-8240-5b8a5cd8fbb1",
   spSite:"sun108.sharepoint.com",
-  spSiteName:"CanDataBase",
-  modelPath:"Model",
+  spSiteName:"ITRDmanagement",
+  modelPath:"RD/Knowledge/Used Can Database/CDB(Web app)/Model",
   excelName:"Used_Can_250619.xlsx",
-  excelPath:"",
+  excelPath:"RD/Knowledge/Used Can Database/CDB(Web app)",
 };
 
 // ═══════════════════ PHOTO STEPS ═══════════════════
@@ -725,7 +725,9 @@ async function doUpload(){
     const excelStepBase = 2+allPhotos.length;
     setStatus(excelStepBase,"loading");
     let existingExcelBuf = null;
-    const excelSpPath=`${CFG.excelPath}/${CFG.excelName}`;
+    const excelSpPath = CFG.excelPath
+      ? `${CFG.excelPath}/${CFG.excelName}`
+      : `${CFG.modelPath.split("/").slice(0,-1).join("/")}/${CFG.excelName}`;
     try{
       const exRes = await fetch(
         `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelSpPath)}:/content`,
