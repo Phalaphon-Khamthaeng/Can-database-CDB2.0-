@@ -809,83 +809,115 @@ async function blobUrlToBase64(url){
 }
 
 // ═══════════════════ BUILD EXCEL SHEET (ExcelJS + ฝังรูป) ═══════════════════
+// Layout ตาม Template CSV:
+// Row1: Brand|val|Nameplate||Other nameplate||<< กลับ
+// Row2: Model|val
+// Row3: Year|val
+// Rows4-12: รูป col C (Nameplate), col E (Other nameplate)
+// Row13: |Outside||Button||Breaker
+// Rows14-22: รูป col B,D,F
+// Row23: |Door side||Master box & Remote||Boards inside power box
+// Rows24-32: รูป col B,D,F
+// Row33: |Inventory side||Master Board||Compressor
+// Rows34-42: รูป col B,D,F
+
 async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos){
   const sheetName = (model||"Cabinet").substring(0,31);
-
-  // Remove existing sheet
   const existing = wb.getWorksheet(sheetName);
   if(existing) wb.removeWorksheet(existing.id);
-
   const ws = wb.addWorksheet(sheetName);
 
-  // Column widths
-  ws.getColumn(1).width=3;
-  ws.getColumn(2).width=22;
-  ws.getColumn(3).width=5;
-  ws.getColumn(4).width=22;
-  ws.getColumn(5).width=5;
-  ws.getColumn(6).width=22;
-  ws.getColumn(7).width=5;
-  ws.getColumn(8).width=20;
+  // Column widths (A=1..G=7)
+  ws.getColumn(1).width=12; // A — labels
+  ws.getColumn(2).width=22; // B
+  ws.getColumn(3).width=2;  // C spacer for group1 / label col
+  ws.getColumn(4).width=22; // D / nameplate photo col (C in template = col3? No...)
+  ws.getColumn(5).width=2;  // E spacer
+  ws.getColumn(6).width=22; // F
+  ws.getColumn(7).width=2;  // G spacer
+  ws.getColumn(8).width=18; // H
 
-  // Header rows
-  ws.getRow(1).height=22;
-  ws.getRow(2).height=22;
-  ws.getRow(3).height=22;
+  // ── Header rows ──
+  ws.getRow(1).height=22; ws.getRow(2).height=22; ws.getRow(3).height=22;
 
-  ws.getCell("B1").value="Brand";    ws.getCell("C1").value=brand||"";
-  ws.getCell("D1").value="Nameplate";
-  ws.getCell("F1").value="Other nameplate";
-  ws.getCell("H1").value="<< กลับไปที่ Index";
-  ws.getCell("B2").value="Model";    ws.getCell("C2").value=model||"";
-  ws.getCell("B3").value="Year";     ws.getCell("C3").value=year||"";
+  // Row 1: Brand, val, Nameplate, , Other nameplate, , << กลับ
+  ws.getCell(1,1).value="Brand";
+  ws.getCell(1,2).value=brand||"";
+  ws.getCell(1,3).value="Nameplate";
+  ws.getCell(1,5).value="Other nameplate";
+  ws.getCell(1,8).value="<< กลับไปที่ Index";
+  ws.getCell(2,1).value="Model";  ws.getCell(2,2).value=model||"";
+  ws.getCell(3,1).value="Year";   ws.getCell(3,2).value=year||"";
 
-  const layout=[
-    ["nameplate","other_nameplate"],
-    ["outside","button","breaker"],
-    ["door_side","master_box","boards_inside"],
-    ["inventory_side","master_board","compressor"],
-  ];
+  const IMG_ROWS=9;  // rows per photo section
+  const IMG_W=180, IMG_H=160;
 
-  const IMG_W=180, IMG_H=160, IMG_ROWS=9;
-  // col positions (0-based for ExcelJS tl.col)
-  const colIdx=[1,3,5]; // B=1,D=3,F=5
-
-  let rowNum=4;
-  for(const group of layout){
-    // Label row
-    ws.getRow(rowNum).height=18;
-    group.forEach((key,ci)=>{
-      const p=PS.find(x=>x.key===key);
-      if(p) ws.getCell(rowNum, colIdx[ci]+1).value=p.label;
-    });
-    rowNum++;
-
-    // Image rows — set height
-    for(let r=0;r<IMG_ROWS;r++) ws.getRow(rowNum+r).height=r===IMG_ROWS-1?16:IMG_H/IMG_ROWS*7.5;
-
-    // Embed images
-    for(let ci=0;ci<group.length;ci++){
-      const key=group[ci];
-      const photos=savedPhotos[key]||[];
-      if(photos.length>0 && photos[0].preview){
-        try{
-          const ext=(photos[0].name||"jpg").split(".").pop().toLowerCase()||"jpeg";
-          const b64=await blobUrlToBase64(photos[0].preview);
-          const imgId=wb.addImage({base64:b64, extension:ext==="jpg"?"jpeg":ext});
-          ws.addImage(imgId,{
-            tl:{col:colIdx[ci], row:rowNum-1},
-            ext:{width:IMG_W, height:IMG_H},
-          });
-        }catch(e){}
-        // Filename in last row of group
-        ws.getCell(rowNum+IMG_ROWS-1, colIdx[ci]+1).value=
-          photos.map(ph=>ph.savedName).join(", ");
-      }
+  // Helper: embed ALL images in a section, tiled horizontally
+  async function embedImg(key, tlCol, tlRow){
+    const photos=savedPhotos[key]||[];
+    if(!photos.length) return;
+    const tileW=Math.min(180, Math.floor(500/photos.length));
+    for(let i=0;i<photos.length;i++){
+      if(!photos[i].preview) continue;
+      try{
+        const ext=(photos[i].name||"jpg").split(".").pop().toLowerCase();
+        const b64=await blobUrlToBase64(photos[i].preview);
+        const imgId=wb.addImage({base64:b64,extension:ext==="jpg"?"jpeg":ext});
+        ws.addImage(imgId,{
+          tl:{col:tlCol+(i*(tileW/80)), row:tlRow},
+          ext:{width:tileW, height:IMG_H}
+        });
+      }catch(e){}
     }
-
-    rowNum+=IMG_ROWS;
+    // filename text in last row of section
+    ws.getCell(tlRow+IMG_ROWS+1, tlCol+1).value=photos.map(p=>p.savedName).join(", ");
   }
+
+  // Set row heights for a photo block starting at rowNum (1-based)
+  function setPhotoRowHeights(rowNum){
+    for(let r=0;r<IMG_ROWS;r++) ws.getRow(rowNum+r).height=r===IMG_ROWS-1?14:IMG_H/8;
+  }
+
+  // ── Group 1: Nameplate (col C=3) & Other Nameplate (col E=5) ──
+  // Photos start at row 4, span IMG_ROWS rows
+  // tl.col is 0-based: C=2, E=4
+  setPhotoRowHeights(4);
+  await embedImg("nameplate",    2, 3); // col C(0-based=2), row 4(0-based=3)
+  await embedImg("other_nameplate", 4, 3); // col E(0-based=4)
+
+  // ── Group 2: Outside/Button/Breaker, label row 13 ──
+  let labelRow = 4+IMG_ROWS; // =13
+  ws.getRow(labelRow).height=16;
+  ws.getCell(labelRow,2).value="Outside";
+  ws.getCell(labelRow,4).value="Button";
+  ws.getCell(labelRow,6).value="Breaker";
+  setPhotoRowHeights(labelRow+1);
+  // tl.col 0-based: B=1,D=3,F=5; tl.row 0-based = labelRow (since rows are 1-based, tl.row=labelRow)
+  await embedImg("outside", 1, labelRow);
+  await embedImg("button",  3, labelRow);
+  await embedImg("breaker", 5, labelRow);
+
+  // ── Group 3: Door side / Master box / Boards inside ──
+  labelRow = labelRow+1+IMG_ROWS; // =23
+  ws.getRow(labelRow).height=16;
+  ws.getCell(labelRow,2).value="Door side";
+  ws.getCell(labelRow,4).value="Master box & Remote";
+  ws.getCell(labelRow,6).value="Boards inside power box";
+  setPhotoRowHeights(labelRow+1);
+  await embedImg("door_side",    1, labelRow);
+  await embedImg("master_box",   3, labelRow);
+  await embedImg("boards_inside",5, labelRow);
+
+  // ── Group 4: Inventory side / Master Board / Compressor ──
+  labelRow = labelRow+1+IMG_ROWS; // =33
+  ws.getRow(labelRow).height=16;
+  ws.getCell(labelRow,2).value="Inventory side";
+  ws.getCell(labelRow,4).value="Master Board";
+  ws.getCell(labelRow,6).value="Compressor";
+  setPhotoRowHeights(labelRow+1);
+  await embedImg("inventory_side",1, labelRow);
+  await embedImg("master_board",  3, labelRow);
+  await embedImg("compressor",    5, labelRow);
 }
 </script>
 <!-- Custom Cancel Modal -->
