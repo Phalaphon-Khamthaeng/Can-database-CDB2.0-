@@ -862,25 +862,27 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
   const IMG_ROWS=9;  // rows per photo section
   const IMG_W=180, IMG_H=160;
 
-  // Helper: embed ALL images in a section, tiled horizontally
+  // Helper: embed ALL images in a section, stacked vertically
   async function embedImg(key, tlCol, tlRow){
     const photos=savedPhotos[key]||[];
     if(!photos.length) return;
-    const tileW=Math.min(180, Math.floor(500/photos.length));
+    const perH = Math.floor((IMG_H * IMG_ROWS) / photos.length); // share height equally
     for(let i=0;i<photos.length;i++){
       if(!photos[i].preview) continue;
       try{
         const ext=(photos[i].name||"jpg").split(".").pop().toLowerCase();
         const b64=await blobUrlToBase64(photos[i].preview);
         const imgId=wb.addImage({base64:b64,extension:ext==="jpg"?"jpeg":ext});
+        // stack vertically: each image offset by (i * perH / rowHeightPx)
+        const rowOffset = i * (IMG_ROWS / photos.length);
         ws.addImage(imgId,{
-          tl:{col:tlCol+(i*(tileW/80)), row:tlRow},
-          ext:{width:tileW, height:IMG_H}
+          tl:{col:tlCol, row:tlRow + rowOffset},
+          ext:{width:IMG_W, height:perH}
         });
       }catch(e){}
     }
-    // filename text in last row of section
-    ws.getCell(tlRow+IMG_ROWS+1, tlCol+1).value=photos.map(p=>p.savedName).join(", ");
+    // filename text below images
+    ws.getCell(tlRow + IMG_ROWS + 1, tlCol + 1).value = photos.map(p=>p.savedName).join(", ");
   }
 
   // Set row heights for a photo block starting at rowNum (1-based)
