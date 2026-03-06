@@ -912,36 +912,46 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
   // ── Photo sections ──
   for(const p of PS){
     const photos = savedPhotos[p.key]||[];
-    if(!photos.length) continue; // ข้ามส่วนที่ไม่มีรูป
 
-    // Section label
-    ws.getRow(r).height = 20;
-    ws.getCell(r,1).value = `${p.icon} ${p.label}`;
-    ws.getCell(r,1).font = {bold:true, size:11};
-    ws.getCell(r,1).fill = {type:"pattern",pattern:"solid",fgColor:{argb:"FFE5E7EB"}};
+    // Section label — เด่น มีสีเข้ม
+    ws.getRow(r).height = 26;
+    const secCell = ws.getCell(r,1);
+    secCell.value = `  ${p.icon}  ${p.label}`;
+    secCell.font = {bold:true, size:13, color:{argb:"FFFFFFFF"}};
+    secCell.fill = {type:"pattern",pattern:"solid",fgColor:{argb:"FF374151"}};
+    secCell.alignment = {vertical:"middle"};
     r++;
 
-    // Photo row
-    ws.getRow(r).height = IMG_ROW_PT;
-    for(let i=0;i<photos.length;i++){
-      if(!photos[i].preview) continue;
-      try{
-        const ext = (photos[i].name||"jpg").split(".").pop().toLowerCase();
-        const b64 = await blobUrlToBase64(photos[i].preview);
-        const imgId = wb.addImage({base64:b64, extension:ext==="jpg"?"jpeg":ext});
-        ws.addImage(imgId,{
-          tl:{col:i, row:r-1},
-          ext:{width:IMG_W, height:IMG_H}
-        });
-      }catch(e){}
+    if(!photos.length){
+      // ไม่มีรูป — แสดง placeholder
+      ws.getRow(r).height = 30;
+      ws.getCell(r,1).value = "(ไม่มีรูป)";
+      ws.getCell(r,1).font = {italic:true, size:10, color:{argb:"FF9CA3AF"}};
+      ws.getCell(r,1).alignment = {vertical:"middle"};
+      r++;
+    } else {
+      // Photo row
+      ws.getRow(r).height = IMG_ROW_PT;
+      for(let i=0;i<photos.length;i++){
+        if(!photos[i].preview) continue;
+        try{
+          const ext = (photos[i].name||"jpg").split(".").pop().toLowerCase();
+          const b64 = await blobUrlToBase64(photos[i].preview);
+          const imgId = wb.addImage({base64:b64, extension:ext==="jpg"?"jpeg":ext});
+          ws.addImage(imgId,{
+            tl:{col:i, row:r-1},
+            ext:{width:IMG_W, height:IMG_H}
+          });
+        }catch(e){}
+      }
+      r++;
+
+      // Filename row
+      ws.getRow(r).height = 14;
+      ws.getCell(r,1).value = photos.map((ph,i)=>`${i+1}. ${ph.savedName}`).join("   ");
+      ws.getCell(r,1).font = {size:8, color:{argb:"FF6B7280"}};
+      r++;
     }
-    r++;
-
-    // Filename row
-    ws.getRow(r).height = 14;
-    ws.getCell(r,1).value = photos.map((ph,i)=>`${i+1}. ${ph.savedName}`).join("   ");
-    ws.getCell(r,1).font = {size:8, color:{argb:"FF6B7280"}};
-    r++;
 
     // Spacer
     ws.getRow(r++).height = 6;
