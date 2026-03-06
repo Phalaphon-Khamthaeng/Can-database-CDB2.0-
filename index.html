@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>SUN VENDING — Cabinet Database</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -724,7 +724,7 @@ async function doUpload(){
     // Step: Read Excel
     const excelStepBase = 2+allPhotos.length;
     setStatus(excelStepBase,"loading");
-    let existingExcelBuf = null;
+    let wb = new ExcelJS.Workbook();
     const excelSpPath = CFG.excelPath
       ? `${CFG.excelPath}/${CFG.excelName}`
       : `${CFG.modelPath.split("/").slice(0,-1).join("/")}/${CFG.excelName}`;
@@ -733,27 +733,21 @@ async function doUpload(){
         `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelSpPath)}:/content`,
         {headers:H}
       );
-      if(exRes.ok) existingExcelBuf=await exRes.arrayBuffer();
+      if(exRes.ok){
+        const buf = await exRes.arrayBuffer();
+        await wb.xlsx.load(buf);
+      }
     }catch{}
     setStatus(excelStepBase,"done"); done++;
 
-    // Step: Add sheet
+    // Step: Add sheet with embedded images
     setStatus(excelStepBase+1,"loading");
-    let wb;
-    if(existingExcelBuf){
-      wb = XLSX.read(existingExcelBuf,{type:"array"});
-    } else {
-      wb = XLSX.utils.book_new();
-    }
-    const sheetName = (wizData.model||"Cabinet").substring(0,31);
-    const ws = buildSheet(folderName,wizData.brand,wizData.model,wizData.year,savedPhotos);
-    if(wb.SheetNames.includes(sheetName)) delete wb.Sheets[sheetName];
-    XLSX.utils.book_append_sheet(wb,ws,sheetName);
+    await buildSheetExcelJS(wb, folderName, wizData.brand, wizData.model, wizData.year, savedPhotos);
     setStatus(excelStepBase+1,"done"); done++;
 
     // Step: Upload Excel back
     setStatus(excelStepBase+2,"loading");
-    const excelBuf = XLSX.write(wb,{bookType:"xlsx",type:"array"});
+    const excelBuf = await wb.xlsx.writeBuffer();
     const excelBlob = new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
     const exUpRes = await fetch(
       `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelSpPath)}:/content`,
@@ -802,59 +796,96 @@ function encPath(p){
   return p.split("/").map(encodeURIComponent).join("/");
 }
 
-// ═══════════════════ BUILD EXCEL SHEET ═══════════════════
-// Layout เหมือน Template: Brand/Model/Year ด้านบน, ภาพจัดตาราง 3 คอลัมน์
-function buildSheet(folderName, brand, model, year, savedPhotos){
-  const ws={};
-  // Header info (matches CSV: Brand,Fuji,Nameplate,,Other nameplate,, << กลับ)
-  ws["B1"]={v:"Brand",t:"s"};   ws["C1"]={v:brand||"",t:"s"};
-  ws["D1"]={v:"Nameplate",t:"s"};
-  ws["F1"]={v:"Other nameplate",t:"s"};
-  ws["H1"]={v:"<< กลับไปที่ Index",t:"s"};
-  ws["B2"]={v:"Model",t:"s"};   ws["C2"]={v:model||"",t:"s"};
-  ws["B3"]={v:"Year",t:"s"};    ws["C3"]={v:year||"",t:"s"};
+// ═══════════════════ BLOB → BASE64 ═══════════════════
+async function blobUrlToBase64(url){
+  const res = await fetch(url);
+  const blob = await res.blob();
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onloadend = ()=> resolve(r.result.split(",")[1]);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
+}
 
-  // Photo layout: 3 columns per row of sections (B,D,F)
-  // Row 1-3: header, rows 4-12: Nameplate+OtherNameplate photos
-  // Row 13: Outside,Button,Breaker | rows 14-21
-  // Row 22: DoorSide,MasterBox,BoardsInside | ...
-  // Row 29: InventorySide,MasterBoard,Compressor | ...
+// ═══════════════════ BUILD EXCEL SHEET (ExcelJS + ฝังรูป) ═══════════════════
+async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos){
+  const sheetName = (model||"Cabinet").substring(0,31);
+
+  // Remove existing sheet
+  const existing = wb.getWorksheet(sheetName);
+  if(existing) wb.removeWorksheet(existing.id);
+
+  const ws = wb.addWorksheet(sheetName);
+
+  // Column widths
+  ws.getColumn(1).width=3;
+  ws.getColumn(2).width=22;
+  ws.getColumn(3).width=5;
+  ws.getColumn(4).width=22;
+  ws.getColumn(5).width=5;
+  ws.getColumn(6).width=22;
+  ws.getColumn(7).width=5;
+  ws.getColumn(8).width=20;
+
+  // Header rows
+  ws.getRow(1).height=22;
+  ws.getRow(2).height=22;
+  ws.getRow(3).height=22;
+
+  ws.getCell("B1").value="Brand";    ws.getCell("C1").value=brand||"";
+  ws.getCell("D1").value="Nameplate";
+  ws.getCell("F1").value="Other nameplate";
+  ws.getCell("H1").value="<< กลับไปที่ Index";
+  ws.getCell("B2").value="Model";    ws.getCell("C2").value=model||"";
+  ws.getCell("B3").value="Year";     ws.getCell("C3").value=year||"";
 
   const layout=[
-    ["nameplate","other_nameplate"],          // row 4-12
-    ["outside","button","breaker"],           // row 13-21
-    ["door_side","master_box","boards_inside"],// row 22-29
-    ["inventory_side","master_board","compressor"], // row 30-37
+    ["nameplate","other_nameplate"],
+    ["outside","button","breaker"],
+    ["door_side","master_box","boards_inside"],
+    ["inventory_side","master_board","compressor"],
   ];
 
-  let row=4;
+  const IMG_W=180, IMG_H=160, IMG_ROWS=9;
+  // col positions (0-based for ExcelJS tl.col)
+  const colIdx=[1,3,5]; // B=1,D=3,F=5
+
+  let rowNum=4;
   for(const group of layout){
-    const cols=["B","D","F"];
-    // Write section labels
+    // Label row
+    ws.getRow(rowNum).height=18;
     group.forEach((key,ci)=>{
       const p=PS.find(x=>x.key===key);
-      if(p&&cols[ci]) ws[`${cols[ci]}${row}`]={v:p.label,t:"s"};
+      if(p) ws.getCell(rowNum, colIdx[ci]+1).value=p.label;
     });
-    row++;
-    // Write photo file references (rows +7)
-    for(let r2=0;r2<7;r2++){
-      group.forEach((key,ci)=>{
-        const photos=savedPhotos[key]||[];
-        if(photos.length>0&&cols[ci]&&r2===0){
-          const fileList=photos.map(ph=>ph.savedName).join(", ");
-          ws[`${cols[ci]}${row+r2}`]={v:fileList,t:"s"};
-        }
-      });
+    rowNum++;
+
+    // Image rows — set height
+    for(let r=0;r<IMG_ROWS;r++) ws.getRow(rowNum+r).height=r===IMG_ROWS-1?16:IMG_H/IMG_ROWS*7.5;
+
+    // Embed images
+    for(let ci=0;ci<group.length;ci++){
+      const key=group[ci];
+      const photos=savedPhotos[key]||[];
+      if(photos.length>0 && photos[0].preview){
+        try{
+          const ext=(photos[0].name||"jpg").split(".").pop().toLowerCase()||"jpeg";
+          const b64=await blobUrlToBase64(photos[0].preview);
+          const imgId=wb.addImage({base64:b64, extension:ext==="jpg"?"jpeg":ext});
+          ws.addImage(imgId,{
+            tl:{col:colIdx[ci], row:rowNum-1},
+            ext:{width:IMG_W, height:IMG_H},
+          });
+        }catch(e){}
+        // Filename in last row of group
+        ws.getCell(rowNum+IMG_ROWS-1, colIdx[ci]+1).value=
+          photos.map(ph=>ph.savedName).join(", ");
+      }
     }
-    row+=7;
+
+    rowNum+=IMG_ROWS;
   }
-
-  const lastRow=row;
-  ws["!ref"]=`A1:H${lastRow}`;
-  ws["!cols"]=[{wch:3},{wch:18},{wch:30},{wch:30},{wch:5},{wch:30},{wch:5},{wch:20}];
-  ws["!rows"]=[...Array(lastRow)].map(()=>({hpt:50}));
-
-  return ws;
 }
 </script>
 <!-- Custom Cancel Modal -->
