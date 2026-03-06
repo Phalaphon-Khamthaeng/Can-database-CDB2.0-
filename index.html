@@ -156,6 +156,7 @@ input{font-family:'DM Sans',sans-serif;}
       <span id="list-user-badge" style="display:none;font-size:12px;color:var(--green);background:var(--green-bg);padding:4px 10px;border-radius:20px;"></span>
       <button onclick="showPage('config')" class="btn btn-outline btn-sm">⚙️ ตั้งค่า</button>
       <button id="btn-list-logout" onclick="doLogout()" style="display:none;" class="btn btn-outline btn-sm">🚪</button>
+      <button id="btn-sync" onclick="syncFromSharePoint()" style="display:none;" class="btn btn-outline btn-sm">🔄 ซิงค์</button>
       <button onclick="startWizard()" class="btn btn-red">+ เพิ่มตู้</button>
     </div>
   </div>
@@ -378,6 +379,7 @@ async function doLogin(fromWiz=false){
     accessToken = r.accessToken;
     currentUser = r.account.name || r.account.username;
     updateUserUI();
+    if(!fromWiz) syncFromSharePoint();
     return true;
   }catch(e){
     alert("❌ Login ไม่สำเร็จ: "+e.message);
@@ -392,21 +394,81 @@ async function ensureToken(){
 
 function doLogout(){ accessToken=null; currentUser=null; msalApp=null; updateUserUI(); }
 
+// ═══════════════════ SYNC FROM SHAREPOINT ═══════════════════
+async function syncFromSharePoint(){
+  if(!accessToken) return;
+  const btn = document.getElementById("btn-sync");
+  if(btn){ btn.innerHTML="⏳ กำลังซิงค์..."; btn.disabled=true; }
+  try{
+    const H = {Authorization:"Bearer "+accessToken};
+    const siteRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});
+    if(!siteRes.ok) throw new Error("ไม่พบ Site");
+    const siteId = (await siteRes.json()).id;
+    const drivesRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,{headers:H});
+    const drive = (await drivesRes.json()).value?.find(d=>d.name==="Documents")||(await drivesRes.json()).value?.[0];
+    if(!drive) throw new Error("ไม่พบ Drive");
+    const driveId = drive.id;
+
+    // Read Excel
+    const excelPath = CFG.excelPath
+      ? `${CFG.excelPath}/${CFG.excelName}`
+      : `${CFG.modelPath.split("/").slice(0,-1).join("/")}/${CFG.excelName}`;
+    const exRes = await fetch(
+      `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelPath)}:/content`,
+      {headers:H}
+    );
+    if(!exRes.ok) throw new Error("ไม่พบ Excel");
+    const buf = await exRes.arrayBuffer();
+
+    // Use ExcelJS to read sheets
+    const wb2 = new ExcelJS.Workbook();
+    await wb2.xlsx.load(buf);
+
+    const spRecords = [];
+    wb2.eachSheet(ws=>{
+      const brand = ws.getCell(1,2).value||"";
+      const model = ws.getCell(2,2).value||"";
+      const year  = String(ws.getCell(3,2).value||"");
+      if(!model && !brand) return;
+      const folderName = [model,brand,year].filter(Boolean).join("_");
+      let photos={};
+      PS.forEach(p=>photos[p.key]=[]);
+      spRecords.push({
+        id:"sp_"+ws.name, brand, model, year,
+        uploaded:true, folderName, photos,
+        date:"SharePoint", fromSP:true,
+      });
+    });
+
+    const localOnly = records.filter(r=>!r.fromSP&&!spRecords.find(s=>s.folderName===r.folderName));
+    records = [...spRecords, ...localOnly];
+    localStorage.setItem("cabinet_records", JSON.stringify(records));
+    renderList();
+    if(btn){ btn.innerHTML=`🔄 ซิงค์ (${spRecords.length} ตู้)`; btn.disabled=false; }
+  }catch(e){
+    if(btn){ btn.innerHTML="⚠️ ซิงค์ไม่ได้"; btn.disabled=false; }
+    console.error(e);
+  }
+}
+
 function updateUserUI(){
   const lb = document.getElementById("list-user-badge");
   const lo = document.getElementById("btn-list-logout");
   const wb = document.getElementById("wiz-user-badge");
   const wl = document.getElementById("btn-wiz-login");
+  const bs = document.getElementById("btn-sync");
   if(currentUser){
     if(lb){lb.style.display="inline-flex";lb.textContent="☁️ "+currentUser;}
     if(lo) lo.style.display="flex";
     if(wb){wb.style.display="inline-flex";wb.textContent="☁️ "+currentUser;}
     if(wl) wl.style.display="none";
+    if(bs) bs.style.display="flex";
   }else{
     if(lb) lb.style.display="none";
     if(lo) lo.style.display="none";
     if(wb) wb.style.display="none";
     if(wl) wl.style.display="flex";
+    if(bs) bs.style.display="none";
   }
 }
 
