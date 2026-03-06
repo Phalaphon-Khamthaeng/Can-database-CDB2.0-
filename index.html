@@ -898,23 +898,28 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
   let r = 1;
 
   // ── Info ──
-  const infoColors = ["FFD72B2B","FF1D4ED8","FF16A34A"]; // แดง, น้ำเงิน, เขียว
-  const infoRows = [["Brand",brand],["Model",model],["Year",year]];
-  for(let i=0;i<infoRows.length;i++){
-    ws.getRow(i+1).height = 28;
-    const labelCell = ws.getCell(i+1, 1);
-    const valCell   = ws.getCell(i+1, 2);
-    labelCell.value = infoRows[i][0];
-    labelCell.font  = {bold:true, size:13, color:{argb:"FFFFFFFF"}};
-    labelCell.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:infoColors[i]}};
-    labelCell.alignment = {vertical:"middle"};
-    valCell.value = infoRows[i][1]||"-";
-    valCell.font  = {bold:true, size:13};
-    valCell.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:"FFFFF5F5"}};
-    valCell.alignment = {vertical:"middle"};
+  const infoData = [
+    ["Brand", brand,  "FFD72B2B"],
+    ["Model", model,  "FF1D4ED8"],
+    ["Year",  year,   "FF16A34A"],
+  ];
+  for(const [label, val, color] of infoData){
+    ws.getRow(r).height = 28;
+    const lc = ws.getCell(r, 1);
+    lc.value = label;
+    lc.font  = {bold:true, size:13, color:{argb:"FFFFFFFF"}};
+    lc.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:color}};
+    lc.alignment = {vertical:"middle"};
+    const vc = ws.getCell(r, 2);
+    vc.value = val||"-";
+    vc.font  = {bold:true, size:13};
+    vc.alignment = {vertical:"middle"};
+    r++;
   }
-  ws.getRow(4).height = 8; // spacer
-  r = 5; // sections start at row 5
+
+  // spacer
+  ws.getRow(r).height = 10;
+  r++;
 
   // ── Photo sections ──
   for(const p of PS){
