@@ -670,10 +670,14 @@ function handleFiles(event, key){
 
 function addFiles(key, files){
   files.filter(f=>f.type.startsWith("image/")).forEach(f=>{
-    const url = URL.createObjectURL(f);
-    wizData.photos[key].push({file:f, preview:url, name:f.name});
+    const preview = URL.createObjectURL(f);
+    const reader = new FileReader();
+    reader.onloadend = ()=>{
+      wizData.photos[key].push({file:f, preview, dataUrl:reader.result, name:f.name});
+      renderWiz();
+    };
+    reader.readAsDataURL(f);
   });
-  renderWiz();
 }
 
 // ── Clipboard Paste (Ctrl+V) ──
@@ -697,13 +701,16 @@ document.addEventListener("paste", e=>{
   imgs.forEach(it=>{
     const file = it.getAsFile();
     if(!file) return;
-    const url = URL.createObjectURL(file);
+    const preview = URL.createObjectURL(file);
     const name = `paste_${Date.now()}.png`;
-    wizData.photos[key].push({file, preview:url, name});
+    const reader = new FileReader();
+    reader.onloadend = ()=>{
+      wizData.photos[key].push({file, preview, dataUrl:reader.result, name});
+      renderWiz();
+      showPasteToast();
+    };
+    reader.readAsDataURL(file);
   });
-  renderWiz();
-  // แสดง toast
-  showPasteToast();
 });
 
 function showPasteToast(){
@@ -979,14 +986,12 @@ function encPath(p){
 }
 
 // ═══════════════════ IMAGE → JPEG BASE64 (via canvas) ═══════════════════
-// แปลงทุก format (HEIC, WebP, PNG, JPG...) → JPEG ก่อน embed ใน Excel
-async function imageToBase64Jpeg(url, maxSize=1200){
+async function imageToBase64Jpeg(src, maxSize=1200){
   return new Promise((resolve, reject)=>{
     const img = new Image();
     img.onload = ()=>{
       let w = img.naturalWidth || img.width;
       let h = img.naturalHeight || img.height;
-      // resize ถ้าใหญ่เกิน
       if(w > maxSize || h > maxSize){
         if(w > h){ h = Math.round(h * maxSize / w); w = maxSize; }
         else      { w = Math.round(w * maxSize / h); h = maxSize; }
@@ -997,7 +1002,7 @@ async function imageToBase64Jpeg(url, maxSize=1200){
       resolve(canvas.toDataURL("image/jpeg", 0.85).split(",")[1]);
     };
     img.onerror = reject;
-    img.src = url;
+    img.src = src; // ใช้ dataUrl (base64) แทน blob URL เพื่อหลีก canvas security block
   });
 }
 
@@ -1174,9 +1179,10 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
       ws.getRow(r).height = IMG_ROW_PT;
       for(let i=0;i<photos.length;i++){
         const ph = photos[i];
-        if(!ph.preview) continue;
+        const src = ph.dataUrl || ph.preview;
+        if(!src) continue;
         try{
-          const b64 = await imageToBase64Jpeg(ph.preview);
+          const b64 = await imageToBase64Jpeg(src);
           const imgId = wb.addImage({base64:b64, extension:"jpeg"});
           ws.addImage(imgId,{tl:{col:i+1,row:r-1},br:{col:i+2,row:r}});
         }catch(e){ console.warn("embed image failed:", ph.name, e); }
