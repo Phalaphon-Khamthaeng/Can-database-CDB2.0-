@@ -986,7 +986,6 @@ function buildIndexSheet(wb){
   if(existing) wb.removeWorksheet(existing.id);
   // Insert as first sheet
   const ws = wb.addWorksheet(IDX_NAME, {properties:{tabColor:{argb:"FF374151"}}});
-  wb.moveWorksheet(IDX_NAME, 1);
 
   const THIN = {style:"thin",color:{argb:"FFD1D5DB"}};
   const BORDER = {top:THIN,left:THIN,bottom:THIN,right:THIN};
