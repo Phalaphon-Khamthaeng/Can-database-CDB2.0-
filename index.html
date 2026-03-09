@@ -677,6 +677,15 @@ function addFiles(key, files){
 }
 
 // ── Clipboard Paste (Ctrl+V) ──
+document.addEventListener("keydown", e=>{
+  if(e.key !== "Enter") return;
+  // ไม่ทำงานถ้าอยู่นอก wizard
+  if(!document.getElementById("page-wizard").classList.contains("active")) return;
+  // ไม่ trigger ถ้า focus อยู่บน button
+  if(document.activeElement?.tagName === "BUTTON") return;
+  wizNext();
+});
+
 document.addEventListener("paste", e=>{
   // ทำงานเฉพาะตอนอยู่ใน wizard photo step
   if(wizStep < 3 || wizStep >= TOTAL-1) return;
@@ -989,8 +998,8 @@ function buildIndexSheet(wb){
 
   const THIN = {style:"thin",color:{argb:"FFD1D5DB"}};
   const BORDER = {top:THIN,left:THIN,bottom:THIN,right:THIN};
-  const COLS = ["No.","Brand","Model","Year","Coolant","Group","Sheet"];
-  const WIDTHS = [6,12,28,8,10,8,32];
+  const COLS   = ["No.","Brand","Model","Year","Coolant","Group","RD","PD","OP","Invalid","Sheet"];
+  const WIDTHS = [6, 12, 28, 8, 10, 8, 6, 6, 6, 8, 32];
 
   WIDTHS.forEach((w,i)=>ws.getColumn(i+1).width=w);
 
@@ -1029,19 +1038,19 @@ function buildIndexSheet(wb){
     }
     const rowFill = getBrandFill(brand);
 
-    const vals = [no, brand, model, year, coolant, group, ""];
+    const vals = [no, brand, model, year, coolant, group, "", "", "", ""];
     vals.forEach((v,i)=>{
       const c = ws.getCell(r,i+1);
       c.value = v;
       c.font  = {size:11,color:{argb:"FF1F2937"}};
       c.fill  = {type:"pattern",pattern:"solid",fgColor:{argb: i===0?"FFF3F4F6":rowFill}};
-      c.alignment = {vertical:"middle",horizontal: i===0||i===3||i===4||i===5?"center":"left",indent:i===1||i===2?1:0};
+      c.alignment = {vertical:"middle",horizontal: i===0||i===3||i===4||i===5||i===6||i===7||i===8||i===9?"center":"left",indent:i===1||i===2?1:0};
       c.border = BORDER;
     });
 
-    // Hyperlink to sheet in last column
-    const linkCell = ws.getCell(r, 7);
-    linkCell.value = {text:`>> ${sheet.name}`, hyperlink:`#'${sheet.name}'!A1`};
+    // Hyperlink to sheet — col 11
+    const linkCell = ws.getCell(r, 11);
+    linkCell.value = {text:`>> Go to sheet ${sheet.name}`, hyperlink:`#'${sheet.name}'!A1`};
     linkCell.font  = {size:11, color:{argb:"FF2563EB"}, underline:true};
     linkCell.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:rowFill}};
     linkCell.alignment = {vertical:"middle"};
