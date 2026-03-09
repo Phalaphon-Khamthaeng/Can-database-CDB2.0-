@@ -1159,24 +1159,17 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
       ws.getCell(r,1).alignment = {vertical:"middle"};
       r++;
     } else {
-      // Photo row
+      // Photo row — embed base64 (ดูได้ใน Desktop App)
       ws.getRow(r).height = IMG_ROW_PT;
       for(let i=0;i<photos.length;i++){
         const ph = photos[i];
-        const col = i+2; // col B onwards
-        const cell = ws.getCell(r, col);
-        if(ph.spUrl){
-          // =IMAGE() formula — works in Excel Online (Microsoft 365)
-          cell.value = {formula:`IMAGE("${ph.spUrl}",1)`};
-        } else if(ph.preview){
-          // fallback: embed base64 (Desktop only)
-          try{
-            const ext = (ph.name||"jpg").split(".").pop().toLowerCase();
-            const b64 = await blobUrlToBase64(ph.preview);
-            const imgId = wb.addImage({base64:b64, extension:ext==="jpg"?"jpeg":ext});
-            ws.addImage(imgId,{tl:{col:i+1,row:r-1},br:{col:i+2,row:r}});
-          }catch(e){}
-        }
+        if(!ph.preview) continue;
+        try{
+          const ext = (ph.name||"jpg").split(".").pop().toLowerCase();
+          const b64 = await blobUrlToBase64(ph.preview);
+          const imgId = wb.addImage({base64:b64, extension:ext==="jpg"?"jpeg":ext});
+          ws.addImage(imgId,{tl:{col:i+1,row:r-1},br:{col:i+2,row:r}});
+        }catch(e){}
       }
       r++;
 
