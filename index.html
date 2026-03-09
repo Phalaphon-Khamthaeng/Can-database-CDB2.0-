@@ -831,6 +831,17 @@ async function wizNext(){
 
 // ═══════════════════ SHAREPOINT UPLOAD ═══════════════════
 async function doUpload(){
+  // รอให้ทุกรูปมี dataUrl ครบก่อน (FileReader อาจยังไม่เสร็จ)
+  const allPh = PS.flatMap(p=>wizData.photos[p.key]||[]);
+  const pending = allPh.filter(ph=>!ph.dataUrl && ph.file);
+  if(pending.length){
+    await Promise.all(pending.map(ph=>new Promise(res=>{
+      const r = new FileReader();
+      r.onloadend = ()=>{ ph.dataUrl = r.result; res(); };
+      r.readAsDataURL(ph.file);
+    })));
+  }
+
   const ok = await ensureToken();
   if(!ok) return;
   showPage("uploading");
