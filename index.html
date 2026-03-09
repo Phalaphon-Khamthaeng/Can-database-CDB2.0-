@@ -978,15 +978,26 @@ function encPath(p){
   return p.split("/").map(encodeURIComponent).join("/");
 }
 
-// ═══════════════════ BLOB → BASE64 ═══════════════════
-async function blobUrlToBase64(url){
-  const res = await fetch(url);
-  const blob = await res.blob();
-  return new Promise((resolve,reject)=>{
-    const r = new FileReader();
-    r.onloadend = ()=> resolve(r.result.split(",")[1]);
-    r.onerror = reject;
-    r.readAsDataURL(blob);
+// ═══════════════════ IMAGE → JPEG BASE64 (via canvas) ═══════════════════
+// แปลงทุก format (HEIC, WebP, PNG, JPG...) → JPEG ก่อน embed ใน Excel
+async function imageToBase64Jpeg(url, maxSize=1200){
+  return new Promise((resolve, reject)=>{
+    const img = new Image();
+    img.onload = ()=>{
+      let w = img.naturalWidth || img.width;
+      let h = img.naturalHeight || img.height;
+      // resize ถ้าใหญ่เกิน
+      if(w > maxSize || h > maxSize){
+        if(w > h){ h = Math.round(h * maxSize / w); w = maxSize; }
+        else      { w = Math.round(w * maxSize / h); h = maxSize; }
+      }
+      const canvas = document.createElement("canvas");
+      canvas.width = w; canvas.height = h;
+      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+      resolve(canvas.toDataURL("image/jpeg", 0.85).split(",")[1]);
+    };
+    img.onerror = reject;
+    img.src = url;
   });
 }
 
@@ -1159,17 +1170,16 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
       ws.getCell(r,1).alignment = {vertical:"middle"};
       r++;
     } else {
-      // Photo row — embed base64 (ดูได้ใน Desktop App)
+      // Photo row — embed via canvas→JPEG (รองรับทุก format)
       ws.getRow(r).height = IMG_ROW_PT;
       for(let i=0;i<photos.length;i++){
         const ph = photos[i];
         if(!ph.preview) continue;
         try{
-          const ext = (ph.name||"jpg").split(".").pop().toLowerCase();
-          const b64 = await blobUrlToBase64(ph.preview);
-          const imgId = wb.addImage({base64:b64, extension:ext==="jpg"?"jpeg":ext});
+          const b64 = await imageToBase64Jpeg(ph.preview);
+          const imgId = wb.addImage({base64:b64, extension:"jpeg"});
           ws.addImage(imgId,{tl:{col:i+1,row:r-1},br:{col:i+2,row:r}});
-        }catch(e){}
+        }catch(e){ console.warn("embed image failed:", ph.name, e); }
       }
       r++;
 
