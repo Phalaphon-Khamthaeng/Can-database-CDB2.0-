@@ -913,49 +913,71 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
   // ── Brand tab color ──
   function getBrandTabColor(b){
     const bl = (b||"").toLowerCase();
-    if(bl.includes("national")||bl.includes("panasonic")) return "FFFDE68A"; // เหลือง
-    if(bl.includes("fuji"))    return "FF93C5FD"; // ฟ้า
-    if(bl.includes("sanden"))  return "FF1E3A5F"; // น้ำเงินเข้ม
+    if(bl.includes("national")||bl.includes("panasonic")) return "FFFDE68A";
+    if(bl.includes("fuji"))    return "FF93C5FD";
+    if(bl.includes("sanden"))  return "FF1E3A5F";
     return null;
   }
   const tabColor = getBrandTabColor(brand);
   if(tabColor) ws.properties.tabColor = {argb:tabColor};
 
-  // ── Info ──
+  const THIN = {style:"thin",color:{argb:"FFD1D5DB"}};
+  const BORDER = {top:THIN,left:THIN,bottom:THIN,right:THIN};
+  const ACCENT = "FFD72B2B"; // สีแดง accent เบาๆ
+
+  // ── Title block ──
+  ws.getRow(r).height = 36;
+  const titleCell = ws.getCell(r,1);
+  titleCell.value = `${brand ? brand.toUpperCase()+" — " : ""}${model||"CABINET"} ${year?`(${year})`:""}`;
+  titleCell.font  = {bold:true, size:16, color:{argb:"FF1F2937"}};
+  titleCell.alignment = {vertical:"middle"};
+  // เส้นใต้ title
+  ws.getRow(r).eachCell({includeEmpty:false}, c => {});
+  const titleRow = ws.getRow(r);
+  titleRow.getCell(1).border = {bottom:{style:"medium",color:{argb:ACCENT}}};
+  r++;
+
+  // ── Info table ──
   const infoData = [
-    ["Brand", brand,  "FFD72B2B"],
-    ["Model", model,  "FF1D4ED8"],
-    ["Year",  year,   "FF16A34A"],
+    ["Brand", brand],
+    ["Model", model],
+    ["Year",  year],
   ];
-  for(const [label, val, color] of infoData){
-    ws.getRow(r).height = 28;
-    const lc = ws.getCell(r, 1);
+  for(const [label, val] of infoData){
+    ws.getRow(r).height = 22;
+    const lc = ws.getCell(r,1);
     lc.value = label;
-    lc.font  = {bold:true, size:13, color:{argb:"FFFFFFFF"}};
-    lc.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:color}};
-    lc.alignment = {vertical:"middle"};
-    const vc = ws.getCell(r, 2);
-    vc.value = val||"-";
-    vc.font  = {bold:true, size:13};
-    vc.alignment = {vertical:"middle"};
+    lc.font  = {bold:true, size:11, color:{argb:"FF6B7280"}};
+    lc.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:"FFF9FAFB"}};
+    lc.alignment = {vertical:"middle", indent:1};
+    lc.border   = BORDER;
+    const vc = ws.getCell(r,2);
+    vc.value = val||"—";
+    vc.font  = {bold:true, size:11, color:{argb:"FF111827"}};
+    vc.alignment = {vertical:"middle", indent:1};
+    vc.border   = BORDER;
     r++;
   }
 
   // spacer
-  ws.getRow(r).height = 10;
+  ws.getRow(r).height = 14;
   r++;
 
   // ── Photo sections ──
   for(const p of PS){
     const photos = savedPhotos[p.key]||[];
 
-    // Section label — เด่น มีสีเข้ม
-    ws.getRow(r).height = 30;
+    // Section header — เรียบ ทางการ: เส้นซ้ายสีแดง + ตัวหนาสีเข้ม
+    ws.getRow(r).height = 26;
     const secCell = ws.getCell(r,1);
-    secCell.value = `  ${p.icon}  ${p.label.toUpperCase()}`;
-    secCell.font = {bold:true, size:15, color:{argb:"FFFFFFFF"}};
-    secCell.fill = {type:"pattern",pattern:"solid",fgColor:{argb:"FFD72B2B"}};
-    secCell.alignment = {vertical:"middle"};
+    secCell.value = `${p.label}`;
+    secCell.font  = {bold:true, size:12, color:{argb:"FF1F2937"}};
+    secCell.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:"FFF3F4F6"}};
+    secCell.alignment = {vertical:"middle", indent:2};
+    secCell.border = {
+      left:{style:"medium",color:{argb:ACCENT}},
+      top:THIN, bottom:THIN, right:THIN,
+    };
     r++;
 
     if(!photos.length){
