@@ -919,7 +919,7 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
     return null;
   }
   const tabColor = getBrandTabColor(brand);
-  if(tabColor) ws.properties = { tabColor:{argb:tabColor} };
+  if(tabColor) ws.properties.tabColor = {argb:tabColor};
 
   // ── Info ──
   const infoData = [
