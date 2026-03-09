@@ -970,7 +970,7 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
     // Section header — เรียบ ทางการ: เส้นซ้ายสีแดง + ตัวหนาสีเข้ม
     ws.getRow(r).height = 26;
     const secCell = ws.getCell(r,1);
-    secCell.value = `${p.label}`;
+    secCell.value = `${p.icon}  ${p.label}`;
     secCell.font  = {bold:true, size:12, color:{argb:"FF1F2937"}};
     secCell.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:"FFF3F4F6"}};
     secCell.alignment = {vertical:"middle", indent:2};
