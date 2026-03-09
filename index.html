@@ -320,7 +320,7 @@ let msalApp = null, accessToken = null, currentUser = null;
 
 // Wizard state
 let wizStep = 0;
-let wizData = { brand:"", model:"", year:"", photos:{} };
+let wizData = { brand:"", model:"", year:"", coolant:"", group:"", photos:{} };
 // photos[key] = [{file, preview, name}, ...]  (ARRAY per section)
 
 // ═══════════════════ INIT ═══════════════════
@@ -427,15 +427,18 @@ async function syncFromSharePoint(){
 
     const spRecords = [];
     wb2.eachSheet(ws=>{
-      const brand = ws.getCell(1,2).value||"";
-      const model = ws.getCell(2,2).value||"";
-      const year  = String(ws.getCell(3,2).value||"");
+      if(ws.name==="Index") return;
+      const brand   = ws.getCell(2,2).value||"";
+      const model   = ws.getCell(3,2).value||"";
+      const year    = String(ws.getCell(4,2).value||"");
+      const coolant = String(ws.getCell(5,2).value||"");
+      const group   = String(ws.getCell(6,2).value||"");
       if(!model && !brand) return;
       const folderName = [model,brand,year].filter(Boolean).join("_");
       let photos={};
       PS.forEach(p=>photos[p.key]=[]);
       spRecords.push({
-        id:"sp_"+ws.name, brand, model, year,
+        id:"sp_"+ws.name, brand, model, year, coolant, group,
         uploaded:true, folderName, photos,
         date:"SharePoint", fromSP:true,
       });
@@ -533,7 +536,7 @@ function showDetail(idx){
 // ═══════════════════ WIZARD ═══════════════════
 function startWizard(){
   wizStep=0;
-  wizData={brand:"",model:"",year:"",photos:{}};
+  wizData={brand:"",model:"",year:"",coolant:"",group:"",photos:{}};
   PS.forEach(p=>wizData.photos[p.key]=[]);
   showPage("wizard");
   renderWiz();
@@ -547,7 +550,7 @@ function cancelWizard(){
 function confirmCancel(){
   document.getElementById("cancel-modal").style.display="none";
   wizStep=0;
-  wizData={brand:"",model:"",year:"",photos:{}};
+  wizData={brand:"",model:"",year:"",coolant:"",group:"",photos:{}};
   PS.forEach(p=>wizData.photos[p.key]=[]);
   showPage("list");
 }
@@ -578,7 +581,7 @@ function renderWiz(){
 
   // content
   const content = document.getElementById("wiz-content");
-  if(s===0) content.innerHTML=textStepHtml("Brand","เช่น Fuji, Mitsubishi, Yaskawa","🏭","wiz-brand",wizData.brand);
+  if(s===0) content.innerHTML=textStepHtml("Brand","เช่น Fuji, National, Sanden","🏭","wiz-brand",wizData.brand);
   else if(s===1) content.innerHTML=textStepHtml("Model","เช่น FE-KA36-LHPAP","🔢","wiz-model",wizData.model);
   else if(s===2) content.innerHTML=textStepHtml("Year","เช่น 2012, 2015, 2018","📅","wiz-year",wizData.year);
   else if(s<TOTAL-1){
@@ -748,6 +751,52 @@ function getFolderName(){
   return [wizData.model, wizData.brand, wizData.year].filter(Boolean).join("_") || "Cabinet_"+Date.now();
 }
 
+function coolantStepHtml(){
+  const opts = ["R744","R600a","R1234yf","R134a","R404A","อื่นๆ"];
+  return `<div style="width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;">
+    <div class="step-icon">🧊</div>
+    <div class="step-title">Coolant</div>
+    <div class="step-sub">สารทำความเย็น</div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0;">
+      ${opts.map(o=>`<button onclick="setCoolant('${o}')" class="btn btn-sm btn-outline" id="cool-${o}" style="${wizData.coolant===o?"background:var(--blue);color:#fff;border-color:var(--blue)":""}">${o}</button>`).join("")}
+    </div>
+    <div style="width:100%;max-width:360px;margin-top:4px;">
+      <input id="wiz-coolant" type="text" value="${wizData.coolant}" placeholder="หรือพิมพ์เอง..." autocomplete="off"
+        style="width:100%;padding:13px 18px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;text-align:center;"
+        onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"/>
+    </div>
+  </div>`;
+}
+
+function setCoolant(val){
+  wizData.coolant = val;
+  document.getElementById("wiz-coolant").value = val;
+  renderWiz();
+}
+
+function groupStepHtml(){
+  const opts = ["ST2","ST3","ST4","FT9","FT10","NT3","NT4"];
+  return `<div style="width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;">
+    <div class="step-icon">🗂️</div>
+    <div class="step-title">Group</div>
+    <div class="step-sub">กลุ่มของตู้</div>
+    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0;">
+      ${opts.map(o=>`<button onclick="setGroup('${o}')" class="btn btn-sm btn-outline" id="grp-${o}" style="${wizData.group===o?"background:var(--blue);color:#fff;border-color:var(--blue)":""}">${o}</button>`).join("")}
+    </div>
+    <div style="width:100%;max-width:360px;margin-top:4px;">
+      <input id="wiz-group" type="text" value="${wizData.group}" placeholder="หรือพิมพ์เอง..." autocomplete="off"
+        style="width:100%;padding:13px 18px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;text-align:center;"
+        onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"/>
+    </div>
+  </div>`;
+}
+
+function setGroup(val){
+  wizData.group = val;
+  document.getElementById("wiz-group").value = val;
+  renderWiz();
+}
+
 function setBrand(name){
   wizData.brand = name;
   document.getElementById("wiz-brand").value = name;
@@ -756,9 +805,9 @@ function setBrand(name){
 function wizBack(){ if(wizStep>0){wizStep--; renderWiz();} }
 
 async function wizNext(){
-  if(wizStep===0) wizData.brand = document.getElementById("wiz-brand")?.value||wizData.brand;
-  if(wizStep===1) wizData.model = document.getElementById("wiz-model")?.value||wizData.model;
-  if(wizStep===2) wizData.year  = document.getElementById("wiz-year")?.value||wizData.year;
+  if(wizStep===0) wizData.brand   = document.getElementById("wiz-brand")?.value||wizData.brand;
+  if(wizStep===1) wizData.model   = document.getElementById("wiz-model")?.value||wizData.model;
+  if(wizStep===2) wizData.year    = document.getElementById("wiz-year")?.value||wizData.year;
   if(wizStep===TOTAL-1){ await doUpload(); return; }
   wizStep++;
   renderWiz();
@@ -862,7 +911,8 @@ async function doUpload(){
 
     // Step: Add sheet with embedded images
     setStatus(excelStepBase+1,"loading");
-    await buildSheetExcelJS(wb, folderName, wizData.brand, wizData.model, wizData.year, savedPhotos);
+    await buildSheetExcelJS(wb, folderName, wizData.brand, wizData.model, wizData.year, savedPhotos, wizData.coolant, wizData.group);
+    buildIndexSheet(wb);
     setStatus(excelStepBase+1,"done"); done++;
 
     // Step: Upload Excel back
@@ -879,6 +929,7 @@ async function doUpload(){
     // Save record locally
     const newRecord={
       id:Date.now(), brand:wizData.brand, model:wizData.model, year:wizData.year,
+      coolant:wizData.coolant, group:wizData.group,
       uploaded:true, folderName,
       photos:savedPhotos,
       date:new Date().toLocaleDateString("th-TH",{year:"numeric",month:"short",day:"numeric"}),
@@ -928,8 +979,81 @@ async function blobUrlToBase64(url){
   });
 }
 
+// ═══════════════════ BUILD INDEX SHEET ═══════════════════
+function buildIndexSheet(wb){
+  const IDX_NAME = "Index";
+  const existing = wb.getWorksheet(IDX_NAME);
+  if(existing) wb.removeWorksheet(existing.id);
+  // Insert as first sheet
+  const ws = wb.addWorksheet(IDX_NAME, {properties:{tabColor:{argb:"FF374151"}}});
+  wb.moveWorksheet(IDX_NAME, 1);
+
+  const THIN = {style:"thin",color:{argb:"FFD1D5DB"}};
+  const BORDER = {top:THIN,left:THIN,bottom:THIN,right:THIN};
+  const COLS = ["No.","Brand","Model","Year","Coolant","Group","Sheet"];
+  const WIDTHS = [6,12,28,8,10,8,32];
+
+  WIDTHS.forEach((w,i)=>ws.getColumn(i+1).width=w);
+
+  // Header row
+  ws.getRow(1).height = 28;
+  COLS.forEach((h,i)=>{
+    const c = ws.getCell(1,i+1);
+    c.value = h;
+    c.font  = {bold:true,size:12,color:{argb:"FFFFFFFF"}};
+    c.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:"FF1F2937"}};
+    c.alignment = {vertical:"middle",horizontal:"center"};
+    c.border = BORDER;
+  });
+
+  // Data rows — loop all sheets except Index
+  let no = 1;
+  wb.eachSheet(sheet=>{
+    if(sheet.name===IDX_NAME) return;
+    const brand   = sheet.getCell(2,2).value||"";
+    const model   = sheet.getCell(3,2).value||"";
+    const year    = String(sheet.getCell(4,2).value||"");
+    const coolant = String(sheet.getCell(5,2).value||"");
+    const group   = String(sheet.getCell(6,2).value||"");
+    if(!model && !brand) return;
+
+    const r = no+1;
+    ws.getRow(r).height = 20;
+
+    // brand color
+    function getBrandFill(b){
+      const bl=(b||"").toLowerCase();
+      if(bl.includes("national")||bl.includes("panasonic")) return "FFFEF9C3";
+      if(bl.includes("fuji"))    return "FFE0F2FE";
+      if(bl.includes("sanden"))  return "FFEFF6FF";
+      return "FFFFFFFF";
+    }
+    const rowFill = getBrandFill(brand);
+
+    const vals = [no, brand, model, year, coolant, group, ""];
+    vals.forEach((v,i)=>{
+      const c = ws.getCell(r,i+1);
+      c.value = v;
+      c.font  = {size:11,color:{argb:"FF1F2937"}};
+      c.fill  = {type:"pattern",pattern:"solid",fgColor:{argb: i===0?"FFF3F4F6":rowFill}};
+      c.alignment = {vertical:"middle",horizontal: i===0||i===3||i===4||i===5?"center":"left",indent:i===1||i===2?1:0};
+      c.border = BORDER;
+    });
+
+    // Hyperlink to sheet in last column
+    const linkCell = ws.getCell(r, 7);
+    linkCell.value = {text:`>> ${sheet.name}`, hyperlink:`#'${sheet.name}'!A1`};
+    linkCell.font  = {size:11, color:{argb:"FF2563EB"}, underline:true};
+    linkCell.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:rowFill}};
+    linkCell.alignment = {vertical:"middle"};
+    linkCell.border = BORDER;
+
+    no++;
+  });
+}
+
 // ═══════════════════ BUILD EXCEL SHEET (ExcelJS) ═══════════════════
-async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos){
+async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos, coolant="", group=""){
   const sheetName = (model||"Cabinet").substring(0,31);
   const existing = wb.getWorksheet(sheetName);
   if(existing) wb.removeWorksheet(existing.id);
@@ -974,9 +1098,11 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
 
   // ── Info table ──
   const infoData = [
-    ["Brand", brand],
-    ["Model", model],
-    ["Year",  year],
+    ["Brand",   brand],
+    ["Model",   model],
+    ["Year",    year],
+    ["Coolant", coolant],
+    ["Group",   group],
   ];
   for(const [label, val] of infoData){
     ws.getRow(r).height = 22;
