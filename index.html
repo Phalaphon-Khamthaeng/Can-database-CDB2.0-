@@ -623,7 +623,7 @@ function photoStepHtml(ps){
   return `<div class="photo-section" style="width:100%;max-width:460px;">
     <div class="step-icon">${ps.icon}</div>
     <div class="step-title">${ps.label}</div>
-    <div class="step-sub">${ps.sub}<br><span style="color:var(--blue);font-size:12px;">📌 ถ่ายได้หลายรูป — กด + เพื่อเพิ่ม</span></div>
+    <div class="step-sub">${ps.sub}<br><span style="color:var(--blue);font-size:12px;">📌 ถ่ายได้หลายรูป — กด + เพื่อเพิ่ม &nbsp;|&nbsp; 📋 Ctrl+V วางจาก Clipboard</span></div>
     <div class="photo-grid" id="photo-grid-${ps.key}">
       ${photos.map((ph,i)=>`
         <div class="photo-thumb">
@@ -671,6 +671,41 @@ function addFiles(key, files){
     wizData.photos[key].push({file:f, preview:url, name:f.name});
   });
   renderWiz();
+}
+
+// ── Clipboard Paste (Ctrl+V) ──
+document.addEventListener("paste", e=>{
+  // ทำงานเฉพาะตอนอยู่ใน wizard photo step
+  if(wizStep < 3 || wizStep >= TOTAL-1) return;
+  const pi = wizStep - 3;
+  const key = PS[pi].key;
+  const items = Array.from(e.clipboardData?.items||[]);
+  const imgs = items.filter(it=>it.type.startsWith("image/"));
+  if(!imgs.length) return;
+  imgs.forEach(it=>{
+    const file = it.getAsFile();
+    if(!file) return;
+    const url = URL.createObjectURL(file);
+    const name = `paste_${Date.now()}.png`;
+    wizData.photos[key].push({file, preview:url, name});
+  });
+  renderWiz();
+  // แสดง toast
+  showPasteToast();
+});
+
+function showPasteToast(){
+  let t = document.getElementById("paste-toast");
+  if(!t){
+    t = document.createElement("div");
+    t.id = "paste-toast";
+    t.style.cssText = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1F2937;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;transition:opacity .3s;";
+    document.body.appendChild(t);
+  }
+  t.textContent = "📋 วางรูปจาก Clipboard แล้ว!";
+  t.style.opacity = "1";
+  clearTimeout(t._timer);
+  t._timer = setTimeout(()=>t.style.opacity="0", 2000);
 }
 
 function removePhoto(key, idx){
