@@ -1079,6 +1079,7 @@ function buildIndexSheet(wb){
 
     // Hyperlink formula — same as original file format
     const sheetNameEscaped = sheet.name.replace(/'/g, "''");
+    const linkCell = ws.getCell(r, 11);
     linkCell.value = {formula:`HYPERLINK("#'${sheetNameEscaped}'!A1",">> Go to sheet ${sheet.name}")`};
     linkCell.font  = {size:11, color:{argb:"FF2563EB"}, underline:true};
     linkCell.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:rowFill}};
