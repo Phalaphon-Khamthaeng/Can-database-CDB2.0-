@@ -987,6 +987,7 @@ async function doUpload(){
         savedName: ph.savedName,
         name: ph.name,
         spUrl: ph.spUrl,
+        spWebUrl: ph.spWebUrl,
         // ไม่เก็บ dataUrl — ใหญ่เกินไป
       }));
     });
@@ -1231,11 +1232,13 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
       for(let i=0;i<photos.length;i++){
         const ph = photos[i];
 
-        // =IMAGE() formula — Excel Online โหลดจาก SharePoint URL
+        // =IMAGE() formula — ใช้ webUrl (permanent SharePoint URL) ไม่ใช่ downloadUrl (ชั่วคราว)
         const imgCell = ws.getCell(r, i+2);
         const imgUrl = ph.spWebUrl || ph.spUrl || "";
         if(imgUrl){
-          imgCell.value = {formula:`IMAGE("${imgUrl}",1)`};
+          // แปลง webUrl เป็น direct download URL ของ SharePoint
+          // webUrl: https://sun108.sharepoint.com/sites/XXX/Shared Documents/...file.png
+          imgCell.value = {formula:`IMAGE("${imgUrl}")`};
         }
         imgCell.alignment = {vertical:"middle", horizontal:"center"};
 
