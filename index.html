@@ -1195,7 +1195,7 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
         if(!src) continue;
         try{
           const b64 = await imageToBase64Jpeg(src);
-          const imgId = wb.addImage({base64:b64, extension:"jpeg"});
+          const imgId = wb.addImage({base64:b64, extension:ext});
           ws.addImage(imgId,{
             tl:{col:i+1, row:r-1},
             ext:{width:250, height:250},
