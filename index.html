@@ -915,7 +915,7 @@ async function doUpload(){
       if(!upRes.ok) throw new Error(`อัปโหลด ${newName} ไม่ได้`);
       const upJson = await upRes.json();
       const spUrl = upJson["@microsoft.graph.downloadUrl"] || upJson.webUrl || "";
-      savedPhotos[ph.step.key].push({preview:ph.preview, savedName:newName, name:ph.name, spUrl});
+      savedPhotos[ph.step.key].push({preview:ph.preview, dataUrl:ph.dataUrl, savedName:newName, name:ph.name, spUrl});
       setStatus(stepIdx,"done"); done++;
     }
 
