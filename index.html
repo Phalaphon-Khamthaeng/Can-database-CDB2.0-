@@ -1198,7 +1198,7 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
           const imgId = wb.addImage({base64:b64, extension:ext});
           ws.addImage(imgId,{
             tl:{col:i+1, row:r-1},
-            ext:{width:250, height:250},
+            br:{col:i+2, row:r},
             editAs:'oneCell'
           });
         }catch(e){ console.warn("embed image failed:", ph.name, e); }
