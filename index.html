@@ -328,7 +328,23 @@ let wizData = { brand:"", model:"", year:"", coolant:"", group:"", photos:{} };
   const sc = localStorage.getItem("sp_config");
   if(sc) try{ CFG = {...CFG,...JSON.parse(sc)}; }catch{}
   const sr = localStorage.getItem("cabinet_records");
-  if(sr) try{ records = JSON.parse(sr); }catch{}
+  if(sr) try{
+    const parsed = JSON.parse(sr);
+    // ถ้าข้อมูลเก่ามี dataUrl อยู่ → ล้างออกให้อัตโนมัติ
+    const hasDataUrl = parsed.some(r=>PS.some(p=>(r.photos?.[p.key]||[]).some(ph=>ph.dataUrl)));
+    if(hasDataUrl){
+      const slim = parsed.map(r=>({
+        id:r.id, brand:r.brand, model:r.model, year:r.year,
+        coolant:r.coolant, group:r.group, uploaded:r.uploaded,
+        folderName:r.folderName, date:r.date, fromSP:r.fromSP,
+        photos: Object.fromEntries(PS.map(p=>[p.key,[]]))
+      }));
+      try{ localStorage.setItem("cabinet_records", JSON.stringify(slim)); }catch{}
+      records = slim;
+    } else {
+      records = parsed;
+    }
+  }catch{}
   renderList();
 })();
 
@@ -446,7 +462,14 @@ async function syncFromSharePoint(){
 
     const localOnly = records.filter(r=>!r.fromSP&&!spRecords.find(s=>s.folderName===r.folderName));
     records = [...spRecords, ...localOnly];
-    localStorage.setItem("cabinet_records", JSON.stringify(records));
+    // เก็บแค่ metadata ไม่เก็บ preview/dataUrl (ป้องกัน quota)
+    const slimRecords = records.map(r=>({
+      id:r.id, brand:r.brand, model:r.model, year:r.year,
+      coolant:r.coolant, group:r.group, uploaded:r.uploaded,
+      folderName:r.folderName, date:r.date, fromSP:r.fromSP,
+      photos: Object.fromEntries(PS.map(p=>[p.key,[]]))
+    }));
+    try{ localStorage.setItem("cabinet_records", JSON.stringify(slimRecords)); }catch{}
     renderList();
     if(btn){ btn.innerHTML=`🔄 ซิงค์ (${spRecords.length} ตู้)`; btn.disabled=false; }
   }catch(e){
@@ -914,8 +937,9 @@ async function doUpload(){
       );
       if(!upRes.ok) throw new Error(`อัปโหลด ${newName} ไม่ได้`);
       const upJson = await upRes.json();
-      const spUrl = upJson["@microsoft.graph.downloadUrl"] || upJson.webUrl || "";
-      savedPhotos[ph.step.key].push({preview:ph.preview, dataUrl:ph.dataUrl, savedName:newName, name:ph.name, spUrl});
+      const spUrl = upJson["@microsoft.graph.downloadUrl"] || "";
+      const spWebUrl = upJson.webUrl || "";
+      savedPhotos[ph.step.key].push({preview:ph.preview, dataUrl:ph.dataUrl, savedName:newName, name:ph.name, spUrl, spWebUrl});
       setStatus(stepIdx,"done"); done++;
     }
 
@@ -1201,17 +1225,29 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
       ws.getCell(r,1).alignment = {vertical:"middle"};
       r++;
     } else {
-      // Photo row — embed via canvas→JPEG (รองรับทุก format)
+      // Photo row — ใช้ =IMAGE() formula เพื่อให้ Excel Online แสดงได้
+      // + embed base64 สำหรับ Desktop App (twoCell anchor)
       ws.getRow(r).height = IMG_ROW_PT;
       for(let i=0;i<photos.length;i++){
         const ph = photos[i];
+
+        // =IMAGE() formula — Excel Online โหลดจาก SharePoint URL
+        const imgCell = ws.getCell(r, i+2);
+        const imgUrl = ph.spWebUrl || ph.spUrl || "";
+        if(imgUrl){
+          imgCell.value = {formula:`IMAGE("${imgUrl}",1)`};
+        }
+        imgCell.alignment = {vertical:"middle", horizontal:"center"};
+
+        // Embed base64 — สำหรับ Desktop App (ซ้อนทับกัน)
         const src = ph.dataUrl || ph.preview;
-        if(!src) continue;
-        try{
-          const b64 = await imageToBase64Jpeg(src);
-          const imgId = wb.addImage({base64:b64, extension:"jpeg"});
-          ws.addImage(imgId,{tl:{col:i+1,row:r-1},br:{col:i+2,row:r}});
-        }catch(e){ console.warn("embed image failed:", ph.name, e); }
+        if(src){
+          try{
+            const b64 = await imageToBase64Jpeg(src);
+            const imgId = wb.addImage({base64:b64, extension:"jpeg"});
+            ws.addImage(imgId,{tl:{col:i+1,row:r-1},br:{col:i+2,row:r}});
+          }catch(e){ console.warn("embed image failed:", ph.name, e); }
+        }
       }
       r++;
 
