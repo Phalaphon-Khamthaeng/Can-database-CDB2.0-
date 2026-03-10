@@ -1263,7 +1263,12 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
           }
 
           const imgId = wb.addImage({base64:b64, extension:ext});
-          ws.addImage(imgId,{tl:{col:i+1,row:r-1},br:{col:i+2,row:r}});
+         // ws.addImage(imgId,{tl:{col:i+1,row:r-1},br:{col:i+2,row:r}});
+  ws.addImage(imgId,{
+  tl:{col:i+1, row:r-1},
+  br:{col:i+2, row:r},
+  editAs:'oneCell'
+});
         }catch(e){ console.warn("embed failed:", ph.name, e); }
       }
       r++;
