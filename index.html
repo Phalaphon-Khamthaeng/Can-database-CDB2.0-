@@ -955,16 +955,30 @@ async function doUpload(){
     if(!exUpRes.ok) throw new Error("อัปโหลด Excel ไม่ได้: "+await exUpRes.text());
     setStatus(excelStepBase+2,"done"); done++;
 
-    // Save record locally
+    // Save record locally — ไม่เก็บ dataUrl ใน localStorage (เกิน quota)
+    const photosForStorage = {};
+    PS.forEach(p=>{
+      photosForStorage[p.key] = (savedPhotos[p.key]||[]).map(ph=>({
+        preview: ph.preview,
+        savedName: ph.savedName,
+        name: ph.name,
+        spUrl: ph.spUrl,
+        // ไม่เก็บ dataUrl — ใหญ่เกินไป
+      }));
+    });
     const newRecord={
       id:Date.now(), brand:wizData.brand, model:wizData.model, year:wizData.year,
       coolant:wizData.coolant, group:wizData.group,
       uploaded:true, folderName,
-      photos:savedPhotos,
+      photos:photosForStorage,
       date:new Date().toLocaleDateString("th-TH",{year:"numeric",month:"short",day:"numeric"}),
     };
     records.unshift(newRecord);
-    localStorage.setItem("cabinet_records",JSON.stringify(records));
+    try{ localStorage.setItem("cabinet_records",JSON.stringify(records)); }catch(e){
+      // localStorage เต็ม — เก็บแค่ metadata ไม่มี photos
+      const slim = records.map(r=>({...r, photos: Object.fromEntries(PS.map(p=>[p.key,[]]))}));
+      try{ localStorage.setItem("cabinet_records",JSON.stringify(slim)); }catch{}
+    }
 
     document.getElementById("up-main-icon").textContent="✅";
     document.getElementById("up-title").textContent="บันทึกสำเร็จ!";
