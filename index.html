@@ -6,6 +6,7 @@
 <title>SUN VENDING — Cabinet Database</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -970,7 +971,9 @@ async function doUpload(){
 
     // Step: Upload Excel back
     setStatus(excelStepBase+2,"loading");
-    const excelBuf = await wb.xlsx.writeBuffer();
+    let excelBuf = await wb.xlsx.writeBuffer();
+    // แปลง drawing XML ให้ Excel Online แสดงรูปได้
+    excelBuf = await fixXlsxDrawings(excelBuf);
     const excelBlob = new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
     const exUpRes = await fetch(
       `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelSpPath)}:/content`,
@@ -1033,6 +1036,47 @@ function getRenamedFile(folderName, prefix, idx, originalName){
 
 function encPath(p){
   return p.split("/").map(encodeURIComponent).join("/");
+}
+
+// ═══════════════════ FIX DRAWING XML FOR EXCEL ONLINE ═══════════════════
+// ExcelJS สร้าง oneCellAnchor → Excel Online ไม่แสดงรูป
+// แก้ด้วย JSZip: แปลงเป็น twoCellAnchor ที่ Excel Online รองรับ
+async function fixXlsxDrawings(buffer){
+  try{
+    const zip = await JSZip.loadAsync(buffer);
+    const keys = Object.keys(zip.files).filter(k=>/xl\/drawings\/drawing\d+\.xml$/.test(k));
+    if(!keys.length) return buffer; // ไม่มี drawing → คืนเดิม
+
+    for(const key of keys){
+      let xml = await zip.files[key].async("string");
+
+      // แปลงทุก oneCellAnchor → twoCellAnchor
+      xml = xml.replace(/<xdr:oneCellAnchor>([\s\S]*?)<\/xdr:oneCellAnchor>/g, (match, inner)=>{
+        // หา col/row ของ <xdr:from>
+        const fromColMatch = inner.match(/<xdr:from>[\s\S]*?<xdr:col>(\d+)<\/xdr:col>/);
+        const fromRowMatch = inner.match(/<xdr:from>[\s\S]*?<xdr:row>(\d+)<\/xdr:row>/);
+        const fromCol = fromColMatch ? parseInt(fromColMatch[1]) : 0;
+        const fromRow = fromRowMatch ? parseInt(fromRowMatch[1]) : 0;
+
+        // สร้าง <xdr:to> = col+1, row+1
+        const toXml = `<xdr:to>`+
+          `<xdr:col>${fromCol+1}</xdr:col><xdr:colOff>0</xdr:colOff>`+
+          `<xdr:row>${fromRow+1}</xdr:row><xdr:rowOff>0</xdr:rowOff>`+
+          `</xdr:to>`;
+
+        // แทน <xdr:ext .../> ด้วย <xdr:to>
+        const newInner = inner.replace(/<xdr:ext[^>]*\/>/, toXml);
+        return `<xdr:twoCellAnchor editAs="oneCell">${newInner}</xdr:twoCellAnchor>`;
+      });
+
+      zip.file(key, xml);
+    }
+
+    return zip.generateAsync({type:"arraybuffer", compression:"DEFLATE"});
+  }catch(e){
+    console.warn("fixXlsxDrawings failed:", e);
+    return buffer; // ถ้า error ใช้ buffer เดิม
+  }
 }
 
 // ═══════════════════ IMAGE → JPEG BASE64 (via canvas) ═══════════════════
@@ -1257,7 +1301,7 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
           const imgId = wb.addImage({base64:b64, extension:"jpeg"});
           ws.addImage(imgId,{
             tl:{col:i+1, row:r-1},
-            br:{col:i+2, row:r},
+            ext:{width:IMG_W, height:IMG_H},
             editAs:"oneCell"
           });
         }catch(e){ console.warn("embed failed:", ph.name, e); }
