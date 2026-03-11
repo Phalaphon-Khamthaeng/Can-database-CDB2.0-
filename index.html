@@ -6,7 +6,6 @@
 <title>SUN VENDING — Cabinet Database</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -35,28 +34,21 @@ input{font-family:'DM Sans',sans-serif;}
 .btn:active{transform:translateY(0);}
 .btn-red{background:linear-gradient(135deg,var(--red-dark),var(--red));color:#fff;box-shadow:0 4px 12px rgba(215,43,43,.25);}
 .btn-blue{background:linear-gradient(135deg,#1D4ED8,var(--blue));color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.25);}
-.btn-green{background:linear-gradient(135deg,#15803D,var(--green));color:#fff;box-shadow:0 4px 12px rgba(22,163,74,.25);}
 .btn-outline{background:var(--white);border:1.5px solid var(--g200);color:var(--g600);}
 .btn-sm{padding:7px 12px;font-size:12px;border-radius:8px;}
 .btn-full{width:100%;}
-
-/* Stats */
 .stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
 .stat-card{background:var(--white);border-radius:12px;padding:14px;border:1px solid var(--g200);}
-.stat-label{font-size:11px;color:var(--g400);margin-bottom:2px;display:flex;align-items:center;gap:4px;}
+.stat-label{font-size:11px;color:var(--g400);margin-bottom:2px;}
 .stat-val{font-family:'Bebas Neue',sans-serif;font-size:30px;color:var(--g800);}
-
-/* Search */
 .search-wrap{position:relative;margin-bottom:14px;}
-.search-wrap input{width:100%;padding:11px 13px 11px 36px;border:1px solid var(--g200);border-radius:10px;font-size:13px;color:var(--g800);outline:none;background:var(--white);transition:border .2s;}
+.search-wrap input{width:100%;padding:11px 13px 11px 36px;border:1px solid var(--g200);border-radius:10px;font-size:13px;color:var(--g800);outline:none;background:var(--white);}
 .search-wrap input:focus{border-color:var(--red);}
 .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;}
-
-/* Record cards */
 .rec-card{background:var(--white);border-radius:12px;border:1px solid var(--g200);display:flex;gap:12px;padding:14px;cursor:pointer;margin-bottom:10px;transition:all .2s;}
-.rec-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);border-color:var(--g300);}
+.rec-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);}
 .rec-thumb{width:68px;height:68px;border-radius:10px;overflow:hidden;background:var(--g100);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:26px;}
-.rec-thumb img{width:100%;height:100%;object-fit:cover;}
+.rec-thumb img{width:100%;height:100%;object-fit:cover;transition:opacity .3s;}
 .rec-info{flex:1;min-width:0;}
 .rec-model{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--g800);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .rec-tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}
@@ -65,7 +57,6 @@ input{font-family:'DM Sans',sans-serif;}
 .tag.blue{background:var(--blue-bg);color:var(--blue);}
 .rec-date{font-size:11px;color:var(--g400);margin-top:5px;}
 .empty{text-align:center;padding:60px 0;color:var(--g400);}
-
 /* Wizard */
 .wiz-wrap{min-height:100vh;background:var(--g50);display:flex;flex-direction:column;align-items:center;padding:20px 16px 60px;}
 .wiz-header{width:100%;max-width:500px;margin-bottom:20px;}
@@ -76,17 +67,12 @@ input{font-family:'DM Sans',sans-serif;}
 .dot.wide{width:18px;}
 .dot.done,.dot.active{background:var(--red);}
 .dot.inactive{opacity:.3;}
-
 .wiz-card{width:100%;max-width:500px;background:var(--white);border-radius:20px;box-shadow:0 4px 24px rgba(0,0,0,.08);padding:28px 24px;min-height:440px;display:flex;flex-direction:column;}
 .wiz-content{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;}
 .wiz-nav{display:flex;gap:10px;margin-top:20px;}
 .step-icon{width:68px;height:68px;border-radius:18px;background:var(--red-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;font-size:36px;}
 .step-title{font-family:'Bebas Neue',sans-serif;font-size:32px;color:var(--red);letter-spacing:2px;text-align:center;}
 .step-sub{font-size:13px;color:var(--g400);text-align:center;margin-top:4px;margin-bottom:16px;}
-.field input{width:100%;padding:13px 16px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;transition:border .2s;}
-.field input:focus{border-color:var(--red);}
-
-/* Multi-photo upload */
 .photo-section{width:100%;max-width:460px;}
 .photo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:8px;margin-top:10px;}
 .photo-thumb{position:relative;border-radius:10px;overflow:hidden;background:var(--g100);aspect-ratio:1;}
@@ -96,16 +82,11 @@ input{font-family:'DM Sans',sans-serif;}
 .add-photo-btn{border:2px dashed var(--g300);border-radius:10px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;cursor:pointer;background:var(--g50);transition:all .2s;font-size:24px;}
 .add-photo-btn:hover,.add-photo-btn.drag{border-color:var(--red);background:var(--red-bg);}
 .add-photo-btn p{font-size:11px;color:var(--g400);text-align:center;line-height:1.3;}
-
-/* Tracker */
 .tracker{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:14px;width:100%;max-width:520px;padding:0 8px;}
-.tracker-row{display:contents;}
-.tracker-item{display:flex;align-items:center;gap:3px;padding:4px 9px;border-radius:20px;font-size:9.5px;font-weight:500;white-space:nowrap;transition:all .2s;}
+.tracker-item{display:flex;align-items:center;gap:3px;padding:4px 9px;border-radius:20px;font-size:9.5px;font-weight:500;white-space:nowrap;}
 .tracker-item.done{background:var(--green-bg);border:1px solid var(--green);color:var(--green);}
-.tracker-item.active{background:var(--red-bg);border:1.5px solid var(--red);color:var(--red);font-weight:700;box-shadow:0 2px 8px rgba(215,43,43,.15);}
+.tracker-item.active{background:var(--red-bg);border:1.5px solid var(--red);color:var(--red);font-weight:700;}
 .tracker-item.upcoming{background:var(--g100);border:1px solid var(--g200);color:var(--g400);}
-
-/* Summary */
 .sum-row{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--g100);}
 .sum-key{font-size:13px;color:var(--g400);}
 .sum-val{font-size:13px;color:var(--g800);font-weight:600;}
@@ -116,8 +97,6 @@ input{font-family:'DM Sans',sans-serif;}
 .photo-mini p{font-size:8px;color:var(--g400);margin-top:2px;line-height:1.2;}
 .photo-mini.has p{color:var(--green);}
 .count-badge{display:inline-flex;align-items:center;justify-content:center;background:var(--red);color:#fff;border-radius:50%;width:16px;height:16px;font-size:9px;font-weight:700;margin-left:2px;}
-
-/* Upload progress */
 .up-step{display:flex;align-items:center;gap:12px;padding:8px 0;border-bottom:1px solid var(--g100);}
 .up-step:last-child{border-bottom:none;}
 .up-icon{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px;}
@@ -130,21 +109,17 @@ input{font-family:'DM Sans',sans-serif;}
 .up-label.loading{color:var(--blue);font-weight:600;}
 .up-label.done{color:var(--g800);}
 .up-label.error{color:#991B1B;}
-
-/* Login button */
 .login-btn{display:flex;align-items:center;gap:5px;padding:7px 13px;background:var(--blue-bg);border:1px solid var(--blue-light);border-radius:20px;color:var(--blue);font-size:12px;font-weight:600;}
-
 /* Detail */
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .detail-card{border-radius:10px;overflow:hidden;border:1px solid var(--g200);}
 .detail-card.has-photo{border-color:var(--green);}
 .detail-photos-strip{display:flex;gap:4px;flex-wrap:wrap;padding:6px;}
-.detail-photos-strip img{height:70px;width:70px;object-fit:cover;border-radius:6px;border:1px solid var(--g200);}
+.detail-photos-strip img{height:70px;width:70px;object-fit:cover;border-radius:6px;border:1px solid var(--g200);background:var(--g100);transition:opacity .4s;}
+.detail-img-loading{opacity:0.2;}
+.detail-img-loaded{opacity:1;}
 .detail-card-label{padding:7px 10px;font-size:12px;font-weight:600;color:var(--g600);background:var(--white);border-top:1px solid var(--g200);}
-
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5};}
-@keyframes spin{from{transform:rotate(0deg);}to{transform:rotate(360deg);}}
-.spin{display:inline-block;animation:spin 1s linear infinite;}
 </style>
 </head>
 <body>
@@ -179,12 +154,17 @@ input{font-family:'DM Sans',sans-serif;}
   <div class="header">
     <button class="btn btn-outline btn-sm" onclick="showPage('list')">← กลับ</button>
     <span id="detail-title" style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--g800);"></span>
-    <div style="width:80px;"></div>
+    <div style="min-width:80px;text-align:right;">
+      <button id="btn-detail-load" onclick="triggerLoadImages()" style="display:none;" class="btn btn-outline btn-sm">🖼️ โหลดรูป</button>
+    </div>
   </div>
   <div class="container">
     <div class="card" id="detail-info"></div>
     <div class="card" style="margin-top:14px;">
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:12px;color:var(--red);letter-spacing:2px;margin-bottom:12px;">รูปภาพ</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:12px;color:var(--red);letter-spacing:2px;">รูปภาพ</div>
+        <div id="detail-load-status" style="font-size:11px;color:var(--g400);"></div>
+      </div>
       <div class="detail-grid" id="detail-photos"></div>
     </div>
   </div>
@@ -210,10 +190,8 @@ input{font-family:'DM Sans',sans-serif;}
         <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">SharePoint Site Host</label>
           <input id="cfg-site" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="sun108.sharepoint.com"/></div>
         <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">SharePoint Site Name</label>
-          <div style="font-size:11px;color:var(--g400);margin-bottom:5px;">ชื่อที่เห็นใน URL: sharepoint.com/sites/<strong>CanDataBase</strong></div>
           <input id="cfg-site-name" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="ITRDmanagement"/></div>
         <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">Path โฟลเดอร์ Model (ใน Documents)</label>
-          <div style="font-size:11px;color:var(--g400);margin-bottom:5px;">ถ้าสร้างโฟลเดอร์ Model ไว้ใน Documents ตรงๆ ใส่แค่ Model</div>
           <input id="cfg-model-path" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="RD/Knowledge/Used Can Database/CDB(Web app)/Model"/></div>
         <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">ชื่อไฟล์ Excel หลัก</label>
           <input id="cfg-excel-name" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:12px;font-family:monospace;color:var(--g800);outline:none;" value="Used_Can_Web.xlsx"/></div>
@@ -229,7 +207,7 @@ input{font-family:'DM Sans',sans-serif;}
   <div class="wiz-wrap">
     <div class="wiz-header">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
-        <div class="logo" style="cursor:pointer;" onclick="cancelWizard()">
+        <div class="logo" onclick="cancelWizard()">
           <div class="logo-s">S</div><div class="logo-text"><div class="l1">SUN VENDING</div><div class="l2">CAN DATABASE</div></div>
         </div>
         <div style="display:flex;align-items:center;gap:8px;">
@@ -249,7 +227,7 @@ input{font-family:'DM Sans',sans-serif;}
           <button id="wiz-btn-next" class="btn btn-red" style="flex:2;" onclick="wizNext()">ถัดไป →</button>
         </div>
         <div style="text-align:center;margin-top:10px;">
-          <button id="wiz-btn-skip" style="display:none;background:none;border:none;color:var(--g400);font-size:12px;text-decoration:underline;" onclick="wizStep++; renderWiz()">ข้ามขั้นตอนนี้</button>
+          <button id="wiz-btn-skip" style="display:none;background:none;border:none;color:var(--g400);font-size:12px;text-decoration:underline;" onclick="wizStep++;renderWiz()">ข้ามขั้นตอนนี้</button>
         </div>
       </div>
     </div>
@@ -298,359 +276,402 @@ let CFG = {
   excelPath:"RD/Knowledge/Used Can Database/CDB(Web app)",
 };
 
-// ═══════════════════ PHOTO STEPS ═══════════════════
 const PS = [
-  {key:"nameplate",      label:"Nameplate",               sub:"ป้ายข้อมูลหลักของตู้",         prefix:"Nameplate",      icon:"🏷️"},
-  {key:"other_nameplate",label:"Other Nameplate",         sub:"ป้ายข้อมูลเพิ่มเติม",          prefix:"OtherNameplate", icon:"📋"},
-  {key:"outside",        label:"Outside",                 sub:"ภาพรวมภายนอกตู้",             prefix:"Outside",        icon:"📦"},
-  {key:"button",         label:"Button Panel",            sub:"แผงปุ่มกดควบคุม",             prefix:"ButtonPanel",    icon:"🔘"},
-  {key:"breaker",        label:"Breaker",                 sub:"เบรกเกอร์ / Circuit Breaker", prefix:"Breaker",        icon:"⚡"},
-  {key:"smps",           label:"Power Supply (SMPS)",     sub:"Switched-Mode Power Supply",  prefix:"PowerSupply",    icon:"🔌"},
-  {key:"door_side",      label:"Door Side",               sub:"ด้านในประตูตู้",              prefix:"DoorSide",       icon:"🚪"},
-  {key:"master_box",     label:"Master Box & Remote",     sub:"กล่องควบคุมหลักและรีโมต",      prefix:"MasterBox",      icon:"🖲️"},
-  {key:"boards_inside",  label:"Boards Inside Power Box", sub:"บอร์ดภายในกล่องไฟ",           prefix:"BoardsInside",   icon:"🔧"},
-  {key:"inventory_side", label:"Inventory Side",          sub:"ด้านช่องสินค้า",              prefix:"InventorySide",  icon:"📊"},
-  {key:"master_board",   label:"Master Board",            sub:"บอร์ดควบคุมหลัก",             prefix:"MasterBoard",    icon:"🖥️"},
-  {key:"compressor",     label:"Compressor",              sub:"คอมเพรสเซอร์ระบบทำความเย็น",   prefix:"Compressor",     icon:"❄️"},
+  {key:"nameplate",      label:"Nameplate",               sub:"ป้ายข้อมูลหลักของตู้",        prefix:"Nameplate",      icon:"🏷️"},
+  {key:"other_nameplate",label:"Other Nameplate",         sub:"ป้ายข้อมูลเพิ่มเติม",         prefix:"OtherNameplate", icon:"📋"},
+  {key:"outside",        label:"Outside",                 sub:"ภาพรวมภายนอกตู้",            prefix:"Outside",        icon:"📦"},
+  {key:"button",         label:"Button Panel",            sub:"แผงปุ่มกดควบคุม",            prefix:"ButtonPanel",    icon:"🔘"},
+  {key:"breaker",        label:"Breaker",                 sub:"เบรกเกอร์ / Circuit Breaker",prefix:"Breaker",        icon:"⚡"},
+  {key:"smps",           label:"Power Supply (SMPS)",     sub:"Switched-Mode Power Supply", prefix:"PowerSupply",    icon:"🔌"},
+  {key:"door_side",      label:"Door Side",               sub:"ด้านในประตูตู้",             prefix:"DoorSide",       icon:"🚪"},
+  {key:"master_box",     label:"Master Box & Remote",     sub:"กล่องควบคุมหลักและรีโมต",     prefix:"MasterBox",      icon:"🖲️"},
+  {key:"boards_inside",  label:"Boards Inside Power Box", sub:"บอร์ดภายในกล่องไฟ",          prefix:"BoardsInside",   icon:"🔧"},
+  {key:"inventory_side", label:"Inventory Side",          sub:"ด้านช่องสินค้า",             prefix:"InventorySide",  icon:"📊"},
+  {key:"master_board",   label:"Master Board",            sub:"บอร์ดควบคุมหลัก",            prefix:"MasterBoard",    icon:"🖥️"},
+  {key:"compressor",     label:"Compressor",              sub:"คอมเพรสเซอร์ระบบทำความเย็น",  prefix:"Compressor",     icon:"❄️"},
 ];
 const TOTAL = 3 + PS.length + 1;
 
-// ═══════════════════ STATE ═══════════════════
 let records = [];
 let msalApp = null, accessToken = null, currentUser = null;
-
 let wizStep = 0;
 let wizData = { brand:"", model:"", year:"", coolant:"", group:"", photos:{} };
+let _currentDetailRecord = null;
+
+// ═══════════════════ SP IMAGE CACHE ═══════════════════
+// path (ใน SharePoint Documents) → blob URL
+const _imgCache = {};
+let _cachedDriveId = null;
+
+async function getSpDriveId(){
+  if(_cachedDriveId) return _cachedDriveId;
+  const H={Authorization:"Bearer "+accessToken};
+  const siteRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});
+  if(!siteRes.ok) throw new Error("ไม่พบ Site");
+  const siteId=(await siteRes.json()).id;
+  const drvRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,{headers:H});
+  const drv=(await drvRes.json()).value?.find(d=>d.name==="Documents");
+  if(!drv) throw new Error("ไม่พบ Drive");
+  _cachedDriveId=drv.id;
+  return _cachedDriveId;
+}
+
+// โหลดรูปจาก SharePoint โดยใช้ token → แปลงเป็น blob URL → ใส่ใน <img>
+async function loadSpImg(imgEl, filePath){
+  if(!accessToken||!filePath||!imgEl) return;
+  if(_imgCache[filePath]){
+    imgEl.src=_imgCache[filePath];
+    imgEl.classList.remove("detail-img-loading");
+    imgEl.classList.add("detail-img-loaded");
+    return;
+  }
+  try{
+    const driveId=await getSpDriveId();
+    const res=await fetch(
+      `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(filePath)}:/content`,
+      {headers:{Authorization:"Bearer "+accessToken}}
+    );
+    if(!res.ok) return;
+    const blob=await res.blob();
+    const blobUrl=URL.createObjectURL(blob);
+    _imgCache[filePath]=blobUrl;
+    imgEl.src=blobUrl;
+    imgEl.classList.remove("detail-img-loading");
+    imgEl.classList.add("detail-img-loaded");
+  }catch(e){
+    console.warn("loadSpImg failed:",filePath,e);
+  }
+}
 
 // ═══════════════════ INIT ═══════════════════
 (function init(){
-  const sc = localStorage.getItem("sp_config");
-  if(sc) try{ CFG = {...CFG,...JSON.parse(sc)}; }catch{}
-  const sr = localStorage.getItem("cabinet_records");
+  const sc=localStorage.getItem("sp_config");
+  if(sc) try{CFG={...CFG,...JSON.parse(sc)};}catch{}
+  const sr=localStorage.getItem("cabinet_records");
   if(sr) try{
-    const parsed = JSON.parse(sr);
-    const hasDataUrl = parsed.some(r=>PS.some(p=>(r.photos?.[p.key]||[]).some(ph=>ph.dataUrl)));
+    const parsed=JSON.parse(sr);
+    // ล้าง dataUrl เก่าถ้ามี
+    const hasDataUrl=parsed.some(r=>PS.some(p=>(r.photos?.[p.key]||[]).some(ph=>ph.dataUrl)));
     if(hasDataUrl){
-      const slim = parsed.map(r=>({
-        id:r.id, brand:r.brand, model:r.model, year:r.year,
-        coolant:r.coolant, group:r.group, uploaded:r.uploaded,
-        folderName:r.folderName, date:r.date, fromSP:r.fromSP,
-        photos: Object.fromEntries(PS.map(p=>[p.key,[]]))
-      }));
-      try{ localStorage.setItem("cabinet_records", JSON.stringify(slim)); }catch{}
-      records = slim;
-    } else {
-      records = parsed;
+      records=parsed.map(r=>({...r,photos:Object.fromEntries(PS.map(p=>[p.key,[]]))}));
+      try{localStorage.setItem("cabinet_records",JSON.stringify(records));}catch{}
+    }else{
+      records=parsed;
     }
   }catch{}
   renderList();
 })();
 
 // ═══════════════════ ROUTING ═══════════════════
-function showPage(name){
+function showPage(n){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
-  document.getElementById("page-"+name).classList.add("active");
-  if(name==="list") renderList();
+  document.getElementById("page-"+n).classList.add("active");
+  if(n==="list") renderList();
 }
 
 // ═══════════════════ CONFIG ═══════════════════
 function clearData(){
-  if(!confirm("⚠️ ล้างรายการตู้ทั้งหมดใน Browser นี้?\n\n(ไฟล์ใน SharePoint ไม่ถูกลบ)")) return;
+  if(!confirm("⚠️ ล้างรายการตู้ทั้งหมดใน Browser นี้?")) return;
   localStorage.removeItem("cabinet_records");
-  records=[];
-  renderList();
-  alert("✅ ล้างข้อมูลเรียบร้อย");
-  showPage("list");
+  records=[];renderList();
+  alert("✅ ล้างข้อมูลเรียบร้อย");showPage("list");
 }
-
 function saveConfig(){
-  CFG.clientId  = document.getElementById("cfg-client").value.trim();
-  CFG.tenantId  = document.getElementById("cfg-tenant").value.trim();
-  CFG.spSite    = document.getElementById("cfg-site").value.trim();
-  CFG.spSiteName= document.getElementById("cfg-site-name").value.trim();
-  CFG.modelPath = document.getElementById("cfg-model-path").value.trim();
-  CFG.excelName = document.getElementById("cfg-excel-name").value.trim();
-  CFG.excelPath = CFG.modelPath.split("/").slice(0,-1).join("/");
+  CFG.clientId =document.getElementById("cfg-client").value.trim();
+  CFG.tenantId =document.getElementById("cfg-tenant").value.trim();
+  CFG.spSite   =document.getElementById("cfg-site").value.trim();
+  CFG.spSiteName=document.getElementById("cfg-site-name").value.trim();
+  CFG.modelPath=document.getElementById("cfg-model-path").value.trim();
+  CFG.excelName=document.getElementById("cfg-excel-name").value.trim();
+  CFG.excelPath=CFG.modelPath.split("/").slice(0,-1).join("/");
   localStorage.setItem("sp_config",JSON.stringify(CFG));
-  msalApp=null;
-  alert("✅ บันทึกสำเร็จ");
-  showPage("list");
+  msalApp=null;_cachedDriveId=null;
+  alert("✅ บันทึกสำเร็จ");showPage("list");
 }
 
-// ═══════════════════ MSAL / AUTH ═══════════════════
+// ═══════════════════ AUTH ═══════════════════
 function getMsal(){
-  if(!msalApp) msalApp = new msal.PublicClientApplication({
-    auth:{clientId:CFG.clientId, authority:"https://login.microsoftonline.com/"+CFG.tenantId, redirectUri:"https://phalaphon-khamthaeng.github.io/Can-database-CDB2.0-/"},
+  if(!msalApp) msalApp=new msal.PublicClientApplication({
+    auth:{clientId:CFG.clientId,authority:"https://login.microsoftonline.com/"+CFG.tenantId,redirectUri:"https://phalaphon-khamthaeng.github.io/Can-database-CDB2.0-/"},
     cache:{cacheLocation:"sessionStorage"},
   });
   return msalApp;
 }
-
 async function doLogin(fromWiz=false){
   try{
-    const app = getMsal();
-    const r = await app.loginPopup({scopes:["Files.ReadWrite.All","Sites.ReadWrite.All"]});
-    accessToken = r.accessToken;
-    currentUser = r.account.name || r.account.username;
+    const r=await getMsal().loginPopup({scopes:["Files.ReadWrite.All","Sites.ReadWrite.All"]});
+    accessToken=r.accessToken;
+    currentUser=r.account.name||r.account.username;
+    _cachedDriveId=null;
     updateUserUI();
     if(!fromWiz) syncFromSharePoint();
     return true;
-  }catch(e){
-    alert("❌ Login ไม่สำเร็จ: "+e.message);
-    return false;
-  }
+  }catch(e){alert("❌ Login ไม่สำเร็จ: "+e.message);return false;}
 }
-
 async function ensureToken(){
   if(accessToken) return true;
   return doLogin();
 }
+function doLogout(){accessToken=null;currentUser=null;msalApp=null;_cachedDriveId=null;updateUserUI();}
 
-function doLogout(){ accessToken=null; currentUser=null; msalApp=null; updateUserUI(); }
-
-// ═══════════════════ SYNC FROM SHAREPOINT ═══════════════════
+// ═══════════════════ SYNC ═══════════════════
 async function syncFromSharePoint(){
   if(!accessToken) return;
-  const btn = document.getElementById("btn-sync");
-  if(btn){ btn.innerHTML="⏳ กำลังซิงค์..."; btn.disabled=true; }
+  const btn=document.getElementById("btn-sync");
+  if(btn){btn.innerHTML="⏳ ซิงค์...";btn.disabled=true;}
   try{
-    const H = {Authorization:"Bearer "+accessToken};
-    const siteRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});
+    const H={Authorization:"Bearer "+accessToken};
+    const siteRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});
     if(!siteRes.ok) throw new Error("ไม่พบ Site");
-    const siteId = (await siteRes.json()).id;
-    const drivesRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,{headers:H});
-    const drive = (await drivesRes.json()).value?.find(d=>d.name==="Documents")||(await drivesRes.json()).value?.[0];
-    if(!drive) throw new Error("ไม่พบ Drive");
-    const driveId = drive.id;
-
-    const excelPath = CFG.excelPath
-      ? `${CFG.excelPath}/${CFG.excelName}`
-      : `${CFG.modelPath.split("/").slice(0,-1).join("/")}/${CFG.excelName}`;
-    const exRes = await fetch(
-      `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelPath)}:/content`,
-      {headers:H}
-    );
+    const siteId=(await siteRes.json()).id;
+    const drvRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,{headers:H});
+    const drv=(await drvRes.json()).value?.find(d=>d.name==="Documents");
+    if(!drv) throw new Error("ไม่พบ Drive");
+    _cachedDriveId=drv.id;
+    const exPath=CFG.excelPath?`${CFG.excelPath}/${CFG.excelName}`:`${CFG.modelPath.split("/").slice(0,-1).join("/")}/${CFG.excelName}`;
+    const exRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${drv.id}/root:/${encPath(exPath)}:/content`,{headers:H});
     if(!exRes.ok) throw new Error("ไม่พบ Excel");
-    const buf = await exRes.arrayBuffer();
-
-    const wb2 = new ExcelJS.Workbook();
-    await wb2.xlsx.load(buf);
-
-    const spRecords = [];
+    const wb2=new ExcelJS.Workbook();
+    await wb2.xlsx.load(await exRes.arrayBuffer());
+    const spRecs=[];
     wb2.eachSheet(ws=>{
       if(ws.name==="Index") return;
-      const brand   = ws.getCell(2,2).value||"";
-      const model   = ws.getCell(3,2).value||"";
-      const year    = String(ws.getCell(4,2).value||"");
-      const coolant = String(ws.getCell(5,2).value||"");
-      const group   = String(ws.getCell(6,2).value||"");
-      if(!model && !brand) return;
-      const folderName = [model,brand,year].filter(Boolean).join("_");
-      let photos={};
-      PS.forEach(p=>photos[p.key]=[]);
-      spRecords.push({
-        id:"sp_"+ws.name, brand, model, year, coolant, group,
-        uploaded:true, folderName, photos,
-        date:"SharePoint", fromSP:true,
-      });
+      const brand=ws.getCell(2,2).value||"",model=ws.getCell(3,2).value||"";
+      if(!model&&!brand) return;
+      const year=String(ws.getCell(4,2).value||""),coolant=String(ws.getCell(5,2).value||""),group=String(ws.getCell(6,2).value||"");
+      const folderName=[model,brand,year].filter(Boolean).join("_");
+      spRecs.push({id:"sp_"+ws.name,brand,model,year,coolant,group,uploaded:true,folderName,
+        photos:Object.fromEntries(PS.map(p=>[p.key,[]])),date:"SharePoint",fromSP:true});
     });
-
-    const localOnly = records.filter(r=>!r.fromSP&&!spRecords.find(s=>s.folderName===r.folderName));
-    records = [...spRecords, ...localOnly];
-    const slimRecords = records.map(r=>({
-      id:r.id, brand:r.brand, model:r.model, year:r.year,
-      coolant:r.coolant, group:r.group, uploaded:r.uploaded,
-      folderName:r.folderName, date:r.date, fromSP:r.fromSP,
-      photos: Object.fromEntries(PS.map(p=>[p.key,[]]))
-    }));
-    try{ localStorage.setItem("cabinet_records", JSON.stringify(slimRecords)); }catch{}
+    records=[...spRecs,...records.filter(r=>!r.fromSP&&!spRecs.find(s=>s.folderName===r.folderName))];
+    try{localStorage.setItem("cabinet_records",JSON.stringify(records));}catch{}
     renderList();
-    if(btn){ btn.innerHTML=`🔄 ซิงค์ (${spRecords.length} ตู้)`; btn.disabled=false; }
+    if(btn){btn.innerHTML=`🔄 ซิงค์ (${spRecs.length})`;btn.disabled=false;}
   }catch(e){
-    if(btn){ btn.innerHTML="⚠️ ซิงค์ไม่ได้"; btn.disabled=false; }
+    if(btn){btn.innerHTML="⚠️ ซิงค์ไม่ได้";btn.disabled=false;}
     console.error(e);
   }
 }
 
 function updateUserUI(){
-  const lb = document.getElementById("list-user-badge");
-  const lo = document.getElementById("btn-list-logout");
-  const wb = document.getElementById("wiz-user-badge");
-  const wl = document.getElementById("btn-wiz-login");
-  const bs = document.getElementById("btn-sync");
+  const show=(id,txt)=>{const el=document.getElementById(id);if(el){el.style.display=txt?"inline-flex":"none";if(txt)el.textContent=txt;}};
+  const showFlex=(id,vis)=>{const el=document.getElementById(id);if(el)el.style.display=vis?"flex":"none";};
   if(currentUser){
-    if(lb){lb.style.display="inline-flex";lb.textContent="☁️ "+currentUser;}
-    if(lo) lo.style.display="flex";
-    if(wb){wb.style.display="inline-flex";wb.textContent="☁️ "+currentUser;}
-    if(wl) wl.style.display="none";
-    if(bs) bs.style.display="flex";
+    show("list-user-badge","☁️ "+currentUser);showFlex("btn-list-logout",true);
+    show("wiz-user-badge","☁️ "+currentUser);showFlex("btn-wiz-login",false);showFlex("btn-sync",true);
   }else{
-    if(lb) lb.style.display="none";
-    if(lo) lo.style.display="none";
-    if(wb) wb.style.display="none";
-    if(wl) wl.style.display="flex";
-    if(bs) bs.style.display="none";
+    show("list-user-badge","");showFlex("btn-list-logout",false);
+    show("wiz-user-badge","");showFlex("btn-wiz-login",true);showFlex("btn-sync",false);
   }
 }
 
 // ═══════════════════ LIST ═══════════════════
 function renderList(search=""){
-  const s = search.toLowerCase();
-  const filtered = records.filter(r=>[r.brand,r.model,r.year].join(" ").toLowerCase().includes(s));
+  const s=search.toLowerCase();
+  const filtered=records.filter(r=>[r.brand,r.model,r.year].join(" ").toLowerCase().includes(s));
   document.getElementById("stat-total").textContent=records.length;
-  const totalPhotos = records.reduce((a,r)=>a+PS.reduce((b,p)=>b+(r.photos?.[p.key]?.length||0),0),0);
-  document.getElementById("stat-photos").textContent=totalPhotos;
-
-  const c = document.getElementById("list-container");
+  document.getElementById("stat-photos").textContent=records.reduce((a,r)=>a+PS.reduce((b,p)=>b+(r.photos?.[p.key]?.length||0),0),0);
+  const c=document.getElementById("list-container");
   if(!filtered.length){
-    c.innerHTML=`<div class="empty"><div style="font-size:48px;margin-bottom:10px;">📂</div><p>${search?"ไม่พบข้อมูลที่ค้นหา":"ยังไม่มีข้อมูลตู้ กด + เพิ่มตู้เพื่อเริ่ม"}</p></div>`;
+    c.innerHTML=`<div class="empty"><div style="font-size:48px;margin-bottom:10px;">📂</div><p>${search?"ไม่พบข้อมูลที่ค้นหา":"ยังไม่มีข้อมูลตู้"}</p></div>`;
     return;
   }
   c.innerHTML=filtered.map(r=>{
-    const ri = records.indexOf(r);
-    const thumbArr = PS.find(p=>r.photos?.[p.key]?.length>0);
-    const thumb = thumbArr ? r.photos[thumbArr.key][0]?.preview : null;
-    const cnt = PS.reduce((a,p)=>a+(r.photos?.[p.key]?.length||0),0);
-    const sects = PS.filter(p=>r.photos?.[p.key]?.length>0).length;
+    const ri=records.indexOf(r);
+    const firstStep=PS.find(p=>r.photos?.[p.key]?.length>0);
+    const firstPh=firstStep?r.photos[firstStep.key][0]:null;
+    // สร้าง SP path จาก savedName (สำหรับ lazy load)
+    const spPath=firstPh?.savedName?`${CFG.modelPath}/${r.folderName}/${firstPh.savedName}`:"";
+    const blobSrc=firstPh?.preview||""; // blob URL ที่อาจยังอยู่ใน session
+    const cnt=PS.reduce((a,p)=>a+(r.photos?.[p.key]?.length||0),0);
+    const sects=PS.filter(p=>r.photos?.[p.key]?.length>0).length;
     return `<div class="rec-card" onclick="showDetail(${ri})">
-      <div class="rec-thumb">${thumb?`<img src="${thumb}" onerror="this.parentElement.innerHTML='📦'"/>` :"📦"}</div>
+      <div class="rec-thumb" id="thumb-wrap-${ri}">
+        ${spPath
+          ?`<img id="list-thumb-${ri}"
+              src="${blobSrc}"
+              class="detail-img-${blobSrc?"loaded":"loading"}"
+              data-sp-path="${spPath}"
+              onerror="this.parentElement.innerHTML='📦'"
+              style="width:100%;height:100%;object-fit:cover;"/>`
+          :"📦"}
+      </div>
       <div class="rec-info">
         <div class="rec-model">${r.model||"ไม่ระบุ Model"}</div>
         <div class="rec-tags">
           ${r.brand?`<span class="tag">${r.brand}</span>`:""}
           ${r.year?`<span class="tag">${r.year}</span>`:""}
-          <span class="tag ${cnt>0?"green":""}"}>📷 ${cnt} รูป (${sects}/${PS.length} ส่วน)</span>
-          ${r.uploaded?`<span class="tag blue">☁️ SharePoint</span>`:""}
+          <span class="tag ${cnt>0?"green":""}">📷 ${cnt} (${sects}/${PS.length})</span>
+          ${r.uploaded?`<span class="tag blue">☁️ SP</span>`:""}
         </div>
         <div class="rec-date">📅 ${r.date}</div>
       </div>
       <span style="align-self:center;color:var(--g300);font-size:20px;">›</span>
     </div>`;
   }).join("");
+  // lazy load thumbnails ที่ยังเป็น loading
+  if(accessToken) setTimeout(lazyLoadListThumbs,100);
+}
+
+async function lazyLoadListThumbs(){
+  const imgs=document.querySelectorAll("img[data-sp-path].detail-img-loading");
+  // load แบบ parallel ทีละ 3 เพื่อไม่ล้น API
+  for(let i=0;i<imgs.length;i+=3){
+    await Promise.all(Array.from(imgs).slice(i,i+3).map(img=>loadSpImg(img,img.dataset.spPath)));
+  }
 }
 
 // ═══════════════════ DETAIL ═══════════════════
 function showDetail(idx){
-  const r = records[idx];
-  document.getElementById("detail-title").textContent = r.model||"ไม่ระบุ";
+  const r=records[idx];
+  _currentDetailRecord=r;
+  document.getElementById("detail-title").textContent=r.model||"ไม่ระบุ";
   document.getElementById("detail-info").innerHTML=`
-    ${[["Brand",r.brand],["Model",r.model],["Year",r.year],["บันทึกวันที่",r.date]].filter(([,v])=>v).map(([k,v])=>`
-      <div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v}</span></div>`).join("")}
-    ${r.uploaded?`<div style="margin-top:10px;padding:8px 12px;background:var(--blue-bg);border-radius:8px;font-size:12px;color:var(--blue);font-weight:600;">☁️ อัปโหลดใน SharePoint แล้ว · 📁 ${r.folderName||""}</div>`:""}
-  `;
+    ${[["Brand",r.brand],["Model",r.model],["Year",r.year],["บันทึกวันที่",r.date]].filter(([,v])=>v)
+      .map(([k,v])=>`<div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v}</span></div>`).join("")}
+    ${r.uploaded?`<div style="margin-top:10px;padding:8px 12px;background:var(--blue-bg);border-radius:8px;font-size:12px;color:var(--blue);font-weight:600;">
+      ☁️ อัปโหลดใน SharePoint แล้ว · 📁 ${r.folderName||""}</div>`:""}`;
+
   document.getElementById("detail-photos").innerHTML=PS.map(p=>{
-    const photos = r.photos?.[p.key]||[];
-    return `<div class="detail-card ${photos.length>0?"has-photo":""}">
-      ${photos.length>0
-        ?`<div class="detail-photos-strip">${photos.map(ph=>`<img src="${ph.preview}" onerror="this.style.display='none'" title="${ph.savedName||ph.name}"/>`).join("")}</div>`
-        :`<div style="height:80px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:28px;">${p.icon}</div>`}
-      <div class="detail-card-label">${p.icon} ${p.label} ${photos.length>0?`<span class="count-badge">${photos.length}</span>`:""}</div>
+    const photos=r.photos?.[p.key]||[];
+    if(!photos.length){
+      return `<div class="detail-card">
+        <div style="height:80px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:28px;">${p.icon}</div>
+        <div class="detail-card-label">${p.icon} ${p.label}</div>
+      </div>`;
+    }
+    return `<div class="detail-card has-photo">
+      <div class="detail-photos-strip">
+        ${photos.map((ph,i)=>{
+          const spPath=ph.savedName?`${CFG.modelPath}/${r.folderName}/${ph.savedName}`:"";
+          const blobSrc=ph.preview||""; // blob URL จาก session นี้ (ถ้ามี)
+          // ถ้ามี cache ใช้ทันที
+          const cachedSrc=spPath?(_imgCache[spPath]||blobSrc):blobSrc;
+          const loaded=!!cachedSrc;
+          return `<img
+            id="detail-img-${p.key}-${i}"
+            src="${cachedSrc}"
+            class="detail-img-${loaded?"loaded":"loading"}"
+            ${spPath?`data-sp-path="${spPath}"`:""}
+            onerror="this.style.opacity='0.1'"
+            title="${ph.savedName||ph.name||""}"/>`;
+        }).join("")}
+      </div>
+      <div class="detail-card-label">${p.icon} ${p.label} <span class="count-badge">${photos.length}</span></div>
     </div>`;
   }).join("");
+
+  const btnLoad=document.getElementById("btn-detail-load");
+  const status=document.getElementById("detail-load-status");
+  if(accessToken){
+    btnLoad.style.display="none";
+    status.textContent="⏳ กำลังโหลดรูป...";
+    _autoLoadDetailImages();
+  }else{
+    btnLoad.style.display="flex";
+    status.textContent="🔐 Login เพื่อดูรูป";
+  }
   showPage("detail");
+}
+
+async function triggerLoadImages(){
+  const ok=await ensureToken();
+  if(ok){
+    document.getElementById("btn-detail-load").style.display="none";
+    document.getElementById("detail-load-status").textContent="⏳ กำลังโหลด...";
+    await _autoLoadDetailImages();
+  }
+}
+
+async function _autoLoadDetailImages(){
+  const imgs=document.querySelectorAll("#detail-photos img[data-sp-path]");
+  if(!imgs.length){document.getElementById("detail-load-status").textContent="";return;}
+  let loaded=0;
+  const total=imgs.length;
+  const status=document.getElementById("detail-load-status");
+  // load ทีละ 4 แบบ parallel
+  for(let i=0;i<imgs.length;i+=4){
+    await Promise.all(Array.from(imgs).slice(i,i+4).map(async img=>{
+      if(img.classList.contains("detail-img-loaded")&&img.src&&img.src.startsWith("blob:")) return;
+      await loadSpImg(img,img.dataset.spPath);
+      loaded++;
+      status.textContent=`⏳ ${loaded}/${total} รูป`;
+    }));
+  }
+  status.textContent=`✅ โหลดครบ ${total} รูป`;
+  setTimeout(()=>status.textContent="",3000);
 }
 
 // ═══════════════════ WIZARD ═══════════════════
 function startWizard(){
-  wizStep=0;
-  wizData={brand:"",model:"",year:"",coolant:"",group:"",photos:{}};
+  wizStep=0;wizData={brand:"",model:"",year:"",coolant:"",group:"",photos:{}};
   PS.forEach(p=>wizData.photos[p.key]=[]);
-  showPage("wizard");
-  renderWiz();
-  updateUserUI();
+  showPage("wizard");renderWiz();updateUserUI();
 }
-
-function cancelWizard(){
-  document.getElementById("cancel-modal").style.display="flex";
-}
-
+function cancelWizard(){document.getElementById("cancel-modal").style.display="flex";}
 function confirmCancel(){
   document.getElementById("cancel-modal").style.display="none";
-  wizStep=0;
-  wizData={brand:"",model:"",year:"",coolant:"",group:"",photos:{}};
-  PS.forEach(p=>wizData.photos[p.key]=[]);
-  showPage("list");
+  wizStep=0;wizData={brand:"",model:"",year:"",coolant:"",group:"",photos:{}};
+  PS.forEach(p=>wizData.photos[p.key]=[]);showPage("list");
 }
 
 function renderWiz(){
-  const s = wizStep;
-  const pct = Math.round((s/(TOTAL-1))*100);
-  document.getElementById("wiz-prog").style.width=pct+"%";
+  const s=wizStep;
+  document.getElementById("wiz-prog").style.width=Math.round((s/(TOTAL-1))*100)+"%";
   document.getElementById("wiz-step-num").textContent=(s+1)+" / "+TOTAL;
-
   let dots="";
-  for(let i=0;i<TOTAL;i++){
-    const wide = i<3?"wide":"";
-    const cls = i<s?"done":i===s?"active":"inactive";
-    dots+=`<div class="dot ${wide} ${cls}"></div>`;
-  }
+  for(let i=0;i<TOTAL;i++) dots+=`<div class="dot ${i<3?"wide":""} ${i<s?"done":i===s?"active":"inactive"}"></div>`;
   document.getElementById("wiz-dots").innerHTML=dots;
-
-  document.getElementById("wiz-btn-back").style.display = s>0?"flex":"none";
-  document.getElementById("wiz-btn-skip").style.display = s<3?"block":"none";
-
-  const isSummary = s===TOTAL-1;
-  const nextBtn = document.getElementById("wiz-btn-next");
-  nextBtn.className = isSummary?"btn btn-blue":"btn btn-red";
-  nextBtn.style.flex="2";
-  nextBtn.innerHTML = isSummary?"☁️ อัปโหลด SharePoint + บันทึก Excel":"ถัดไป →";
-
-  const content = document.getElementById("wiz-content");
-  if(s===0) content.innerHTML=textStepHtml("Brand","เช่น Fuji, National, Sanden","🏭","wiz-brand",wizData.brand);
-  else if(s===1) content.innerHTML=textStepHtml("Model","เช่น FE-KA36-LHPAP","🔢","wiz-model",wizData.model);
-  else if(s===2) content.innerHTML=textStepHtml("Year","เช่น 2012, 2015, 2018","📅","wiz-year",wizData.year);
-  else if(s<TOTAL-1){
-    const pi = s-3;
-    content.innerHTML=photoStepHtml(PS[pi]);
-    bindDropZone(PS[pi].key);
-  }
-  else content.innerHTML=summaryHtml();
-
+  document.getElementById("wiz-btn-back").style.display=s>0?"flex":"none";
+  document.getElementById("wiz-btn-skip").style.display=s<3?"block":"none";
+  const isSummary=s===TOTAL-1;
+  const nb=document.getElementById("wiz-btn-next");
+  nb.className=isSummary?"btn btn-blue":"btn btn-red";nb.style.flex="2";
+  nb.innerHTML=isSummary?"☁️ อัปโหลด SharePoint + บันทึก Excel":"ถัดไป →";
+  const c=document.getElementById("wiz-content");
+  if(s===0) c.innerHTML=textStepHtml("Brand","เช่น Fuji, National, Sanden","🏭","wiz-brand",wizData.brand);
+  else if(s===1) c.innerHTML=textStepHtml("Model","เช่น FE-KA36-LHPAP","🔢","wiz-model",wizData.model);
+  else if(s===2) c.innerHTML=textStepHtml("Year","เช่น 2012, 2015, 2018","📅","wiz-year",wizData.year);
+  else if(s<TOTAL-1){const pi=s-3;c.innerHTML=photoStepHtml(PS[pi]);bindDropZone(PS[pi].key);}
+  else c.innerHTML=summaryHtml();
   if(s>=3&&s<TOTAL-1){
     document.getElementById("wiz-tracker").innerHTML=PS.map((p,i)=>{
       const state=i+3<s?"done":i+3===s?"active":"upcoming";
       const cnt=wizData.photos[p.key]?.length||0;
       return `<div class="tracker-item ${state}">${p.icon} ${p.label}${cnt>0?` <span class="count-badge">${cnt}</span>`:""}</div>`;
     }).join("");
-  } else document.getElementById("wiz-tracker").innerHTML="";
+  }else document.getElementById("wiz-tracker").innerHTML="";
 }
 
 function textStepHtml(label,hint,icon,id,val){
-  const isBrand = id==="wiz-brand";
+  const isBrand=id==="wiz-brand";
   return `<div style="width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;">
     <div class="step-icon">${icon}</div>
-    <div class="step-title">${label}</div>
-    <div class="step-sub">${hint}</div>
-    ${isBrand?`
-    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0;">
-      <button onclick="setBrand('National')" class="btn btn-sm" style="background:#FDE68A;color:#78350F;border:2px solid #F59E0B;">🟡 National / Panasonic</button>
-      <button onclick="setBrand('Fuji')"     class="btn btn-sm" style="background:#BFDBFE;color:#1E3A5F;border:2px solid #3B82F6;">🔵 Fuji</button>
-      <button onclick="setBrand('Sanden')"   class="btn btn-sm" style="background:#1E3A5F;color:#fff;border:2px solid #1E3A5F;">🔷 Sanden</button>
+    <div class="step-title">${label}</div><div class="step-sub">${hint}</div>
+    ${isBrand?`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0;">
+      <button onclick="setBrand('National')" class="btn btn-sm" style="background:#FDE68A;color:#78350F;border:2px solid #F59E0B;">🟡 National/Panasonic</button>
+      <button onclick="setBrand('Fuji')" class="btn btn-sm" style="background:#BFDBFE;color:#1E3A5F;border:2px solid #3B82F6;">🔵 Fuji</button>
+      <button onclick="setBrand('Sanden')" class="btn btn-sm" style="background:#1E3A5F;color:#fff;border:2px solid #1E3A5F;">🔷 Sanden</button>
     </div>`:""}
     <div style="width:100%;max-width:360px;margin-top:${isBrand?4:16}px;">
       <input id="${id}" type="text" value="${val}" placeholder="${isBrand?"หรือพิมพ์เอง...":"พิมพ์ "+label+"..."}" autocomplete="off"
-        style="width:100%;padding:13px 18px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;transition:border .2s;text-align:center;"
+        style="width:100%;padding:13px 18px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;text-align:center;"
         onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"/>
-    </div>
-  </div>`;
+    </div></div>`;
 }
 
 function photoStepHtml(ps){
-  const photos = wizData.photos[ps.key]||[];
+  const photos=wizData.photos[ps.key]||[];
   return `<div class="photo-section" style="width:100%;max-width:460px;">
     <div class="step-icon">${ps.icon}</div>
     <div class="step-title">${ps.label}</div>
-    <div class="step-sub">${ps.sub}<br><span style="color:var(--blue);font-size:12px;">📌 ถ่ายได้หลายรูป — กด + เพื่อเพิ่ม &nbsp;|&nbsp; 📋 Ctrl+V วางจาก Clipboard</span></div>
+    <div class="step-sub">${ps.sub}<br><span style="color:var(--blue);font-size:12px;">📌 หลายรูปได้ | 📋 Ctrl+V</span></div>
     <div class="photo-grid" id="photo-grid-${ps.key}">
-      ${photos.map((ph,i)=>`
-        <div class="photo-thumb">
-          <img src="${ph.preview}"/>
-          <button class="del-btn" onclick="removePhoto('${ps.key}',${i})">✕</button>
-          <span class="img-num">รูปที่ ${i+1}</span>
-        </div>`).join("")}
+      ${photos.map((ph,i)=>`<div class="photo-thumb"><img src="${ph.preview}"/>
+        <button class="del-btn" onclick="removePhoto('${ps.key}',${i})">✕</button>
+        <span class="img-num">รูปที่ ${i+1}</span></div>`).join("")}
       <div class="add-photo-btn" id="drop-${ps.key}" onclick="triggerFileInput('${ps.key}')">
-        <span>📷</span>
-        <p>เพิ่มรูป<br/>${photos.length===0?"(คลิกหรือลาก)":"(เพิ่มอีก)"}</p>
+        <span>📷</span><p>เพิ่มรูป<br/>${photos.length===0?"(คลิกหรือลาก)":"(เพิ่มอีก)"}</p>
       </div>
     </div>
     <input type="file" id="file-input-${ps.key}" accept="image/*" multiple style="display:none" onchange="handleFiles(event,'${ps.key}')"/>
@@ -658,550 +679,340 @@ function photoStepHtml(ps){
     <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;">
       <button class="btn btn-red btn-sm" onclick="triggerFileInput('${ps.key}')">📁 เลือกไฟล์</button>
       <button class="btn btn-outline btn-sm" onclick="document.getElementById('file-camera-${ps.key}').click()">📷 ถ่ายรูป</button>
-    </div>
-  </div>`;
+    </div></div>`;
 }
 
 function bindDropZone(key){
-  const zone = document.getElementById("drop-"+key);
-  if(!zone) return;
-  zone.addEventListener("dragover",e=>{e.preventDefault();zone.classList.add("drag");});
-  zone.addEventListener("dragleave",()=>zone.classList.remove("drag"));
-  zone.addEventListener("drop",e=>{
-    e.preventDefault();zone.classList.remove("drag");
-    addFiles(key, Array.from(e.dataTransfer.files));
-  });
+  const z=document.getElementById("drop-"+key); if(!z) return;
+  z.addEventListener("dragover",e=>{e.preventDefault();z.classList.add("drag");});
+  z.addEventListener("dragleave",()=>z.classList.remove("drag"));
+  z.addEventListener("drop",e=>{e.preventDefault();z.classList.remove("drag");addFiles(key,Array.from(e.dataTransfer.files));});
 }
-
-function triggerFileInput(key){
-  document.getElementById("file-input-"+key)?.click();
-}
-
-function handleFiles(event, key){
-  addFiles(key, Array.from(event.target.files));
-  event.target.value="";
-}
-
-function addFiles(key, files){
+function triggerFileInput(k){document.getElementById("file-input-"+k)?.click();}
+function handleFiles(e,k){addFiles(k,Array.from(e.target.files));e.target.value="";}
+function addFiles(key,files){
   files.filter(f=>f.type.startsWith("image/")).forEach(f=>{
-    const preview = URL.createObjectURL(f);
-    const reader = new FileReader();
-    reader.onloadend = ()=>{
-      wizData.photos[key].push({file:f, preview, dataUrl:reader.result, name:f.name});
-      renderWiz();
-    };
+    const preview=URL.createObjectURL(f);
+    const reader=new FileReader();
+    reader.onloadend=()=>{wizData.photos[key].push({file:f,preview,dataUrl:reader.result,name:f.name});renderWiz();};
     reader.readAsDataURL(f);
   });
 }
-
-document.addEventListener("keydown", e=>{
-  if(e.key !== "Enter") return;
-  if(!document.getElementById("page-wizard").classList.contains("active")) return;
-  if(document.activeElement?.tagName === "BUTTON") return;
+document.addEventListener("keydown",e=>{
+  if(e.key!=="Enter"||!document.getElementById("page-wizard").classList.contains("active")) return;
+  if(document.activeElement?.tagName==="BUTTON") return;
   wizNext();
 });
-
-document.addEventListener("paste", e=>{
-  if(wizStep < 3 || wizStep >= TOTAL-1) return;
-  const pi = wizStep - 3;
-  const key = PS[pi].key;
-  const items = Array.from(e.clipboardData?.items||[]);
-  const imgs = items.filter(it=>it.type.startsWith("image/"));
-  if(!imgs.length) return;
-  imgs.forEach(it=>{
-    const file = it.getAsFile();
-    if(!file) return;
-    const preview = URL.createObjectURL(file);
-    const name = `paste_${Date.now()}.png`;
-    const reader = new FileReader();
-    reader.onloadend = ()=>{
-      wizData.photos[key].push({file, preview, dataUrl:reader.result, name});
-      renderWiz();
-      showPasteToast();
-    };
+document.addEventListener("paste",e=>{
+  if(wizStep<3||wizStep>=TOTAL-1) return;
+  const key=PS[wizStep-3].key;
+  Array.from(e.clipboardData?.items||[]).filter(it=>it.type.startsWith("image/")).forEach(it=>{
+    const file=it.getAsFile();if(!file) return;
+    const preview=URL.createObjectURL(file),name=`paste_${Date.now()}.png`;
+    const reader=new FileReader();
+    reader.onloadend=()=>{wizData.photos[key].push({file,preview,dataUrl:reader.result,name});renderWiz();showPasteToast();};
     reader.readAsDataURL(file);
   });
 });
-
 function showPasteToast(){
-  let t = document.getElementById("paste-toast");
-  if(!t){
-    t = document.createElement("div");
-    t.id = "paste-toast";
-    t.style.cssText = "position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1F2937;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;transition:opacity .3s;";
-    document.body.appendChild(t);
-  }
-  t.textContent = "📋 วางรูปจาก Clipboard แล้ว!";
-  t.style.opacity = "1";
-  clearTimeout(t._timer);
-  t._timer = setTimeout(()=>t.style.opacity="0", 2000);
+  let t=document.getElementById("paste-toast");
+  if(!t){t=document.createElement("div");t.id="paste-toast";
+    t.style.cssText="position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1F2937;color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9999;transition:opacity .3s;";
+    document.body.appendChild(t);}
+  t.textContent="📋 วางรูปจาก Clipboard แล้ว!";t.style.opacity="1";
+  clearTimeout(t._timer);t._timer=setTimeout(()=>t.style.opacity="0",2000);
 }
-
-function removePhoto(key, idx){
-  wizData.photos[key].splice(idx,1);
-  renderWiz();
-}
+function removePhoto(key,idx){wizData.photos[key].splice(idx,1);renderWiz();}
 
 function summaryHtml(){
-  const folderName = getFolderName();
-  const totalPhotos = PS.reduce((a,p)=>a+(wizData.photos[p.key]?.length||0),0);
+  const fn=getFolderName();
+  const tp=PS.reduce((a,p)=>a+(wizData.photos[p.key]?.length||0),0);
   return `<div style="width:100%;">
     <div style="text-align:center;margin-bottom:16px;">
       <div style="width:60px;height:60px;border-radius:18px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:32px;">☁️</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--blue);letter-spacing:2px;">พร้อมอัปโหลด SharePoint!</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--blue);letter-spacing:2px;">พร้อมอัปโหลด!</div>
     </div>
     <div style="background:var(--white);border-radius:12px;padding:12px;border:1px solid var(--g200);margin-bottom:10px;">
-      ${[["Brand",wizData.brand],["Model",wizData.model],["Year",wizData.year]].map(([k,v])=>`
-        <div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v||"—"}</span></div>`).join("")}
+      ${[["Brand",wizData.brand],["Model",wizData.model],["Year",wizData.year]].map(([k,v])=>
+        `<div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v||"—"}</span></div>`).join("")}
     </div>
     <div style="background:var(--blue-bg);border-radius:10px;padding:10px 14px;border:1px solid var(--blue-light);margin-bottom:10px;font-size:12px;color:var(--blue);line-height:1.8;">
-      📁 <strong>${CFG.modelPath}/${folderName}/</strong><br>
-      📷 ${totalPhotos} รูป (ชื่อเปลี่ยนตามส่วน เช่น <em>${folderName}_MasterBoard_1.jpg</em>)<br>
-      📊 บันทึก Sheet ใหม่ใน <strong>${CFG.excelName}</strong>
+      📁 <strong>${fn}/</strong> · 📷 ${tp} รูป · 📊 <strong>${CFG.excelName}</strong>
     </div>
     <div class="photo-mini-grid">
-      ${PS.map(p=>{
-        const photos=wizData.photos[p.key]||[];
-        return `<div class="photo-mini ${photos.length>0?"has":""}">
-          ${photos.length>0
-            ?`<img class="photo-mini-img" src="${photos[0].preview}"/>`
-            :`<div class="photo-mini-empty">${p.icon}</div>`}
-          <p>${photos.length>0?"✓ ":""}${p.label}${photos.length>1?` (${photos.length})`:""}</p>
-        </div>`;
-      }).join("")}
-    </div>
-  </div>`;
+      ${PS.map(p=>{const ph=wizData.photos[p.key]||[];
+        return `<div class="photo-mini ${ph.length>0?"has":""}">
+          ${ph.length>0?`<img class="photo-mini-img" src="${ph[0].preview}"/>`:`<div class="photo-mini-empty">${p.icon}</div>`}
+          <p>${ph.length>0?"✓ ":""}${p.label}${ph.length>1?` (${ph.length})`:""}</p>
+        </div>`;}).join("")}
+    </div></div>`;
 }
 
 function getFolderName(){
-  return [wizData.model, wizData.brand, wizData.year].filter(Boolean).join("_") || "Cabinet_"+Date.now();
+  return [wizData.model,wizData.brand,wizData.year].filter(Boolean).join("_")||"Cabinet_"+Date.now();
 }
-
-function setBrand(name){
-  wizData.brand = name;
-  document.getElementById("wiz-brand").value = name;
-}
-
-function wizBack(){ if(wizStep>0){wizStep--; renderWiz();} }
-
+function setBrand(n){wizData.brand=n;document.getElementById("wiz-brand").value=n;}
+function wizBack(){if(wizStep>0){wizStep--;renderWiz();}}
 async function wizNext(){
-  if(wizStep===0) wizData.brand   = document.getElementById("wiz-brand")?.value||wizData.brand;
-  if(wizStep===1) wizData.model   = document.getElementById("wiz-model")?.value||wizData.model;
-  if(wizStep===2) wizData.year    = document.getElementById("wiz-year")?.value||wizData.year;
-  if(wizStep===TOTAL-1){ await doUpload(); return; }
-  wizStep++;
-  renderWiz();
+  if(wizStep===0) wizData.brand=document.getElementById("wiz-brand")?.value||wizData.brand;
+  if(wizStep===1) wizData.model=document.getElementById("wiz-model")?.value||wizData.model;
+  if(wizStep===2) wizData.year=document.getElementById("wiz-year")?.value||wizData.year;
+  if(wizStep===TOTAL-1){await doUpload();return;}
+  wizStep++;renderWiz();
 }
 
-// ═══════════════════ SHAREPOINT UPLOAD ═══════════════════
+// ═══════════════════ UPLOAD ═══════════════════
 async function doUpload(){
-  // รอให้ทุกรูปมี dataUrl ครบก่อน
-  const allPh = PS.flatMap(p=>wizData.photos[p.key]||[]);
-  const pending = allPh.filter(ph=>!ph.dataUrl && ph.file);
-  if(pending.length){
-    await Promise.all(pending.map(ph=>new Promise(res=>{
-      const r = new FileReader();
-      r.onloadend = ()=>{ ph.dataUrl = r.result; res(); };
-      r.readAsDataURL(ph.file);
-    })));
-  }
+  // รอ dataUrl ครบ
+  await Promise.all(PS.flatMap(p=>wizData.photos[p.key]||[]).filter(ph=>!ph.dataUrl&&ph.file).map(ph=>new Promise(res=>{
+    const r=new FileReader();r.onloadend=()=>{ph.dataUrl=r.result;res();};r.readAsDataURL(ph.file);
+  })));
 
-  const ok = await ensureToken();
-  if(!ok) return;
+  if(!await ensureToken()) return;
   showPage("uploading");
 
-  const folderName = getFolderName();
-  const allPhotos = PS.flatMap(p=>(wizData.photos[p.key]||[]).map((ph,i)=>({...ph, step:p, idx:i})));
-
-  const steps = [
+  const folderName=getFolderName();
+  const allPhotos=PS.flatMap(p=>(wizData.photos[p.key]||[]).map((ph,i)=>({...ph,step:p,idx:i})));
+  const steps=[
     {label:"🔐 เชื่อมต่อ SharePoint"},
     {label:"📁 สร้างโฟลเดอร์: "+folderName},
-    ...allPhotos.map((ph,i)=>({label:`📷 ${ph.step.label} รูปที่ ${ph.idx+1}: ${getRenamedFile(folderName,ph.step.prefix,ph.idx,ph.name)}`})),
-    {label:"📊 อ่านไฟล์ Excel: "+CFG.excelName},
+    ...allPhotos.map(ph=>({label:`📷 ${ph.step.label} #${ph.idx+1}: ${getRenamedFile(folderName,ph.step.prefix,ph.idx,ph.name)}`})),
+    {label:"📊 อ่านไฟล์ Excel"},
     {label:"📝 เพิ่ม Sheet: "+wizData.model},
     {label:"💾 บันทึก Excel กลับ SharePoint"},
   ];
-
   let done=0;
-  const setStatus=(idx,status)=>{
-    steps[idx].status=status;
-    const pct=Math.round((done/steps.length)*100);
-    document.getElementById("up-prog").style.width=pct+"%";
-    document.getElementById("up-prog-label").textContent=done+" / "+steps.length+" ขั้นตอน";
+  const renderSteps=()=>{
+    document.getElementById("up-prog").style.width=Math.round((done/steps.length)*100)+"%";
+    document.getElementById("up-prog-label").textContent=done+" / "+steps.length;
     document.getElementById("up-steps").innerHTML=steps.map(s=>`
-      <div class="up-step">
-        <div class="up-icon ${s.status||"pending"}">${s.status==="done"?"✅":s.status==="loading"?"⏳":s.status==="error"?"❌":"⬜"}</div>
-        <span class="up-label ${s.status||"pending"}">${s.label}</span>
-      </div>`).join("");
+      <div class="up-step"><div class="up-icon ${s.status||"pending"}">${
+        s.status==="done"?"✅":s.status==="loading"?"⏳":s.status==="error"?"❌":"⬜"}</div>
+        <span class="up-label ${s.status||"pending"}">${s.label}</span></div>`).join("");
   };
-  steps.forEach((_,i)=>setStatus(i,"pending"));
+  const setS=(i,st)=>{steps[i].status=st;if(st==="done")done++;renderSteps();};
+  steps.forEach((_,i)=>setS(i,"pending"));
 
   try{
     const H={Authorization:"Bearer "+accessToken};
 
-    // Step 0: Get site+drive
-    setStatus(0,"loading");
-    const siteRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});
-    if(!siteRes.ok) throw new Error("ไม่พบ Site SharePoint: "+await siteRes.text());
-    const siteId = (await siteRes.json()).id;
-    const drivesRes = await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,{headers:H});
-    const drivesData = await drivesRes.json();
-    const drive = drivesData.value?.find(d=>d.name==="Documents")||drivesData.value?.[0];
-    if(!drive) throw new Error("ไม่พบ Document Library");
-    const driveId = drive.id;
-    setStatus(0,"done"); done++;
+    // Step 0 — Site + Drive
+    setS(0,"loading");
+    const siteRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});
+    if(!siteRes.ok) throw new Error("ไม่พบ Site");
+    const siteId=(await siteRes.json()).id;
+    const drvRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,{headers:H});
+    const drv=(await drvRes.json()).value?.find(d=>d.name==="Documents");
+    if(!drv) throw new Error("ไม่พบ Drive");
+    const driveId=drv.id; _cachedDriveId=driveId;
+    setS(0,"done");
 
-    // Step 1: Create folder
-    setStatus(1,"loading");
-    const parentPath = CFG.modelPath;
-    const createRes = await fetch(
-      `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(parentPath)}:/children`,
+    // Step 1 — Create folder
+    setS(1,"loading");
+    const cr=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(CFG.modelPath)}:/children`,
       {method:"POST",headers:{...H,"Content-Type":"application/json"},
-       body:JSON.stringify({name:folderName,folder:{},["@microsoft.graph.conflictBehavior"]:"rename"})}
-    );
-    if(!createRes.ok&&createRes.status!==409) throw new Error("สร้างโฟลเดอร์ไม่ได้: "+await createRes.text());
-    setStatus(1,"done"); done++;
+       body:JSON.stringify({name:folderName,folder:{},["@microsoft.graph.conflictBehavior"]:"rename"})});
+    if(!cr.ok&&cr.status!==409) throw new Error("สร้างโฟลเดอร์ไม่ได้");
+    setS(1,"done");
 
     // Upload photos
-    const savedPhotos={};
-    PS.forEach(p=>savedPhotos[p.key]=[]);
-
+    const savedPhotos=Object.fromEntries(PS.map(p=>[p.key,[]]));
     for(let i=0;i<allPhotos.length;i++){
       const ph=allPhotos[i];
-      const stepIdx=i+2;
-      setStatus(stepIdx,"loading");
-      const newName = getRenamedFile(folderName, ph.step.prefix, ph.idx, ph.name);
-      const uploadPath=`${CFG.modelPath}/${folderName}/${newName}`;
-      const upRes = await fetch(
-        `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(uploadPath)}:/content`,
-        {method:"PUT",headers:{...H,"Content-Type":ph.file.type||"image/jpeg"},body:ph.file}
-      );
+      setS(i+2,"loading");
+      const newName=getRenamedFile(folderName,ph.step.prefix,ph.idx,ph.name);
+      const upPath=`${CFG.modelPath}/${folderName}/${newName}`;
+      const upRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(upPath)}:/content`,
+        {method:"PUT",headers:{...H,"Content-Type":ph.file.type||"image/jpeg"},body:ph.file});
       if(!upRes.ok) throw new Error(`อัปโหลด ${newName} ไม่ได้`);
-      const upJson = await upRes.json();
-
-      // ✅ FIX: ใช้ downloadUrl จาก SharePoint เป็น preview URL (persistent)
-      const dlUrl = upJson["@microsoft.graph.downloadUrl"] || "";
-      const spWebUrl = upJson.webUrl || "";
-
+      await upRes.json();
+      // ✅ เก็บ blob URL ไว้ใช้แสดงในเซสชันนี้
+      // ✅ เก็บ savedName ไว้ reconstruct path สำหรับ session ถัดไป
       savedPhotos[ph.step.key].push({
-        preview: dlUrl || ph.preview,   // ← dlUrl แทน blob URL
+        preview: ph.preview,  // blob URL — ใช้งานได้ทันที in-session
         dataUrl: ph.dataUrl,
         savedName: newName,
         name: ph.name,
-        spUrl: dlUrl,
-        spWebUrl,
       });
-      setStatus(stepIdx,"done"); done++;
+      // pre-cache ใน _imgCache ด้วย
+      _imgCache[upPath]=ph.preview;
+      setS(i+2,"done");
     }
 
-    // Step: Read Excel
-    const excelStepBase = 2+allPhotos.length;
-    setStatus(excelStepBase,"loading");
-    let wb = new ExcelJS.Workbook();
-    const excelSpPath = CFG.excelPath
-      ? `${CFG.excelPath}/${CFG.excelName}`
-      : `${CFG.modelPath.split("/").slice(0,-1).join("/")}/${CFG.excelName}`;
+    // Read Excel
+    const exIdx=2+allPhotos.length;
+    setS(exIdx,"loading");
+    let wb=new ExcelJS.Workbook();
+    const exPath=CFG.excelPath?`${CFG.excelPath}/${CFG.excelName}`:`${CFG.modelPath.split("/").slice(0,-1).join("/")}/${CFG.excelName}`;
     try{
-      const exRes = await fetch(
-        `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelSpPath)}:/content`,
-        {headers:H}
-      );
-      if(exRes.ok){
-        const buf = await exRes.arrayBuffer();
-        await wb.xlsx.load(buf);
-      }
+      const exRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,{headers:H});
+      if(exRes.ok){await wb.xlsx.load(await exRes.arrayBuffer());}
     }catch{}
-    setStatus(excelStepBase,"done"); done++;
+    setS(exIdx,"done");
 
-    // Step: Add sheet with embedded images
-    setStatus(excelStepBase+1,"loading");
-    await buildSheetExcelJS(wb, folderName, wizData.brand, wizData.model, wizData.year, savedPhotos, wizData.coolant, wizData.group);
+    // Build sheet
+    setS(exIdx+1,"loading");
+    await buildSheetExcelJS(wb,folderName,wizData.brand,wizData.model,wizData.year,savedPhotos,wizData.coolant,wizData.group);
     buildIndexSheet(wb);
-    setStatus(excelStepBase+1,"done"); done++;
+    setS(exIdx+1,"done");
 
-    // Step: Upload Excel back
-    setStatus(excelStepBase+2,"loading");
-    const excelBuf = await wb.xlsx.writeBuffer();
-    // ✅ FIX: ไม่ต้องใช้ fixXlsxDrawings แล้ว เพราะ buildSheetExcelJS ใช้ br (twoCellAnchor) โดยตรง
-    const excelBlob = new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
-    const exUpRes = await fetch(
-      `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelSpPath)}:/content`,
-      {method:"PUT",headers:{...H,"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},body:excelBlob}
-    );
-    if(!exUpRes.ok) throw new Error("อัปโหลด Excel ไม่ได้: "+await exUpRes.text());
-    setStatus(excelStepBase+2,"done"); done++;
+    // Upload Excel — ใช้ br (twoCellAnchor) → Excel Online เห็นรูปครบ
+    setS(exIdx+2,"loading");
+    const excelBuf=await wb.xlsx.writeBuffer();
+    const exUp=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,
+      {method:"PUT",headers:{...H,"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+       body:new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})});
+    if(!exUp.ok) throw new Error("อัปโหลด Excel ไม่ได้");
+    setS(exIdx+2,"done");
 
-    // ✅ FIX: เก็บ spUrl แทน blob URL ใน localStorage
-    const photosForStorage = {};
-    PS.forEach(p=>{
-      photosForStorage[p.key] = (savedPhotos[p.key]||[]).map(ph=>({
-        preview: ph.spUrl || ph.preview,  // ← persistent URL
-        savedName: ph.savedName,
-        name: ph.name,
-        spUrl: ph.spUrl,
-        spWebUrl: ph.spWebUrl,
-        // ไม่เก็บ dataUrl — ใหญ่เกินไป
-      }));
-    });
-
-    const newRecord={
-      id:Date.now(), brand:wizData.brand, model:wizData.model, year:wizData.year,
-      coolant:wizData.coolant, group:wizData.group,
-      uploaded:true, folderName,
+    // ✅ บันทึก localStorage: เก็บ savedName ไม่เก็บ blob/dataUrl
+    const photosForStorage=Object.fromEntries(PS.map(p=>[p.key,
+      (savedPhotos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))
+    ]));
+    const newRecord={id:Date.now(),brand:wizData.brand,model:wizData.model,year:wizData.year,
+      coolant:wizData.coolant,group:wizData.group,uploaded:true,folderName,
       photos:photosForStorage,
-      date:new Date().toLocaleDateString("th-TH",{year:"numeric",month:"short",day:"numeric"}),
-    };
-    records.unshift(newRecord);
-    try{ localStorage.setItem("cabinet_records",JSON.stringify(records)); }catch(e){
-      const slim = records.map(r=>({...r, photos: Object.fromEntries(PS.map(p=>[p.key,[]]))}));
-      try{ localStorage.setItem("cabinet_records",JSON.stringify(slim)); }catch{}
+      date:new Date().toLocaleDateString("th-TH",{year:"numeric",month:"short",day:"numeric"})};
+    // ใน memory session: เก็บ blob preview ไว้ก่อน
+    const newRecordSession={...newRecord,photos:savedPhotos};
+    records.unshift(newRecordSession);
+    // localStorage: ไม่มี blob
+    try{localStorage.setItem("cabinet_records",JSON.stringify([newRecord,...records.slice(1)]));}catch{
+      try{localStorage.setItem("cabinet_records",JSON.stringify(records.map(r=>({...r,photos:Object.fromEntries(PS.map(p=>[p.key,[]]))}))));} catch{}
     }
 
     document.getElementById("up-main-icon").textContent="✅";
     document.getElementById("up-title").textContent="บันทึกสำเร็จ!";
     document.getElementById("up-title").style.color="var(--green)";
-
-    const totalPhotos = PS.reduce((a,p)=>a+(savedPhotos[p.key]?.length||0),0);
+    const tp=PS.reduce((a,p)=>a+(savedPhotos[p.key]?.length||0),0);
     document.getElementById("success-detail").innerHTML=
-      `📁 สร้างโฟลเดอร์ <strong>${folderName}</strong><br>`+
-      `📷 อัปโหลด <strong>${totalPhotos} รูป</strong> พร้อมชื่อไฟล์ใหม่<br>`+
-      `📊 เพิ่ม Sheet <strong>"${(wizData.model||"Cabinet").substring(0,31)}"</strong> ใน ${CFG.excelName}`;
-
+      `📁 <strong>${folderName}</strong><br>📷 <strong>${tp} รูป</strong><br>📊 Sheet <strong>"${(wizData.model||"Cabinet").substring(0,31)}"</strong>`;
     setTimeout(()=>showPage("success"),800);
 
   }catch(e){
     const el=document.getElementById("up-error");
     el.style.display="block";
-    el.innerHTML=`<strong>❌ Error:</strong> ${e.message}<br><br><button class="btn btn-outline btn-sm" onclick="showPage('wizard');renderWiz()">← กลับแก้ไข</button>`;
+    el.innerHTML=`<strong>❌ Error:</strong> ${e.message}<br><br>
+      <button class="btn btn-outline btn-sm" onclick="showPage('wizard');renderWiz()">← กลับแก้ไข</button>`;
     document.getElementById("up-title").textContent="เกิดข้อผิดพลาด";
     document.getElementById("up-title").style.color="var(--red)";
   }
 }
 
-function getRenamedFile(folderName, prefix, idx, originalName){
-  const ext = originalName.split(".").pop()||"jpg";
-  return `${folderName}_${prefix}_${idx+1}.${ext}`;
+function getRenamedFile(fn,prefix,idx,originalName){
+  return `${fn}_${prefix}_${idx+1}.${originalName.split(".").pop()||"jpg"}`;
 }
-
-function encPath(p){
-  return p.split("/").map(encodeURIComponent).join("/");
-}
+function encPath(p){return p.split("/").map(encodeURIComponent).join("/");}
 
 // ═══════════════════ BUILD INDEX SHEET ═══════════════════
 function buildIndexSheet(wb){
-  const IDX_NAME = "Index";
-  const existing = wb.getWorksheet(IDX_NAME);
-  if(existing) wb.removeWorksheet(existing.id);
-  const ws = wb.addWorksheet(IDX_NAME, {properties:{tabColor:{argb:"FF374151"}}});
-
-  const THIN = {style:"thin",color:{argb:"FFD1D5DB"}};
-  const BORDER = {top:THIN,left:THIN,bottom:THIN,right:THIN};
-  const COLS   = ["No.","Brand","Model","Year","Coolant","Group","RD","PD","OP","Invalid","Sheet"];
-  const WIDTHS = [6, 12, 28, 8, 10, 8, 6, 6, 6, 8, 32];
-
+  const IDX="Index";const ex=wb.getWorksheet(IDX);if(ex) wb.removeWorksheet(ex.id);
+  const ws=wb.addWorksheet(IDX,{properties:{tabColor:{argb:"FF374151"}}});
+  const T={style:"thin",color:{argb:"FFD1D5DB"}};const B={top:T,left:T,bottom:T,right:T};
+  const COLS=["No.","Brand","Model","Year","Coolant","Group","RD","PD","OP","Invalid","Sheet"];
+  const WIDTHS=[6,12,28,8,10,8,6,6,6,8,32];
   WIDTHS.forEach((w,i)=>ws.getColumn(i+1).width=w);
-
-  ws.getRow(1).height = 28;
-  COLS.forEach((h,i)=>{
-    const c = ws.getCell(1,i+1);
-    c.value = h;
-    c.font  = {bold:true,size:12,color:{argb:"FFFFFFFF"}};
-    c.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:"FF1F2937"}};
-    c.alignment = {vertical:"middle",horizontal:"center"};
-    c.border = BORDER;
-  });
-
-  let no = 1;
+  ws.getRow(1).height=28;
+  COLS.forEach((h,i)=>{const c=ws.getCell(1,i+1);c.value=h;c.font={bold:true,size:12,color:{argb:"FFFFFFFF"}};
+    c.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FF1F2937"}};c.alignment={vertical:"middle",horizontal:"center"};c.border=B;});
+  let no=1;
   wb.eachSheet(sheet=>{
-    if(sheet.name===IDX_NAME) return;
-    const brand   = sheet.getCell(2,2).value||"";
-    const model   = sheet.getCell(3,2).value||"";
-    const year    = String(sheet.getCell(4,2).value||"");
-    const coolant = String(sheet.getCell(5,2).value||"");
-    const group   = String(sheet.getCell(6,2).value||"");
-    if(!model && !brand) return;
-
-    const r = no+1;
-    ws.getRow(r).height = 20;
-
-    function getBrandFill(b){
-      const bl=(b||"").toLowerCase();
+    if(sheet.name===IDX) return;
+    const brand=sheet.getCell(2,2).value||"",model=sheet.getCell(3,2).value||"";
+    if(!model&&!brand) return;
+    const year=String(sheet.getCell(4,2).value||""),coolant=String(sheet.getCell(5,2).value||""),group=String(sheet.getCell(6,2).value||"");
+    const r=no+1;ws.getRow(r).height=20;
+    const fill=(b)=>{const bl=(b||"").toLowerCase();
       if(bl.includes("national")||bl.includes("panasonic")) return "FFFEF9C3";
-      if(bl.includes("fuji"))    return "FFE0F2FE";
-      if(bl.includes("sanden"))  return "FFEFF6FF";
-      return "FFFFFFFF";
-    }
-    const rowFill = getBrandFill(brand);
-
-    const vals = [no, brand, model, year, coolant, group, "", "", "", ""];
-    vals.forEach((v,i)=>{
-      const c = ws.getCell(r,i+1);
-      c.value = v;
-      c.font  = {size:11,color:{argb:"FF1F2937"}};
-      c.fill  = {type:"pattern",pattern:"solid",fgColor:{argb: i===0?"FFF3F4F6":rowFill}};
-      c.alignment = {vertical:"middle",horizontal: i===0||i===3||i===4||i===5||i===6||i===7||i===8||i===9?"center":"left",indent:i===1||i===2?1:0};
-      c.border = BORDER;
-    });
-
-    const sheetNameEscaped = sheet.name.replace(/'/g, "''");
-    const linkCell = ws.getCell(r, 11);
-    linkCell.value = {formula:`HYPERLINK("#'${sheetNameEscaped}'!A1",">> Go to sheet ${sheet.name}")`};
-    linkCell.font  = {size:11, color:{argb:"FF2563EB"}, underline:true};
-    linkCell.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:rowFill}};
-    linkCell.alignment = {vertical:"middle"};
-    linkCell.border = BORDER;
-
-    no++;
+      if(bl.includes("fuji")) return "FFE0F2FE";if(bl.includes("sanden")) return "FFEFF6FF";return "FFFFFFFF";};
+    const rf=fill(brand);
+    [no,brand,model,year,coolant,group,"","","",""].forEach((v,i)=>{
+      const c=ws.getCell(r,i+1);c.value=v;c.font={size:11,color:{argb:"FF1F2937"}};
+      c.fill={type:"pattern",pattern:"solid",fgColor:{argb:i===0?"FFF3F4F6":rf}};
+      c.alignment={vertical:"middle",horizontal:i===0||i>=3?"center":"left",indent:i===1||i===2?1:0};c.border=B;});
+    const lc=ws.getCell(r,11);
+    lc.value={formula:`HYPERLINK("#'${sheet.name.replace(/'/g,"''")} '!A1",">> ${sheet.name}")`};
+    lc.font={size:11,color:{argb:"FF2563EB"},underline:true};lc.fill={type:"pattern",pattern:"solid",fgColor:{argb:rf}};
+    lc.alignment={vertical:"middle"};lc.border=B;no++;
   });
 }
 
-// ═══════════════════ BUILD EXCEL SHEET (ExcelJS) ═══════════════════
-// ✅ FIX: ใช้ br แทน ext → ExcelJS gen twoCellAnchor โดยตรง → Excel Online แสดงรูปได้
-async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos, coolant="", group=""){
-  const sheetName = (model||"Cabinet").substring(0,31);
-  const existing = wb.getWorksheet(sheetName);
-  if(existing) wb.removeWorksheet(existing.id);
-  const ws = wb.addWorksheet(sheetName);
-
-  const IMG_W = 250;
-  const IMG_H = 250;
-  const IMG_ROW_PT = IMG_H * 0.75;
-  const IMG_COL_W  = IMG_W / 7;
-
-  for(let c=1;c<=20;c++) ws.getColumn(c).width = IMG_COL_W;
-
-  let r = 1;
-
-  function getBrandTabColor(b){
-    const bl = (b||"").toLowerCase();
+// ═══════════════════ BUILD EXCEL SHEET ═══════════════════
+async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant="",group=""){
+  const sn=(model||"Cabinet").substring(0,31);
+  const ex=wb.getWorksheet(sn);if(ex) wb.removeWorksheet(ex.id);
+  const ws=wb.addWorksheet(sn);
+  const IW=250,IH=250,IRpt=IH*0.75,ICw=IW/7;
+  for(let c=1;c<=20;c++) ws.getColumn(c).width=ICw;
+  let r=1;
+  const tc=(b)=>{const bl=(b||"").toLowerCase();
     if(bl.includes("national")||bl.includes("panasonic")) return "FFFDE68A";
-    if(bl.includes("fuji"))    return "FF93C5FD";
-    if(bl.includes("sanden"))  return "FF1E3A5F";
-    return null;
+    if(bl.includes("fuji")) return "FF93C5FD";if(bl.includes("sanden")) return "FF1E3A5F";return null;};
+  const tab=tc(brand);if(tab) ws.properties.tabColor={argb:tab};
+  const T={style:"thin",color:{argb:"FFD1D5DB"}},B={top:T,left:T,bottom:T,right:T},AC="FFD72B2B";
+  ws.getRow(r).height=36;
+  const ti=ws.getCell(r,1);
+  ti.value=`${brand?brand.toUpperCase()+" — ":""}${model||"CABINET"} ${year?`(${year})`:""}`;
+  ti.font={bold:true,size:16,color:{argb:"FF1F2937"}};ti.alignment={vertical:"middle"};
+  ti.border={bottom:{style:"medium",color:{argb:AC}}};r++;
+  for(const [lb,vl] of [["Brand",brand],["Model",model],["Year",year],["Coolant",coolant],["Group",group]]){
+    ws.getRow(r).height=22;
+    const lc=ws.getCell(r,1);lc.value=lb;lc.font={bold:true,size:11,color:{argb:"FF6B7280"}};
+    lc.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF9FAFB"}};lc.alignment={vertical:"middle",indent:1};lc.border=B;
+    const vc=ws.getCell(r,2);vc.value=vl||"—";vc.font={bold:true,size:11,color:{argb:"FF111827"}};
+    vc.alignment={vertical:"middle",indent:1};vc.border=B;r++;
   }
-  const tabColor = getBrandTabColor(brand);
-  if(tabColor) ws.properties.tabColor = {argb:tabColor};
-
-  const THIN = {style:"thin",color:{argb:"FFD1D5DB"}};
-  const BORDER = {top:THIN,left:THIN,bottom:THIN,right:THIN};
-  const ACCENT = "FFD72B2B";
-
-  // Title
-  ws.getRow(r).height = 36;
-  const titleCell = ws.getCell(r,1);
-  titleCell.value = `${brand ? brand.toUpperCase()+" — " : ""}${model||"CABINET"} ${year?`(${year})`:""}`;
-  titleCell.font  = {bold:true, size:16, color:{argb:"FF1F2937"}};
-  titleCell.alignment = {vertical:"middle"};
-  ws.getRow(r).getCell(1).border = {bottom:{style:"medium",color:{argb:ACCENT}}};
-  r++;
-
-  // Info table
-  const infoData = [
-    ["Brand",   brand],
-    ["Model",   model],
-    ["Year",    year],
-    ["Coolant", coolant],
-    ["Group",   group],
-  ];
-  for(const [label, val] of infoData){
-    ws.getRow(r).height = 22;
-    const lc = ws.getCell(r,1);
-    lc.value = label;
-    lc.font  = {bold:true, size:11, color:{argb:"FF6B7280"}};
-    lc.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:"FFF9FAFB"}};
-    lc.alignment = {vertical:"middle", indent:1};
-    lc.border   = BORDER;
-    const vc = ws.getCell(r,2);
-    vc.value = val||"—";
-    vc.font  = {bold:true, size:11, color:{argb:"FF111827"}};
-    vc.alignment = {vertical:"middle", indent:1};
-    vc.border   = BORDER;
-    r++;
-  }
-
-  ws.getRow(r).height = 14;
-  r++;
-
-  // Photo sections
+  ws.getRow(r).height=14;r++;
   for(const p of PS){
-    const photos = savedPhotos[p.key]||[];
-
-    ws.getRow(r).height = 26;
-    const secCell = ws.getCell(r,1);
-    secCell.value = `${p.icon}  ${p.label}`;
-    secCell.font  = {bold:true, size:12, color:{argb:"FF1F2937"}};
-    secCell.fill  = {type:"pattern",pattern:"solid",fgColor:{argb:"FFF3F4F6"}};
-    secCell.alignment = {vertical:"middle", indent:2};
-    secCell.border = {
-      left:{style:"medium",color:{argb:ACCENT}},
-      top:THIN, bottom:THIN, right:THIN,
-    };
-    r++;
-
+    const photos=savedPhotos[p.key]||[];
+    ws.getRow(r).height=26;
+    const sc=ws.getCell(r,1);sc.value=`${p.icon}  ${p.label}`;
+    sc.font={bold:true,size:12,color:{argb:"FF1F2937"}};
+    sc.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF3F4F6"}};
+    sc.alignment={vertical:"middle",indent:2};
+    sc.border={left:{style:"medium",color:{argb:AC}},top:T,bottom:T,right:T};r++;
     if(!photos.length){
-      ws.getRow(r).height = 30;
-      ws.getCell(r,1).value = "(ไม่มีรูป)";
-      ws.getCell(r,1).font = {italic:true, size:10, color:{argb:"FF9CA3AF"}};
-      ws.getCell(r,1).alignment = {vertical:"middle"};
-      r++;
-    } else {
-      ws.getRow(r).height = IMG_ROW_PT;
+      ws.getRow(r).height=30;ws.getCell(r,1).value="(ไม่มีรูป)";
+      ws.getCell(r,1).font={italic:true,size:10,color:{argb:"FF9CA3AF"}};r++;
+    }else{
+      ws.getRow(r).height=IRpt;
       for(let i=0;i<photos.length;i++){
-        const ph = photos[i];
-        const dataUrl = ph.dataUrl;
-        if(!dataUrl || !dataUrl.startsWith("data:")) continue;
+        const ph=photos[i];if(!ph.dataUrl||!ph.dataUrl.startsWith("data:")) continue;
         try{
-          const b64 = await new Promise((res, rej)=>{
-            const img = new Image();
-            img.onload = ()=>{
-              const MAX = 400;
-              let w = img.naturalWidth || img.width;
-              let h = img.naturalHeight || img.height;
-              if(!w || !h){ rej(new Error("img size 0")); return; }
-              if(w>MAX||h>MAX){
-                if(w>h){h=Math.round(h*MAX/w);w=MAX;}
-                else   {w=Math.round(w*MAX/h);h=MAX;}
-              }
-              const cv = document.createElement("canvas");
-              cv.width=w; cv.height=h;
+          const b64=await new Promise((res,rej)=>{
+            const img=new Image();
+            img.onload=()=>{
+              const MAX=400;let w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
+              if(!w||!h){rej(new Error("size 0"));return;}
+              if(w>MAX||h>MAX){if(w>h){h=Math.round(h*MAX/w);w=MAX;}else{w=Math.round(w*MAX/h);h=MAX;}}
+              const cv=document.createElement("canvas");cv.width=w;cv.height=h;
               cv.getContext("2d").drawImage(img,0,0,w,h);
-              const out = cv.toDataURL("image/jpeg",0.5);
-              res(out.split(",")[1]);
-            };
-            img.onerror = rej;
-            img.src = dataUrl;
+              res(cv.toDataURL("image/jpeg",.5).split(",")[1]);
+            };img.onerror=rej;img.src=ph.dataUrl;
           });
-          const imgId = wb.addImage({base64:b64, extension:"jpeg"});
-          // ✅ FIX: ใช้ br (twoCellAnchor) แทน ext (oneCellAnchor)
-          // → Excel Online แสดงรูปได้ทันที ไม่ต้องใช้ fixXlsxDrawings อีกต่อไป
-          ws.addImage(imgId,{
-            tl:{col:i+1, row:r-1},
-            br:{col:i+2, row:r},
-          });
-        }catch(e){ console.warn("embed failed:", ph.name, e); }
+          const imgId=wb.addImage({base64:b64,extension:"jpeg"});
+          // ✅ ใช้ br (twoCellAnchor) → Excel Online แสดงรูปได้ทันที
+          ws.addImage(imgId,{tl:{col:i+1,row:r-1},br:{col:i+2,row:r}});
+        }catch(e){console.warn("embed:",ph.name,e);}
       }
       r++;
-
-      ws.getRow(r).height = 14;
+      ws.getRow(r).height=14;
       for(let i=0;i<photos.length;i++){
-        const fnCell = ws.getCell(r, i+2);
-        fnCell.value = `${i+1}. ${photos[i].savedName}`;
-        fnCell.font = {size:8, color:{argb:"FF6B7280"}};
-        fnCell.alignment = {wrapText:true, vertical:"top"};
+        const fc=ws.getCell(r,i+2);fc.value=`${i+1}. ${photos[i].savedName}`;
+        fc.font={size:8,color:{argb:"FF6B7280"}};fc.alignment={wrapText:true,vertical:"top"};
       }
       r++;
     }
-
-    ws.getRow(r++).height = 6;
+    ws.getRow(r++).height=6;
   }
 }
 </script>
 
-<!-- Custom Cancel Modal -->
+<!-- Cancel Modal -->
 <div id="cancel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.2);">
     <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
-    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--g800);letter-spacing:1px;margin-bottom:8px;">ออกจากการกรอกข้อมูล?</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--g800);margin-bottom:8px;">ออกจากการกรอกข้อมูล?</div>
     <div style="font-size:13px;color:var(--g400);margin-bottom:22px;">ข้อมูลที่กรอกไปจะหายทั้งหมด</div>
     <div style="display:flex;gap:10px;">
       <button onclick="document.getElementById('cancel-modal').style.display='none'" class="btn btn-outline" style="flex:1;">กรอกต่อ</button>
@@ -1209,6 +1020,5 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
     </div>
   </div>
 </div>
-
 </body>
 </html>
