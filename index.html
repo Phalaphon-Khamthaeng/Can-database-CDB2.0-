@@ -97,7 +97,7 @@ input{font-family:'DM Sans',sans-serif;}
 .add-photo-btn:hover,.add-photo-btn.drag{border-color:var(--red);background:var(--red-bg);}
 .add-photo-btn p{font-size:11px;color:var(--g400);text-align:center;line-height:1.3;}
 
-/* Tracker — single wrap row, all steps visible */
+/* Tracker */
 .tracker{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:14px;width:100%;max-width:520px;padding:0 8px;}
 .tracker-row{display:contents;}
 .tracker-item{display:flex;align-items:center;gap:3px;padding:4px 9px;border-radius:20px;font-size:9.5px;font-weight:500;white-space:nowrap;transition:all .2s;}
@@ -313,16 +313,14 @@ const PS = [
   {key:"master_board",   label:"Master Board",            sub:"บอร์ดควบคุมหลัก",             prefix:"MasterBoard",    icon:"🖥️"},
   {key:"compressor",     label:"Compressor",              sub:"คอมเพรสเซอร์ระบบทำความเย็น",   prefix:"Compressor",     icon:"❄️"},
 ];
-const TOTAL = 3 + PS.length + 1; // brand, model, year + photos + summary
+const TOTAL = 3 + PS.length + 1;
 
 // ═══════════════════ STATE ═══════════════════
 let records = [];
 let msalApp = null, accessToken = null, currentUser = null;
 
-// Wizard state
 let wizStep = 0;
 let wizData = { brand:"", model:"", year:"", coolant:"", group:"", photos:{} };
-// photos[key] = [{file, preview, name}, ...]  (ARRAY per section)
 
 // ═══════════════════ INIT ═══════════════════
 (function init(){
@@ -331,7 +329,6 @@ let wizData = { brand:"", model:"", year:"", coolant:"", group:"", photos:{} };
   const sr = localStorage.getItem("cabinet_records");
   if(sr) try{
     const parsed = JSON.parse(sr);
-    // ถ้าข้อมูลเก่ามี dataUrl อยู่ → ล้างออกให้อัตโนมัติ
     const hasDataUrl = parsed.some(r=>PS.some(p=>(r.photos?.[p.key]||[]).some(ph=>ph.dataUrl)));
     if(hasDataUrl){
       const slim = parsed.map(r=>({
@@ -373,7 +370,6 @@ function saveConfig(){
   CFG.spSiteName= document.getElementById("cfg-site-name").value.trim();
   CFG.modelPath = document.getElementById("cfg-model-path").value.trim();
   CFG.excelName = document.getElementById("cfg-excel-name").value.trim();
-  // คำนวณ excelPath จาก modelPath อัตโนมัติ (ตัด /Model ออก)
   CFG.excelPath = CFG.modelPath.split("/").slice(0,-1).join("/");
   localStorage.setItem("sp_config",JSON.stringify(CFG));
   msalApp=null;
@@ -427,7 +423,6 @@ async function syncFromSharePoint(){
     if(!drive) throw new Error("ไม่พบ Drive");
     const driveId = drive.id;
 
-    // Read Excel
     const excelPath = CFG.excelPath
       ? `${CFG.excelPath}/${CFG.excelName}`
       : `${CFG.modelPath.split("/").slice(0,-1).join("/")}/${CFG.excelName}`;
@@ -438,7 +433,6 @@ async function syncFromSharePoint(){
     if(!exRes.ok) throw new Error("ไม่พบ Excel");
     const buf = await exRes.arrayBuffer();
 
-    // Use ExcelJS to read sheets
     const wb2 = new ExcelJS.Workbook();
     await wb2.xlsx.load(buf);
 
@@ -463,7 +457,6 @@ async function syncFromSharePoint(){
 
     const localOnly = records.filter(r=>!r.fromSP&&!spRecords.find(s=>s.folderName===r.folderName));
     records = [...spRecords, ...localOnly];
-    // เก็บแค่ metadata ไม่เก็บ preview/dataUrl (ป้องกัน quota)
     const slimRecords = records.map(r=>({
       id:r.id, brand:r.brand, model:r.model, year:r.year,
       coolant:r.coolant, group:r.group, uploaded:r.uploaded,
@@ -520,7 +513,7 @@ function renderList(search=""){
     const cnt = PS.reduce((a,p)=>a+(r.photos?.[p.key]?.length||0),0);
     const sects = PS.filter(p=>r.photos?.[p.key]?.length>0).length;
     return `<div class="rec-card" onclick="showDetail(${ri})">
-      <div class="rec-thumb">${thumb?`<img src="${thumb}"/>`:"📦"}</div>
+      <div class="rec-thumb">${thumb?`<img src="${thumb}" onerror="this.parentElement.innerHTML='📦'"/>` :"📦"}</div>
       <div class="rec-info">
         <div class="rec-model">${r.model||"ไม่ระบุ Model"}</div>
         <div class="rec-tags">
@@ -549,7 +542,7 @@ function showDetail(idx){
     const photos = r.photos?.[p.key]||[];
     return `<div class="detail-card ${photos.length>0?"has-photo":""}">
       ${photos.length>0
-        ?`<div class="detail-photos-strip">${photos.map(ph=>`<img src="${ph.preview}" title="${ph.savedName||ph.name}"/>`).join("")}</div>`
+        ?`<div class="detail-photos-strip">${photos.map(ph=>`<img src="${ph.preview}" onerror="this.style.display='none'" title="${ph.savedName||ph.name}"/>`).join("")}</div>`
         :`<div style="height:80px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:28px;">${p.icon}</div>`}
       <div class="detail-card-label">${p.icon} ${p.label} ${photos.length>0?`<span class="count-badge">${photos.length}</span>`:""}</div>
     </div>`;
@@ -585,7 +578,6 @@ function renderWiz(){
   document.getElementById("wiz-prog").style.width=pct+"%";
   document.getElementById("wiz-step-num").textContent=(s+1)+" / "+TOTAL;
 
-  // dots
   let dots="";
   for(let i=0;i<TOTAL;i++){
     const wide = i<3?"wide":"";
@@ -603,7 +595,6 @@ function renderWiz(){
   nextBtn.style.flex="2";
   nextBtn.innerHTML = isSummary?"☁️ อัปโหลด SharePoint + บันทึก Excel":"ถัดไป →";
 
-  // content
   const content = document.getElementById("wiz-content");
   if(s===0) content.innerHTML=textStepHtml("Brand","เช่น Fuji, National, Sanden","🏭","wiz-brand",wizData.brand);
   else if(s===1) content.innerHTML=textStepHtml("Model","เช่น FE-KA36-LHPAP","🔢","wiz-model",wizData.model);
@@ -615,7 +606,6 @@ function renderWiz(){
   }
   else content.innerHTML=summaryHtml();
 
-  // tracker — flat single wrap row, all 12 steps visible
   if(s>=3&&s<TOTAL-1){
     document.getElementById("wiz-tracker").innerHTML=PS.map((p,i)=>{
       const state=i+3<s?"done":i+3===s?"active":"upcoming";
@@ -704,18 +694,14 @@ function addFiles(key, files){
   });
 }
 
-// ── Clipboard Paste (Ctrl+V) ──
 document.addEventListener("keydown", e=>{
   if(e.key !== "Enter") return;
-  // ไม่ทำงานถ้าอยู่นอก wizard
   if(!document.getElementById("page-wizard").classList.contains("active")) return;
-  // ไม่ trigger ถ้า focus อยู่บน button
   if(document.activeElement?.tagName === "BUTTON") return;
   wizNext();
 });
 
 document.addEventListener("paste", e=>{
-  // ทำงานเฉพาะตอนอยู่ใน wizard photo step
   if(wizStep < 3 || wizStep >= TOTAL-1) return;
   const pi = wizStep - 3;
   const key = PS[pi].key;
@@ -791,52 +777,6 @@ function getFolderName(){
   return [wizData.model, wizData.brand, wizData.year].filter(Boolean).join("_") || "Cabinet_"+Date.now();
 }
 
-function coolantStepHtml(){
-  const opts = ["R744","R600a","R1234yf","R134a","R404A","อื่นๆ"];
-  return `<div style="width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;">
-    <div class="step-icon">🧊</div>
-    <div class="step-title">Coolant</div>
-    <div class="step-sub">สารทำความเย็น</div>
-    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0;">
-      ${opts.map(o=>`<button onclick="setCoolant('${o}')" class="btn btn-sm btn-outline" id="cool-${o}" style="${wizData.coolant===o?"background:var(--blue);color:#fff;border-color:var(--blue)":""}">${o}</button>`).join("")}
-    </div>
-    <div style="width:100%;max-width:360px;margin-top:4px;">
-      <input id="wiz-coolant" type="text" value="${wizData.coolant}" placeholder="หรือพิมพ์เอง..." autocomplete="off"
-        style="width:100%;padding:13px 18px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;text-align:center;"
-        onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"/>
-    </div>
-  </div>`;
-}
-
-function setCoolant(val){
-  wizData.coolant = val;
-  document.getElementById("wiz-coolant").value = val;
-  renderWiz();
-}
-
-function groupStepHtml(){
-  const opts = ["ST2","ST3","ST4","FT9","FT10","NT3","NT4"];
-  return `<div style="width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;">
-    <div class="step-icon">🗂️</div>
-    <div class="step-title">Group</div>
-    <div class="step-sub">กลุ่มของตู้</div>
-    <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0;">
-      ${opts.map(o=>`<button onclick="setGroup('${o}')" class="btn btn-sm btn-outline" id="grp-${o}" style="${wizData.group===o?"background:var(--blue);color:#fff;border-color:var(--blue)":""}">${o}</button>`).join("")}
-    </div>
-    <div style="width:100%;max-width:360px;margin-top:4px;">
-      <input id="wiz-group" type="text" value="${wizData.group}" placeholder="หรือพิมพ์เอง..." autocomplete="off"
-        style="width:100%;padding:13px 18px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;text-align:center;"
-        onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"/>
-    </div>
-  </div>`;
-}
-
-function setGroup(val){
-  wizData.group = val;
-  document.getElementById("wiz-group").value = val;
-  renderWiz();
-}
-
 function setBrand(name){
   wizData.brand = name;
   document.getElementById("wiz-brand").value = name;
@@ -855,7 +795,7 @@ async function wizNext(){
 
 // ═══════════════════ SHAREPOINT UPLOAD ═══════════════════
 async function doUpload(){
-  // รอให้ทุกรูปมี dataUrl ครบก่อน (FileReader อาจยังไม่เสร็จ)
+  // รอให้ทุกรูปมี dataUrl ครบก่อน
   const allPh = PS.flatMap(p=>wizData.photos[p.key]||[]);
   const pending = allPh.filter(ph=>!ph.dataUrl && ph.file);
   if(pending.length){
@@ -938,9 +878,19 @@ async function doUpload(){
       );
       if(!upRes.ok) throw new Error(`อัปโหลด ${newName} ไม่ได้`);
       const upJson = await upRes.json();
-      const spUrl = upJson["@microsoft.graph.downloadUrl"] || "";
+
+      // ✅ FIX: ใช้ downloadUrl จาก SharePoint เป็น preview URL (persistent)
+      const dlUrl = upJson["@microsoft.graph.downloadUrl"] || "";
       const spWebUrl = upJson.webUrl || "";
-      savedPhotos[ph.step.key].push({preview:ph.preview, dataUrl:ph.dataUrl, savedName:newName, name:ph.name, spUrl, spWebUrl});
+
+      savedPhotos[ph.step.key].push({
+        preview: dlUrl || ph.preview,   // ← dlUrl แทน blob URL
+        dataUrl: ph.dataUrl,
+        savedName: newName,
+        name: ph.name,
+        spUrl: dlUrl,
+        spWebUrl,
+      });
       setStatus(stepIdx,"done"); done++;
     }
 
@@ -971,9 +921,8 @@ async function doUpload(){
 
     // Step: Upload Excel back
     setStatus(excelStepBase+2,"loading");
-    let excelBuf = await wb.xlsx.writeBuffer();
-    // แปลง drawing XML ให้ Excel Online แสดงรูปได้
-    excelBuf = await fixXlsxDrawings(excelBuf);
+    const excelBuf = await wb.xlsx.writeBuffer();
+    // ✅ FIX: ไม่ต้องใช้ fixXlsxDrawings แล้ว เพราะ buildSheetExcelJS ใช้ br (twoCellAnchor) โดยตรง
     const excelBlob = new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"});
     const exUpRes = await fetch(
       `https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(excelSpPath)}:/content`,
@@ -982,11 +931,11 @@ async function doUpload(){
     if(!exUpRes.ok) throw new Error("อัปโหลด Excel ไม่ได้: "+await exUpRes.text());
     setStatus(excelStepBase+2,"done"); done++;
 
-    // Save record locally — ไม่เก็บ dataUrl ใน localStorage (เกิน quota)
+    // ✅ FIX: เก็บ spUrl แทน blob URL ใน localStorage
     const photosForStorage = {};
     PS.forEach(p=>{
       photosForStorage[p.key] = (savedPhotos[p.key]||[]).map(ph=>({
-        preview: ph.preview,
+        preview: ph.spUrl || ph.preview,  // ← persistent URL
         savedName: ph.savedName,
         name: ph.name,
         spUrl: ph.spUrl,
@@ -994,6 +943,7 @@ async function doUpload(){
         // ไม่เก็บ dataUrl — ใหญ่เกินไป
       }));
     });
+
     const newRecord={
       id:Date.now(), brand:wizData.brand, model:wizData.model, year:wizData.year,
       coolant:wizData.coolant, group:wizData.group,
@@ -1003,7 +953,6 @@ async function doUpload(){
     };
     records.unshift(newRecord);
     try{ localStorage.setItem("cabinet_records",JSON.stringify(records)); }catch(e){
-      // localStorage เต็ม — เก็บแค่ metadata ไม่มี photos
       const slim = records.map(r=>({...r, photos: Object.fromEntries(PS.map(p=>[p.key,[]]))}));
       try{ localStorage.setItem("cabinet_records",JSON.stringify(slim)); }catch{}
     }
@@ -1038,74 +987,11 @@ function encPath(p){
   return p.split("/").map(encodeURIComponent).join("/");
 }
 
-// ═══════════════════ FIX DRAWING XML FOR EXCEL ONLINE ═══════════════════
-// ExcelJS สร้าง oneCellAnchor → Excel Online ไม่แสดงรูป
-// แก้ด้วย JSZip: แปลงเป็น twoCellAnchor ที่ Excel Online รองรับ
-async function fixXlsxDrawings(buffer){
-  try{
-    const zip = await JSZip.loadAsync(buffer);
-    const keys = Object.keys(zip.files).filter(k=>/xl\/drawings\/drawing\d+\.xml$/.test(k));
-    if(!keys.length) return buffer; // ไม่มี drawing → คืนเดิม
-
-    for(const key of keys){
-      let xml = await zip.files[key].async("string");
-
-      // แปลงทุก oneCellAnchor → twoCellAnchor
-      xml = xml.replace(/<xdr:oneCellAnchor>([\s\S]*?)<\/xdr:oneCellAnchor>/g, (match, inner)=>{
-        // หา col/row ของ <xdr:from>
-        const fromColMatch = inner.match(/<xdr:from>[\s\S]*?<xdr:col>(\d+)<\/xdr:col>/);
-        const fromRowMatch = inner.match(/<xdr:from>[\s\S]*?<xdr:row>(\d+)<\/xdr:row>/);
-        const fromCol = fromColMatch ? parseInt(fromColMatch[1]) : 0;
-        const fromRow = fromRowMatch ? parseInt(fromRowMatch[1]) : 0;
-
-        // สร้าง <xdr:to> = col+1, row+1
-        const toXml = `<xdr:to>`+
-          `<xdr:col>${fromCol+1}</xdr:col><xdr:colOff>0</xdr:colOff>`+
-          `<xdr:row>${fromRow+1}</xdr:row><xdr:rowOff>0</xdr:rowOff>`+
-          `</xdr:to>`;
-
-        // แทน <xdr:ext .../> ด้วย <xdr:to>
-        const newInner = inner.replace(/<xdr:ext[^>]*\/>/, toXml);
-        return `<xdr:twoCellAnchor editAs="oneCell">${newInner}</xdr:twoCellAnchor>`;
-      });
-
-      zip.file(key, xml);
-    }
-
-    return zip.generateAsync({type:"arraybuffer", compression:"DEFLATE"});
-  }catch(e){
-    console.warn("fixXlsxDrawings failed:", e);
-    return buffer; // ถ้า error ใช้ buffer เดิม
-  }
-}
-
-// ═══════════════════ IMAGE → JPEG BASE64 (via canvas) ═══════════════════
-async function imageToBase64Jpeg(src, maxSize=1200){
-  return new Promise((resolve, reject)=>{
-    const img = new Image();
-    img.onload = ()=>{
-      let w = img.naturalWidth || img.width;
-      let h = img.naturalHeight || img.height;
-      if(w > maxSize || h > maxSize){
-        if(w > h){ h = Math.round(h * maxSize / w); w = maxSize; }
-        else      { w = Math.round(w * maxSize / h); h = maxSize; }
-      }
-      const canvas = document.createElement("canvas");
-      canvas.width = w; canvas.height = h;
-      canvas.getContext("2d").drawImage(img, 0, 0, w, h);
-      resolve(canvas.toDataURL("image/jpeg", 0.85).split(",")[1]);
-    };
-    img.onerror = reject;
-    img.src = src; // ใช้ dataUrl (base64) แทน blob URL เพื่อหลีก canvas security block
-  });
-}
-
 // ═══════════════════ BUILD INDEX SHEET ═══════════════════
 function buildIndexSheet(wb){
   const IDX_NAME = "Index";
   const existing = wb.getWorksheet(IDX_NAME);
   if(existing) wb.removeWorksheet(existing.id);
-  // Insert as first sheet
   const ws = wb.addWorksheet(IDX_NAME, {properties:{tabColor:{argb:"FF374151"}}});
 
   const THIN = {style:"thin",color:{argb:"FFD1D5DB"}};
@@ -1115,7 +1001,6 @@ function buildIndexSheet(wb){
 
   WIDTHS.forEach((w,i)=>ws.getColumn(i+1).width=w);
 
-  // Header row
   ws.getRow(1).height = 28;
   COLS.forEach((h,i)=>{
     const c = ws.getCell(1,i+1);
@@ -1126,7 +1011,6 @@ function buildIndexSheet(wb){
     c.border = BORDER;
   });
 
-  // Data rows — loop all sheets except Index
   let no = 1;
   wb.eachSheet(sheet=>{
     if(sheet.name===IDX_NAME) return;
@@ -1140,7 +1024,6 @@ function buildIndexSheet(wb){
     const r = no+1;
     ws.getRow(r).height = 20;
 
-    // brand color
     function getBrandFill(b){
       const bl=(b||"").toLowerCase();
       if(bl.includes("national")||bl.includes("panasonic")) return "FFFEF9C3";
@@ -1160,7 +1043,6 @@ function buildIndexSheet(wb){
       c.border = BORDER;
     });
 
-    // Hyperlink formula — same as original file format
     const sheetNameEscaped = sheet.name.replace(/'/g, "''");
     const linkCell = ws.getCell(r, 11);
     linkCell.value = {formula:`HYPERLINK("#'${sheetNameEscaped}'!A1",">> Go to sheet ${sheet.name}")`};
@@ -1174,23 +1056,22 @@ function buildIndexSheet(wb){
 }
 
 // ═══════════════════ BUILD EXCEL SHEET (ExcelJS) ═══════════════════
+// ✅ FIX: ใช้ br แทน ext → ExcelJS gen twoCellAnchor โดยตรง → Excel Online แสดงรูปได้
 async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos, coolant="", group=""){
   const sheetName = (model||"Cabinet").substring(0,31);
   const existing = wb.getWorksheet(sheetName);
   if(existing) wb.removeWorksheet(existing.id);
   const ws = wb.addWorksheet(sheetName);
 
-  const IMG_W = 250; // px
-  const IMG_H = 250; // px
-  const IMG_ROW_PT = IMG_H * 0.75;  // px → pt
-  const IMG_COL_W  = IMG_W / 7;     // px → excel char width
+  const IMG_W = 250;
+  const IMG_H = 250;
+  const IMG_ROW_PT = IMG_H * 0.75;
+  const IMG_COL_W  = IMG_W / 7;
 
-  // ทุก column กว้างเท่ากัน = พอดีกับรูป
   for(let c=1;c<=20;c++) ws.getColumn(c).width = IMG_COL_W;
 
   let r = 1;
 
-  // ── Brand tab color ──
   function getBrandTabColor(b){
     const bl = (b||"").toLowerCase();
     if(bl.includes("national")||bl.includes("panasonic")) return "FFFDE68A";
@@ -1203,21 +1084,18 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
 
   const THIN = {style:"thin",color:{argb:"FFD1D5DB"}};
   const BORDER = {top:THIN,left:THIN,bottom:THIN,right:THIN};
-  const ACCENT = "FFD72B2B"; // สีแดง accent เบาๆ
+  const ACCENT = "FFD72B2B";
 
-  // ── Title block ──
+  // Title
   ws.getRow(r).height = 36;
   const titleCell = ws.getCell(r,1);
   titleCell.value = `${brand ? brand.toUpperCase()+" — " : ""}${model||"CABINET"} ${year?`(${year})`:""}`;
   titleCell.font  = {bold:true, size:16, color:{argb:"FF1F2937"}};
   titleCell.alignment = {vertical:"middle"};
-  // เส้นใต้ title
-  ws.getRow(r).eachCell({includeEmpty:false}, c => {});
-  const titleRow = ws.getRow(r);
-  titleRow.getCell(1).border = {bottom:{style:"medium",color:{argb:ACCENT}}};
+  ws.getRow(r).getCell(1).border = {bottom:{style:"medium",color:{argb:ACCENT}}};
   r++;
 
-  // ── Info table ──
+  // Info table
   const infoData = [
     ["Brand",   brand],
     ["Model",   model],
@@ -1241,15 +1119,13 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
     r++;
   }
 
-  // spacer
   ws.getRow(r).height = 14;
   r++;
 
-  // ── Photo sections ──
+  // Photo sections
   for(const p of PS){
     const photos = savedPhotos[p.key]||[];
 
-    // Section header — เรียบ ทางการ: เส้นซ้ายสีแดง + ตัวหนาสีเข้ม
     ws.getRow(r).height = 26;
     const secCell = ws.getCell(r,1);
     secCell.value = `${p.icon}  ${p.label}`;
@@ -1263,7 +1139,6 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
     r++;
 
     if(!photos.length){
-      // ไม่มีรูป — แสดง placeholder
       ws.getRow(r).height = 30;
       ws.getCell(r,1).value = "(ไม่มีรูป)";
       ws.getCell(r,1).font = {italic:true, size:10, color:{argb:"FF9CA3AF"}};
@@ -1276,8 +1151,6 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
         const dataUrl = ph.dataUrl;
         if(!dataUrl || !dataUrl.startsWith("data:")) continue;
         try{
-          // บีบรูปผ่าน canvas ทุกรูป → JPEG 400px / quality 0.5
-          // เพื่อให้ไฟล์ Excel ไม่ใหญ่เกิน SharePoint upload limit
           const b64 = await new Promise((res, rej)=>{
             const img = new Image();
             img.onload = ()=>{
@@ -1299,19 +1172,19 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
             img.src = dataUrl;
           });
           const imgId = wb.addImage({base64:b64, extension:"jpeg"});
+          // ✅ FIX: ใช้ br (twoCellAnchor) แทน ext (oneCellAnchor)
+          // → Excel Online แสดงรูปได้ทันที ไม่ต้องใช้ fixXlsxDrawings อีกต่อไป
           ws.addImage(imgId,{
             tl:{col:i+1, row:r-1},
-            ext:{width:IMG_W, height:IMG_H},
-            editAs:"oneCell"
+            br:{col:i+2, row:r},
           });
         }catch(e){ console.warn("embed failed:", ph.name, e); }
       }
       r++;
 
-      // Filename row — แต่ละชื่ออยู่ใต้รูปของมันเอง
       ws.getRow(r).height = 14;
       for(let i=0;i<photos.length;i++){
-        const fnCell = ws.getCell(r, i+2); // col B = i+2 (1-indexed)
+        const fnCell = ws.getCell(r, i+2);
         fnCell.value = `${i+1}. ${photos[i].savedName}`;
         fnCell.font = {size:8, color:{argb:"FF6B7280"}};
         fnCell.alignment = {wrapText:true, vertical:"top"};
@@ -1319,11 +1192,11 @@ async function buildSheetExcelJS(wb, folderName, brand, model, year, savedPhotos
       r++;
     }
 
-    // Spacer
     ws.getRow(r++).height = 6;
   }
 }
 </script>
+
 <!-- Custom Cancel Modal -->
 <div id="cancel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.2);">
