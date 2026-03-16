@@ -880,7 +880,7 @@ async function doUpload(){
       const upRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(upPath)}:/content`,
         {method:"PUT",headers:{...H,"Content-Type":ph.file.type||"image/jpeg"},body:ph.file});
       if(!upRes.ok) throw new Error(`อัปโหลด ${newName} ไม่ได้`);
-      savedPhotos[ph.step.key].push({preview:ph.preview,dataUrl:ph.dataUrl,savedName:newName,name:ph.name});
+      savedPhotos[ph.step.key].push({file:ph.file,preview:ph.preview,dataUrl:ph.dataUrl,savedName:newName,name:ph.name});
       _imgCache[upPath]=ph.preview;
       setS(i+2,"done");
     }
@@ -978,10 +978,6 @@ function buildIndexSheet(wb){
 //  รวมรูปหลายรูปเป็น 1 composite โดยใช้ createImageBitmap
 //  (เชื่อถือได้กว่า new Image() กับ data URL)
 // ════════════════════════════════════════════════
-// ════════════════════════════════════════════════
-//  makeComposite: รวมรูปหลายใบเป็น 1 ภาพ
-//  ใช้ new Image() + onload — compatible ทุก browser
-// ════════════════════════════════════════════════
 function loadImage(src){
   return new Promise((resolve)=>{
     if(!src){resolve(null);return;}
@@ -995,10 +991,6 @@ function loadImage(src){
 async function makeComposite(photos){
   if(!photos.length) return null;
   const W=250,H=250,PAD=4;
-
-  // ใช้ preview (blob URL) ก่อน — browser โหลดไว้แล้ว เร็วและเสถียร
-  const imgs=await Promise.all(photos.map(ph=>loadImage(ph.preview||ph.dataUrl||null)));
-
   const cv=document.createElement("canvas");
   cv.width=photos.length*W+(photos.length-1)*PAD;
   cv.height=H;
@@ -1006,13 +998,22 @@ async function makeComposite(photos){
   ctx.fillStyle="#fff";
   ctx.fillRect(0,0,cv.width,cv.height);
 
-  imgs.forEach((img,i)=>{
-    if(!img||!img.width||!img.height) return;
-    ctx.drawImage(img,i*(W+PAD),0,W,H);
-  });
-
-  const b64=cv.toDataURL("image/jpeg",0.8).split(",")[1];
-  return b64||null;
+  for(let i=0;i<photos.length;i++){
+    const ph=photos[i];
+    let img=null;
+    // ลองตามลำดับ: File → preview → dataUrl
+    if(ph.file){
+      const url=URL.createObjectURL(ph.file);
+      img=await loadImage(url);
+      URL.revokeObjectURL(url);
+    }
+    if(!img&&ph.preview) img=await loadImage(ph.preview);
+    if(!img&&ph.dataUrl)  img=await loadImage(ph.dataUrl);
+    if(img&&img.width&&img.height){
+      ctx.drawImage(img,i*(W+PAD),0,W,H);
+    }
+  }
+  return cv.toDataURL("image/jpeg",0.8).split(",")[1];
 }
 
 // ════════════════════════════════════════════════
