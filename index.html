@@ -997,29 +997,26 @@ function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant=""
     sc.border={left:{style:"medium",color:{argb:AC}},top:T,bottom:T,right:T};r++;
     if(!photos.length){ws.getRow(r).height=30;ws.getCell(r,1).value="(ไม่มีรูป)";ws.getCell(r,1).font={italic:true,size:10,color:{argb:"FF9CA3AF"}};r++;}
     else{
-      ws.getRow(r).height=IH;
       for(let i=0;i<photos.length;i++){
         const ph=photos[i];
         if(!ph.dataUrl||!ph.dataUrl.includes("base64,")) continue;
         try{
           const b64=ph.dataUrl.split("base64,")[1];
           const mime=ph.dataUrl.match(/data:([^;]+)/)?.[1]||"image/jpeg";
-          const ext=(mime.split("/")[1]||"jpeg").replace("jpg","jpeg");
-          const imgId=wb.addImage({base64:b64,extension:ext});
-          // ใช้ ext เพื่อให้ ExcelJS สร้าง oneCellAnchor → JSZip จะแปลงเป็น twoCellAnchor
-          ws.addImage(imgId,{
-            tl:{col:i+1,row:r-1},
-            ext:{width:250,height:250}
-          });
+          const extType=(mime.split("/")[1]||"jpeg").replace("jpg","jpeg");
+          const imgId=wb.addImage({base64:b64,extension:extType});
+          ws.getRow(r).height=IH;
+          // แต่ละรูปอยู่ใน row ของตัวเอง ป้องกัน Excel Online drop รูป
+          ws.addImage(imgId,{tl:{col:1,row:r-1},ext:{width:250,height:250}});
+          r++;
+          ws.getRow(r).height=14;
+          const fc=ws.getCell(r,2);
+          fc.value=`${i+1}. ${ph.savedName}`;
+          fc.font={size:9,color:{argb:"FF6B7280"}};
+          fc.alignment={wrapText:true,vertical:"top"};
+          r++;
         }catch(e){console.warn("embed img:",ph.name,e);}
       }
-      r++;
-      ws.getRow(r).height=14;
-      for(let i=0;i<photos.length;i++){
-        const fc=ws.getCell(r,i+2);fc.value=`${i+1}. ${photos[i].savedName}`;
-        fc.font={size:8,color:{argb:"FF6B7280"}};fc.alignment={wrapText:true,vertical:"top"};
-      }
-      r++;
     }
     ws.getRow(r++).height=6;
   }
