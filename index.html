@@ -989,19 +989,28 @@ async function makeComposite(dataUrls){
   ctx.fillRect(0,0,cv.width,cv.height);
 
   for(let i=0;i<dataUrls.length;i++){
+    // แปลง dataUrl → Blob → Object URL (browser โหลดได้เสถียรกว่า data URL ยาวๆ)
+    let objUrl=null;
     try{
+      const arr=dataUrls[i].split(",");
+      const mime=(arr[0].match(/:(.*?);/)||[])[1]||"image/jpeg";
+      const bstr=atob(arr[1]);
+      const u8=new Uint8Array(bstr.length);
+      for(let k=0;k<bstr.length;k++) u8[k]=bstr.charCodeAt(k);
+      objUrl=URL.createObjectURL(new Blob([u8],{type:mime}));
+    }catch(e){ objUrl=dataUrls[i]; } // fallback ใช้ data URL เดิม
+
+    await new Promise(res=>{
       const img=new Image();
-      img.src=dataUrls[i];
-      // img.decode() รอให้ decode เสร็จจริงๆ ก่อนวาด
-      await img.decode();
-      // ไม่ crop — ให้ drawImage scale ให้เองโดยตรง
-      ctx.drawImage(img, i*(W+PAD), 0, W, H);
-    }catch(e){
-      // วาด placeholder ถ้าล้มเหลว
-      ctx.fillStyle="#e5e7eb";
-      ctx.fillRect(i*(W+PAD),0,W,H);
-      console.warn("makeComposite slot",i,"failed:",e.message);
-    }
+      let settled=false;
+      const done=()=>{if(!settled){settled=true;res();}};
+      img.onload=()=>{ ctx.drawImage(img,i*(W+PAD),0,W,H); done(); };
+      img.onerror=done;
+      setTimeout(done,8000); // 8s timeout
+      img.src=objUrl;
+    });
+
+    if(objUrl&&objUrl.startsWith("blob:")) URL.revokeObjectURL(objUrl);
   }
   return cv.toDataURL("image/jpeg",0.82).split(",")[1];
 }
