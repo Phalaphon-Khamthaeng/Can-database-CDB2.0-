@@ -892,11 +892,12 @@ async function doUpload(){
     try{const exRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,{headers:H});if(exRes.ok)await wb.xlsx.load(await exRes.arrayBuffer());}catch{}
     setS(exIdx,"done");
     setS(exIdx+1,"loading");
-    await buildSheetExcelJS(wb,folderName,wizData.brand,wizData.model,wizData.year,savedPhotos,wizData.coolant,wizData.group);
+    buildSheetExcelJS(wb,folderName,wizData.brand,wizData.model,wizData.year,savedPhotos,wizData.coolant,wizData.group);
     buildIndexSheet(wb);
     setS(exIdx+1,"done");
     setS(exIdx+2,"loading");
-    const excelBuf=await wb.xlsx.writeBuffer();
+    let excelBuf=await wb.xlsx.writeBuffer();
+    excelBuf=await fixDrawingAnchors(excelBuf);
     const exUp=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,
       {method:"PUT",headers:{...H,"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
        body:new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})});
@@ -962,12 +963,13 @@ function buildIndexSheet(wb){
 }
 
 // ════════════════════════════════════════════════
-//  BUILD EXCEL SHEET  (br = twoCellAnchor → Excel Online เห็นรูป)
+//  BUILD EXCEL SHEET
 // ════════════════════════════════════════════════
-async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant="",group=""){
+function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant="",group=""){
   const sn=(model||"Cabinet").substring(0,31).replace(/[\\/?*[\]:]/g,"_");
   const ex=wb.getWorksheet(sn);if(ex)wb.removeWorksheet(ex.id);
   const ws=wb.addWorksheet(sn);
+
   for(let c=1;c<=20;c++) ws.getColumn(c).width=36;
   const tabColor=b=>{const bl=(b||"").toLowerCase();
     if(bl.includes("fuji"))    return "FF93C5FD";
@@ -976,10 +978,12 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
   const tab=tabColor(brand);if(tab)ws.properties.tabColor={argb:tab};
   const T={style:"thin",color:{argb:"FFD1D5DB"}},B={top:T,left:T,bottom:T,right:T},AC="FFD72B2B";
   let r=1;
+
   ws.getRow(r).height=36;
   const ti=ws.getCell(r,1);
   ti.value=`${brand?brand.toUpperCase()+" — ":""}${model||"CABINET"} ${year?`(${year})`:""}`;
   ti.font={bold:true,size:16,color:{argb:"FF1F2937"}};ti.alignment={vertical:"middle"};ti.border={bottom:{style:"medium",color:{argb:AC}}};r++;
+
   for(const [lb,vl] of [["Brand",brand],["Model",model],["Year",year],["Coolant",coolant],["Group",group]]){
     ws.getRow(r).height=22;
     const lc=ws.getCell(r,1);lc.value=lb;lc.font={bold:true,size:11,color:{argb:"FF6B7280"}};
@@ -987,57 +991,93 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
     const vc=ws.getCell(r,2);vc.value=vl||"—";vc.font={bold:true,size:11,color:{argb:"FF111827"}};vc.alignment={vertical:"middle",indent:1};vc.border=B;r++;
   }
   ws.getRow(r).height=14;r++;
+
+  // ── ค่าคงที่ layout รูป ──────────────────────
+  // IMG_ROWS × ROW_H_PT = พื้นที่สำหรับรูป 1 ช่อง
+  // 14 rows × 14pt = 196pt ≈ 261px → รองรับรูป 250px
+  const IMG_ROWS=14, ROW_H_PT=14;
+  const IMG_W_PX=250, IMG_H_PX=250; // ขนาดที่ส่งให้ ext
+  const MAX_COLS=4; // รูปสูงสุด 4 รูปต่อแถว
+
   for(const p of PS){
     const photos=savedPhotos[p.key]||[];
+
     ws.getRow(r).height=26;
-    const sc=ws.getCell(r,1);sc.value=`${p.icon}  ${p.label}`;sc.font={bold:true,size:12,color:{argb:"FF1F2937"}};
+    const sc=ws.getCell(r,1);
+    sc.value=`${p.icon}  ${p.label}`;sc.font={bold:true,size:12,color:{argb:"FF1F2937"}};
     sc.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF3F4F6"}};sc.alignment={vertical:"middle",indent:2};
     sc.border={left:{style:"medium",color:{argb:AC}},top:T,bottom:T,right:T};r++;
-    if(!photos.length){ws.getRow(r).height=30;ws.getCell(r,1).value="(ไม่มีรูป)";ws.getCell(r,1).font={italic:true,size:10,color:{argb:"FF9CA3AF"}};r++;}
-    else{
-      for(let i=0;i<photos.length;i++){
-        const ph=photos[i];
-        if(!ph.dataUrl||!ph.dataUrl.includes("base64,")) continue;
-        try{
-          // ย่อรูปก่อนฝัง ลด filesize ให้ Excel Online รับได้
-          const b64=await shrinkImage(ph.dataUrl,300,300);
-          const imgId=wb.addImage({base64:b64,extension:"jpeg"});
-          const rowStart=r-1; // 0-indexed
-          const rowEnd=rowStart+12;
-          for(let rr=r;rr<=r+12;rr++) ws.getRow(rr).height=13.5;
-          // br = twoCellAnchor โดยตรง ไม่ต้องใช้ JSZip fix
-          ws.addImage(imgId,{tl:{col:1,row:rowStart},br:{col:2,row:rowEnd}});
-          r+=12;
-          ws.getRow(r).height=12;
-          ws.getCell(r,2).value=`${i+1}. ${ph.savedName}`;
-          ws.getCell(r,2).font={size:8,color:{argb:"FF6B7280"}};
-          r++;
-        }catch(e){console.warn("embed img:",ph.name,e);}
+
+    if(!photos.length){
+      ws.getRow(r).height=30;
+      ws.getCell(r,1).value="(ไม่มีรูป)";ws.getCell(r,1).font={italic:true,size:10,color:{argb:"FF9CA3AF"}};r++;
+    } else {
+      // วางทีละ MAX_COLS รูปต่อแถว
+      for(let start=0;start<photos.length;start+=MAX_COLS){
+        const batch=photos.slice(start,start+MAX_COLS);
+
+        // ตั้งความสูง IMG_ROWS rows
+        for(let rr=r;rr<r+IMG_ROWS;rr++) ws.getRow(rr).height=ROW_H_PT;
+
+        for(let j=0;j<batch.length;j++){
+          const ph=batch[j];
+          if(!ph.dataUrl||!ph.dataUrl.includes("base64,")) continue;
+          try{
+            const b64=ph.dataUrl.split("base64,")[1];
+            const mime=ph.dataUrl.match(/data:([^;]+)/)?.[1]||"image/jpeg";
+            const extType=(mime.split("/")[1]||"jpeg").replace("jpg","jpeg");
+            const imgId=wb.addImage({base64:b64,extension:extType});
+            // ext → สร้าง oneCellAnchor → JSZip fix แปลงเป็น twoCellAnchor (row+14)
+            ws.addImage(imgId,{tl:{col:j,row:r-1},ext:{width:IMG_W_PX,height:IMG_H_PX}});
+          }catch(e){console.warn("embed img:",batch[j].name,e);}
+        }
+        r+=IMG_ROWS;
+
+        // ชื่อไฟล์
+        ws.getRow(r).height=14;
+        for(let j=0;j<batch.length;j++){
+          const fc=ws.getCell(r,j+1);
+          fc.value=`${start+j+1}. ${batch[j].savedName}`;
+          fc.font={size:8,color:{argb:"FF6B7280"}};
+          fc.alignment={wrapText:true,vertical:"top"};
+        }
+        r++;
       }
     }
     ws.getRow(r++).height=6;
   }
 }
 
-// ย่อรูปด้วย canvas → base64 jpeg
-function shrinkImage(dataUrl,maxW,maxH){
-  return new Promise((resolve,reject)=>{
-    const img=new Image();
-    img.onload=()=>{
-      let w=img.naturalWidth,h=img.naturalHeight;
-      if(!w||!h){reject(new Error("bad image"));return;}
-      if(w>maxW||h>maxH){
-        if(w/h>maxW/maxH){h=Math.round(h*maxW/w);w=maxW;}
-        else{w=Math.round(w*maxH/h);h=maxH;}
-      }
-      const cv=document.createElement("canvas");
-      cv.width=w;cv.height=h;
-      cv.getContext("2d").drawImage(img,0,0,w,h);
-      resolve(cv.toDataURL("image/jpeg",0.75).split(",")[1]);
-    };
-    img.onerror=()=>resolve(dataUrl.split(",")[1]||""); // fallback
-    img.src=dataUrl;
-  });
+// ════════════════════════════════════════════════
+//  JSZIP FIX: oneCellAnchor → twoCellAnchor
+//  row+IMG_ROWS ต้องตรงกับ IMG_ROWS ใน buildSheetExcelJS
+// ════════════════════════════════════════════════
+async function fixDrawingAnchors(buf){
+  try{
+    const zip=await JSZip.loadAsync(buf);
+    const dfiles=Object.keys(zip.files).filter(n=>/^xl\/drawings\/drawing\d*\.xml$/.test(n));
+    for(const dfn of dfiles){
+      let xml=await zip.files[dfn].async("string");
+      xml=xml.replace(/<xdr:oneCellAnchor>([\s\S]*?)<\/xdr:oneCellAnchor>/g,(match,inner)=>{
+        const fromM=inner.match(/<xdr:from>([\s\S]*?)<\/xdr:from>/);
+        if(!fromM) return match;
+        const col=parseInt(fromM[1].match(/<xdr:col>(\d+)/)?.[1]??'0');
+        const row=parseInt(fromM[1].match(/<xdr:row>(\d+)/)?.[1]??'0');
+        // to: col+1, row+14 (ตรงกับ IMG_ROWS=14)
+        const toXml=`<xdr:to><xdr:col>${col+1}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row+14}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>`;
+        let body=inner.replace(/<xdr:ext\b[^>]*(?:\/>|>[^<]*<\/xdr:ext>)/g,'');
+        body=body.replace(/<\/xdr:from>/,`</xdr:from>${toXml}`);
+        return `<xdr:twoCellAnchor editAs="oneCell">${body}</xdr:twoCellAnchor>`;
+      });
+      zip.file(dfn,xml);
+    }
+    return await zip.generateAsync({type:"arraybuffer"});
+  }catch(e){
+    console.warn("fixDrawingAnchors:",e);
+    return buf;
+  }
 }
 
+</script>
+</body>
 </html>
