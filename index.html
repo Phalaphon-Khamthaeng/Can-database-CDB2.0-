@@ -1027,8 +1027,13 @@ function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant=""
             const mime=ph.dataUrl.match(/data:([^;]+)/)?.[1]||"image/jpeg";
             const extType=(mime.split("/")[1]||"jpeg").replace("jpg","jpeg");
             const imgId=wb.addImage({base64:b64,extension:extType});
-            // ext → สร้าง oneCellAnchor → JSZip fix แปลงเป็น twoCellAnchor (row+14)
-            ws.addImage(imgId,{tl:{col:j,row:r-1},ext:{width:IMG_W_PX,height:IMG_H_PX}});
+            // tl/br = twoCellAnchor โดยตรง (ExcelJS 0-indexed)
+            // tl.row = r-1  (top ของ row r ใน 1-indexed)
+            // br.row = r-1+IMG_ROWS (bottom หลังจาก IMG_ROWS rows)
+            ws.addImage(imgId,{
+              tl:{col:j,   row:r-1},
+              br:{col:j+1, row:r-1+IMG_ROWS}
+            });
           }catch(e){console.warn("embed img:",batch[j].name,e);}
         }
         r+=IMG_ROWS;
