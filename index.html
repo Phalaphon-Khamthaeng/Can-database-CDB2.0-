@@ -964,6 +964,8 @@ function buildIndexSheet(wb){
 
 // ════════════════════════════════════════════════
 //  BUILD EXCEL SHEET
+//  ใช้ ext (oneCellAnchor) + JSZip แปลงเป็น twoCellAnchor
+//  แต่ละรูปมี row block เป็นของตัวเอง (vertical)
 // ════════════════════════════════════════════════
 function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant="",group=""){
   const sn=(model||"Cabinet").substring(0,31).replace(/[\\/?*[\]:]/g,"_");
@@ -971,114 +973,137 @@ function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant=""
   const ws=wb.addWorksheet(sn);
 
   for(let c=1;c<=20;c++) ws.getColumn(c).width=36;
+
   const tabColor=b=>{const bl=(b||"").toLowerCase();
     if(bl.includes("fuji"))    return "FF93C5FD";
     if(bl.includes("national")||bl.includes("panasonic")) return "FFFDE68A";
     if(bl.includes("sanden"))  return "FF1E3A5F"; return null;};
   const tab=tabColor(brand);if(tab)ws.properties.tabColor={argb:tab};
+
   const T={style:"thin",color:{argb:"FFD1D5DB"}},B={top:T,left:T,bottom:T,right:T},AC="FFD72B2B";
   let r=1;
 
+  // Title
   ws.getRow(r).height=36;
   const ti=ws.getCell(r,1);
   ti.value=`${brand?brand.toUpperCase()+" — ":""}${model||"CABINET"} ${year?`(${year})`:""}`;
-  ti.font={bold:true,size:16,color:{argb:"FF1F2937"}};ti.alignment={vertical:"middle"};ti.border={bottom:{style:"medium",color:{argb:AC}}};r++;
+  ti.font={bold:true,size:16,color:{argb:"FF1F2937"}};
+  ti.alignment={vertical:"middle"};
+  ti.border={bottom:{style:"medium",color:{argb:AC}}};
+  r++;
 
+  // Info rows
   for(const [lb,vl] of [["Brand",brand],["Model",model],["Year",year],["Coolant",coolant],["Group",group]]){
     ws.getRow(r).height=22;
     const lc=ws.getCell(r,1);lc.value=lb;lc.font={bold:true,size:11,color:{argb:"FF6B7280"}};
     lc.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF9FAFB"}};lc.alignment={vertical:"middle",indent:1};lc.border=B;
     const vc=ws.getCell(r,2);vc.value=vl||"—";vc.font={bold:true,size:11,color:{argb:"FF111827"}};vc.alignment={vertical:"middle",indent:1};vc.border=B;r++;
   }
-  ws.getRow(r).height=14;r++;
+  ws.getRow(r).height=14; r++;
 
-  // ── ค่าคงที่ layout รูป ──────────────────────
-  // IMG_ROWS × ROW_H_PT = พื้นที่สำหรับรูป 1 ช่อง
+  // แต่ละรูปใช้ 15 rows (14 img + 1 filename), row height 14pt
   // 14 rows × 14pt = 196pt ≈ 261px → รองรับรูป 250px
-  const IMG_ROWS=14, ROW_H_PT=14;
-  const IMG_W_PX=250, IMG_H_PX=250; // ขนาดที่ส่งให้ ext
-  const MAX_COLS=4; // รูปสูงสุด 4 รูปต่อแถว
+  const IMG_ROWS=14, FNAME_ROWS=1, ROW_H=14;
 
   for(const p of PS){
     const photos=savedPhotos[p.key]||[];
 
+    // Section header
     ws.getRow(r).height=26;
     const sc=ws.getCell(r,1);
-    sc.value=`${p.icon}  ${p.label}`;sc.font={bold:true,size:12,color:{argb:"FF1F2937"}};
-    sc.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF3F4F6"}};sc.alignment={vertical:"middle",indent:2};
-    sc.border={left:{style:"medium",color:{argb:AC}},top:T,bottom:T,right:T};r++;
+    sc.value=`${p.icon}  ${p.label}`;
+    sc.font={bold:true,size:12,color:{argb:"FF1F2937"}};
+    sc.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF3F4F6"}};
+    sc.alignment={vertical:"middle",indent:2};
+    sc.border={left:{style:"medium",color:{argb:AC}},top:T,bottom:T,right:T};
+    r++;
 
     if(!photos.length){
       ws.getRow(r).height=30;
-      ws.getCell(r,1).value="(ไม่มีรูป)";ws.getCell(r,1).font={italic:true,size:10,color:{argb:"FF9CA3AF"}};r++;
+      ws.getCell(r,1).value="(ไม่มีรูป)";
+      ws.getCell(r,1).font={italic:true,size:10,color:{argb:"FF9CA3AF"}};
+      r++;
     } else {
-      // วางทีละ MAX_COLS รูปต่อแถว
-      for(let start=0;start<photos.length;start+=MAX_COLS){
-        const batch=photos.slice(start,start+MAX_COLS);
+      for(let i=0;i<photos.length;i++){
+        const ph=photos[i];
+        if(!ph.dataUrl||!ph.dataUrl.includes("base64,")) continue;
+        try{
+          const b64=ph.dataUrl.split("base64,")[1];
+          const mime=ph.dataUrl.match(/data:([^;]+)/)?.[1]||"image/jpeg";
+          const extType=(mime.split("/")[1]||"jpeg").replace("jpg","jpeg");
+          const imgId=wb.addImage({base64:b64,extension:extType});
 
-        // ตั้งความสูง IMG_ROWS rows
-        for(let rr=r;rr<r+IMG_ROWS;rr++) ws.getRow(rr).height=ROW_H_PT;
+          // ตั้ง row height สำหรับ IMG_ROWS rows นี้
+          for(let rr=r;rr<r+IMG_ROWS;rr++) ws.getRow(rr).height=ROW_H;
 
-        for(let j=0;j<batch.length;j++){
-          const ph=batch[j];
-          if(!ph.dataUrl||!ph.dataUrl.includes("base64,")) continue;
-          try{
-            const b64=ph.dataUrl.split("base64,")[1];
-            const mime=ph.dataUrl.match(/data:([^;]+)/)?.[1]||"image/jpeg";
-            const extType=(mime.split("/")[1]||"jpeg").replace("jpg","jpeg");
-            const imgId=wb.addImage({base64:b64,extension:extType});
-            // tl/br = twoCellAnchor โดยตรง (ExcelJS 0-indexed)
-            // tl.row = r-1  (top ของ row r ใน 1-indexed)
-            // br.row = r-1+IMG_ROWS (bottom หลังจาก IMG_ROWS rows)
-            ws.addImage(imgId,{
-              tl:{col:j,   row:r-1},
-              br:{col:j+1, row:r-1+IMG_ROWS}
-            });
-          }catch(e){console.warn("embed img:",batch[j].name,e);}
-        }
-        r+=IMG_ROWS;
+          // ext → บังคับสร้าง oneCellAnchor (ExcelJS 4.3)
+          // JSZip จะแปลงเป็น twoCellAnchor ทีหลัง
+          // col:0 row:(r-1) ทั้งหมด 0-indexed
+          ws.addImage(imgId,{tl:{col:0,row:r-1},ext:{width:250,height:250}});
 
-        // ชื่อไฟล์
+          r+=IMG_ROWS;
+        }catch(e){console.warn("embed img:",ph.name,e);}
+
+        // Filename row (นอก try เพื่อให้ r ถูกต้องเสมอ)
         ws.getRow(r).height=14;
-        for(let j=0;j<batch.length;j++){
-          const fc=ws.getCell(r,j+1);
-          fc.value=`${start+j+1}. ${batch[j].savedName}`;
-          fc.font={size:8,color:{argb:"FF6B7280"}};
-          fc.alignment={wrapText:true,vertical:"top"};
-        }
+        ws.getCell(r,1).value=`${i+1}. ${ph.savedName||ph.name||""}`;
+        ws.getCell(r,1).font={size:9,color:{argb:"FF6B7280"}};
+        ws.getCell(r,1).alignment={wrapText:true,vertical:"top"};
         r++;
       }
     }
-    ws.getRow(r++).height=6;
+    ws.getRow(r++).height=6; // spacer
   }
 }
 
 // ════════════════════════════════════════════════
 //  JSZIP FIX: oneCellAnchor → twoCellAnchor
-//  row+IMG_ROWS ต้องตรงกับ IMG_ROWS ใน buildSheetExcelJS
+//  ต้อง match IMG_ROWS=14 ใน buildSheetExcelJS
 // ════════════════════════════════════════════════
 async function fixDrawingAnchors(buf){
   try{
     const zip=await JSZip.loadAsync(buf);
-    const dfiles=Object.keys(zip.files).filter(n=>/^xl\/drawings\/drawing\d*\.xml$/.test(n));
+    const dfiles=Object.keys(zip.files).filter(n=>n.startsWith("xl/drawings/")&&n.endsWith(".xml"));
     for(const dfn of dfiles){
       let xml=await zip.files[dfn].async("string");
-      xml=xml.replace(/<xdr:oneCellAnchor>([\s\S]*?)<\/xdr:oneCellAnchor>/g,(match,inner)=>{
-        const fromM=inner.match(/<xdr:from>([\s\S]*?)<\/xdr:from>/);
-        if(!fromM) return match;
-        const col=parseInt(fromM[1].match(/<xdr:col>(\d+)/)?.[1]??'0');
-        const row=parseInt(fromM[1].match(/<xdr:row>(\d+)/)?.[1]??'0');
-        // to: col+1, row+14 (ตรงกับ IMG_ROWS=14)
-        const toXml=`<xdr:to><xdr:col>${col+1}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row+14}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>`;
-        let body=inner.replace(/<xdr:ext\b[^>]*(?:\/>|>[^<]*<\/xdr:ext>)/g,'');
-        body=body.replace(/<\/xdr:from>/,`</xdr:from>${toXml}`);
-        return `<xdr:twoCellAnchor editAs="oneCell">${body}</xdr:twoCellAnchor>`;
-      });
+
+      // ตรวจว่ามี oneCellAnchor ไหม
+      if(!xml.includes("oneCellAnchor")) continue;
+
+      xml=xml.replace(
+        /<xdr:oneCellAnchor>([\s\S]*?)<\/xdr:oneCellAnchor>/g,
+        (match,inner)=>{
+          // ดึง from col/row
+          const fromBlock=inner.match(/<xdr:from>([\s\S]*?)<\/xdr:from>/);
+          if(!fromBlock) return match;
+          const col=parseInt(fromBlock[1].match(/<xdr:col>(\d+)<\/xdr:col>/)?.[1]||"0");
+          const row=parseInt(fromBlock[1].match(/<xdr:row>(\d+)<\/xdr:row>/)?.[1]||"0");
+
+          // to = col+1, row+IMG_ROWS (14)
+          const toBlock=
+            `<xdr:to>`+
+            `<xdr:col>${col+1}</xdr:col>`+
+            `<xdr:colOff>0</xdr:colOff>`+
+            `<xdr:row>${row+14}</xdr:row>`+
+            `<xdr:rowOff>0</xdr:rowOff>`+
+            `</xdr:to>`;
+
+          // ลบ ext (self-closing หรือ paired)
+          let body=inner
+            .replace(/<xdr:ext\s[^>]*\/>/g,"")
+            .replace(/<xdr:ext\s[^>]*>[\s\S]*?<\/xdr:ext>/g,"");
+
+          // แทรก to หลัง </xdr:from>
+          body=body.replace("</xdr:from>","</xdr:from>"+toBlock);
+
+          return `<xdr:twoCellAnchor editAs="oneCell">${body}</xdr:twoCellAnchor>`;
+        }
+      );
       zip.file(dfn,xml);
     }
     return await zip.generateAsync({type:"arraybuffer"});
   }catch(e){
-    console.warn("fixDrawingAnchors:",e);
+    console.warn("fixDrawingAnchors error:",e);
     return buf;
   }
 }
