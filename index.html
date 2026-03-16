@@ -979,34 +979,34 @@ function buildIndexSheet(wb){
 //  (เชื่อถือได้กว่า new Image() กับ data URL)
 // ════════════════════════════════════════════════
 async function makeComposite(dataUrls){
+  if(!dataUrls.length) return null;
   const W=250,H=250,PAD=4;
-  const n=dataUrls.length;
-  if(!n) return null;
-
-  // โหลดทุกรูปก่อน แล้วค่อยวาด (Promise.all รอครบ)
-  const imgs=await Promise.all(dataUrls.map(du=>new Promise(res=>{
-    const img=new Image();
-    img.onload=()=>res(img);
-    img.onerror=()=>res(null);
-    img.src=du; // data URL ใช้ได้โดยตรง ไม่ต้อง fetch
-  })));
-
   const cv=document.createElement("canvas");
-  cv.width=n*W+(n-1)*PAD;
+  cv.width=dataUrls.length*W+(dataUrls.length-1)*PAD;
   cv.height=H;
   const ctx=cv.getContext("2d");
   ctx.fillStyle="#ffffff";
   ctx.fillRect(0,0,cv.width,cv.height);
 
-  imgs.forEach((img,i)=>{
-    if(!img) return;
-    const s=Math.min(img.naturalWidth,img.naturalHeight);
-    const sx=(img.naturalWidth-s)/2, sy=(img.naturalHeight-s)/2;
-    ctx.drawImage(img,sx,sy,s,s,i*(W+PAD),0,W,H);
-  });
-
-  const b64=cv.toDataURL("image/jpeg",0.85).split(",")[1];
-  return b64||null;
+  // โหลดรูปทีละใบด้วย await แน่ใจว่า onload ครบก่อนวาด
+  for(let i=0;i<dataUrls.length;i++){
+    await new Promise(res=>{
+      const img=new Image();
+      img.onload=()=>{
+        const w=img.width||img.naturalWidth;
+        const h=img.height||img.naturalHeight;
+        if(w&&h){
+          const s=Math.min(w,h);
+          const sx=(w-s)/2, sy=(h-s)/2;
+          ctx.drawImage(img,sx,sy,s,s,i*(W+PAD),0,W,H);
+        }
+        res();
+      };
+      img.onerror=()=>res();
+      img.src=dataUrls[i];
+    });
+  }
+  return cv.toDataURL("image/jpeg",0.82).split(",")[1];
 }
 
 // ════════════════════════════════════════════════
