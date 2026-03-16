@@ -981,38 +981,45 @@ function buildIndexSheet(wb){
 async function makeComposite(dataUrls){
   if(!dataUrls.length) return null;
   const W=250,H=250,PAD=4;
+
+  // Step 1: ย่อแต่ละรูปก่อน (canvas เล็กๆ) เพื่อลดขนาด dataUrl
+  const thumbs=[];
+  for(const du of dataUrls){
+    const t=await new Promise(res=>{
+      const img=new Image();
+      img.onload=()=>{
+        try{
+          const tc=document.createElement("canvas");
+          tc.width=W; tc.height=H;
+          tc.getContext("2d").drawImage(img,0,0,W,H);
+          res(tc.toDataURL("image/jpeg",0.7));
+        }catch(e){res(null);}
+      };
+      img.onerror=()=>res(null);
+      img.src=du;
+    });
+    thumbs.push(t);
+  }
+
+  // Step 2: รวม thumb เล็กๆ เป็น composite
   const cv=document.createElement("canvas");
-  cv.width=dataUrls.length*W+(dataUrls.length-1)*PAD;
+  cv.width=thumbs.length*W+(thumbs.length-1)*PAD;
   cv.height=H;
   const ctx=cv.getContext("2d");
   ctx.fillStyle="#ffffff";
   ctx.fillRect(0,0,cv.width,cv.height);
 
-  for(let i=0;i<dataUrls.length;i++){
-    // แปลง dataUrl → Blob → Object URL (browser โหลดได้เสถียรกว่า data URL ยาวๆ)
-    let objUrl=null;
-    try{
-      const arr=dataUrls[i].split(",");
-      const mime=(arr[0].match(/:(.*?);/)||[])[1]||"image/jpeg";
-      const bstr=atob(arr[1]);
-      const u8=new Uint8Array(bstr.length);
-      for(let k=0;k<bstr.length;k++) u8[k]=bstr.charCodeAt(k);
-      objUrl=URL.createObjectURL(new Blob([u8],{type:mime}));
-    }catch(e){ objUrl=dataUrls[i]; } // fallback ใช้ data URL เดิม
-
+  for(let i=0;i<thumbs.length;i++){
+    if(!thumbs[i]) continue;
     await new Promise(res=>{
       const img=new Image();
-      let settled=false;
-      const done=()=>{if(!settled){settled=true;res();}};
-      img.onload=()=>{ ctx.drawImage(img,i*(W+PAD),0,W,H); done(); };
-      img.onerror=done;
-      setTimeout(done,8000); // 8s timeout
-      img.src=objUrl;
+      img.onload=()=>{ ctx.drawImage(img,i*(W+PAD),0,W,H); res(); };
+      img.onerror=res;
+      img.src=thumbs[i];
     });
-
-    if(objUrl&&objUrl.startsWith("blob:")) URL.revokeObjectURL(objUrl);
   }
-  return cv.toDataURL("image/jpeg",0.82).split(",")[1];
+
+  return cv.toDataURL("image/jpeg",0.85).split(",")[1];
 }
 
 // ════════════════════════════════════════════════
