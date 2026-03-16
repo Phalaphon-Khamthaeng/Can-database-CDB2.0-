@@ -1003,8 +1003,10 @@ async function makeComposite(photos){
         const u8=new Uint8Array(bin.length);
         for(let k=0;k<bin.length;k++) u8[k]=bin.charCodeAt(k);
         const blob=new Blob([u8],{type:mime});
-        const bmp=await createImageBitmap(blob,{resizeWidth:W,resizeHeight:H,resizeQuality:"medium"});
-        ctx.drawImage(bmp,i*(W+PAD),0,W,H);
+        const bmp=await createImageBitmap(blob);
+        const s=Math.min(bmp.width,bmp.height);
+        const sx=(bmp.width-s)/2, sy=(bmp.height-s)/2;
+        ctx.drawImage(bmp,sx,sy,s,s,i*(W+PAD),0,W,H);
         bmp.close();
         drawn=true;
       }catch(e){console.warn("composite slot",i,"bitmap fail:",e.message);}
@@ -1013,9 +1015,10 @@ async function makeComposite(photos){
     // วิธีที่ 2: preview blob URL (ถ้ายังไม่ถูก revoke)
     if(!drawn && ph.preview){
       try{
-        const bmp=await createImageBitmap(await fetch(ph.preview).then(r=>r.blob()),
-          {resizeWidth:W,resizeHeight:H,resizeQuality:"medium"});
-        ctx.drawImage(bmp,i*(W+PAD),0,W,H);
+        const bmp=await createImageBitmap(await fetch(ph.preview).then(r=>r.blob()));
+        const s=Math.min(bmp.width,bmp.height);
+        const sx=(bmp.width-s)/2, sy=(bmp.height-s)/2;
+        ctx.drawImage(bmp,sx,sy,s,s,i*(W+PAD),0,W,H);
         bmp.close();
         drawn=true;
       }catch(e){console.warn("composite slot",i,"preview fail:",e.message);}
