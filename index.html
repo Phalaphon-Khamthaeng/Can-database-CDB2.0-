@@ -1006,7 +1006,11 @@ function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant=""
           const mime=ph.dataUrl.match(/data:([^;]+)/)?.[1]||"image/jpeg";
           const ext=(mime.split("/")[1]||"jpeg").replace("jpg","jpeg");
           const imgId=wb.addImage({base64:b64,extension:ext});
-          ws.addImage(imgId,{tl:{col:i+1,row:r-1},br:{col:i+2,row:r}});
+          // ใช้ ext เพื่อให้ ExcelJS สร้าง oneCellAnchor → JSZip จะแปลงเป็น twoCellAnchor
+          ws.addImage(imgId,{
+            tl:{col:i+1,row:r-1},
+            ext:{width:250,height:250}
+          });
         }catch(e){console.warn("embed img:",ph.name,e);}
       }
       r++;
@@ -1030,16 +1034,14 @@ async function fixDrawingAnchors(buf){
     const drawingFiles=Object.keys(zip.files).filter(n=>/xl\/drawings\/drawing.*\.xml$/.test(n));
     for(const dfn of drawingFiles){
       let xml=await zip.files[dfn].async("string");
-      // แปลง oneCellAnchor → twoCellAnchor พร้อมแทน <xdr:ext> ด้วย <xdr:to>
       xml=xml.replace(/<xdr:oneCellAnchor>([\s\S]*?)<\/xdr:oneCellAnchor>/g,(match,inner)=>{
-        // ดึง col/row จาก <xdr:from>
         const colM=inner.match(/<xdr:from>[\s\S]*?<xdr:col>(\d+)<\/xdr:col>/);
         const rowM=inner.match(/<xdr:from>[\s\S]*?<xdr:row>(\d+)<\/xdr:row>/);
         const col=colM?parseInt(colM[1]):0;
         const row=rowM?parseInt(rowM[1]):0;
-        // แทน <xdr:ext .../> ด้วย <xdr:to>
-        const fixed=inner.replace(/<xdr:ext[^\/]*\/>/,
-          `<xdr:to><xdr:col>${col+1}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row+14}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>`);
+        // แทน <xdr:ext> ด้วย <xdr:to> col+1, row+2 ตาม spec
+        const fixed=inner.replace(/<xdr:ext[^>]*\/>/,
+          `<xdr:to><xdr:col>${col+1}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row+2}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>`);
         return `<xdr:twoCellAnchor editAs="oneCell">${fixed}</xdr:twoCellAnchor>`;
       });
       zip.file(dfn,xml);
