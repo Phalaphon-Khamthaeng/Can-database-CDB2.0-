@@ -978,58 +978,41 @@ function buildIndexSheet(wb){
 //  รวมรูปหลายรูปเป็น 1 composite โดยใช้ createImageBitmap
 //  (เชื่อถือได้กว่า new Image() กับ data URL)
 // ════════════════════════════════════════════════
-// makeComposite รับ array ของ photo objects {preview, dataUrl}
-// ลองทุก source จนกว่าจะวาดสำเร็จ
+// ════════════════════════════════════════════════
+//  makeComposite: รวมรูปหลายใบเป็น 1 ภาพ
+//  ใช้ new Image() + onload — compatible ทุก browser
+// ════════════════════════════════════════════════
+function loadImage(src){
+  return new Promise((resolve)=>{
+    if(!src){resolve(null);return;}
+    const img=new Image();
+    img.onload=()=>resolve(img);
+    img.onerror=()=>resolve(null);
+    img.src=src;
+  });
+}
+
 async function makeComposite(photos){
   if(!photos.length) return null;
   const W=250,H=250,PAD=4;
+
+  // ใช้ preview (blob URL) ก่อน — browser โหลดไว้แล้ว เร็วและเสถียร
+  const imgs=await Promise.all(photos.map(ph=>loadImage(ph.preview||ph.dataUrl||null)));
+
   const cv=document.createElement("canvas");
   cv.width=photos.length*W+(photos.length-1)*PAD;
   cv.height=H;
   const ctx=cv.getContext("2d");
-  ctx.fillStyle="#ffffff";
+  ctx.fillStyle="#fff";
   ctx.fillRect(0,0,cv.width,cv.height);
 
-  for(let i=0;i<photos.length;i++){
-    const ph=photos[i];
-    let drawn=false;
+  imgs.forEach((img,i)=>{
+    if(!img||!img.width||!img.height) return;
+    ctx.drawImage(img,i*(W+PAD),0,W,H);
+  });
 
-    // วิธีที่ 1: dataUrl → Blob → createImageBitmap (เชื่อถือได้ที่สุด)
-    if(!drawn && ph.dataUrl && ph.dataUrl.includes("base64,")){
-      try{
-        const [head,b64]=ph.dataUrl.split(",");
-        const mime=(head.match(/:(.*?);/)||[])[1]||"image/jpeg";
-        const bin=atob(b64);
-        const u8=new Uint8Array(bin.length);
-        for(let k=0;k<bin.length;k++) u8[k]=bin.charCodeAt(k);
-        const blob=new Blob([u8],{type:mime});
-        const bmp=await createImageBitmap(blob);
-        const s=Math.min(bmp.width,bmp.height);
-        const sx=(bmp.width-s)/2, sy=(bmp.height-s)/2;
-        ctx.drawImage(bmp,sx,sy,s,s,i*(W+PAD),0,W,H);
-        bmp.close();
-        drawn=true;
-      }catch(e){console.warn("composite slot",i,"bitmap fail:",e.message);}
-    }
-
-    // วิธีที่ 2: preview blob URL (ถ้ายังไม่ถูก revoke)
-    if(!drawn && ph.preview){
-      try{
-        const bmp=await createImageBitmap(await fetch(ph.preview).then(r=>r.blob()));
-        const s=Math.min(bmp.width,bmp.height);
-        const sx=(bmp.width-s)/2, sy=(bmp.height-s)/2;
-        ctx.drawImage(bmp,sx,sy,s,s,i*(W+PAD),0,W,H);
-        bmp.close();
-        drawn=true;
-      }catch(e){console.warn("composite slot",i,"preview fail:",e.message);}
-    }
-
-    if(!drawn){
-      ctx.fillStyle="#e5e7eb";
-      ctx.fillRect(i*(W+PAD),0,W,H);
-    }
-  }
-  return cv.toDataURL("image/jpeg",0.82).split(",")[1];
+  const b64=cv.toDataURL("image/jpeg",0.8).split(",")[1];
+  return b64||null;
 }
 
 // ════════════════════════════════════════════════
