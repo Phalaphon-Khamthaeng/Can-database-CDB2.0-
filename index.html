@@ -821,11 +821,21 @@ async function wizNext(){
 //  UPLOAD
 // ════════════════════════════════════════════════
 async function doUpload(){
-  // ensure dataUrl ready
+  // Step 1: ensure dataUrl ready
   await Promise.all(
     PS.flatMap(p=>wizData.photos[p.key]||[]).filter(ph=>!ph.dataUrl&&ph.file)
       .map(ph=>new Promise(res=>{const r=new FileReader();r.onloadend=()=>{ph.dataUrl=r.result;res();};r.readAsDataURL(ph.file);}))
   );
+
+  // Step 2: สร้าง composite image สำหรับแต่ละ section ก่อน upload (ขณะที่ File objects ยังอยู่ครบ)
+  const sectionComposites={};
+  for(const p of PS){
+    const photos=wizData.photos[p.key]||[];
+    if(photos.length){
+      sectionComposites[p.key]=await makeComposite(photos);
+    }
+  }
+
   if(!await ensureToken()) return;
   showPage("uploading");
   document.getElementById("up-error").style.display="none";
@@ -892,7 +902,7 @@ async function doUpload(){
     try{const exRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,{headers:H});if(exRes.ok)await wb.xlsx.load(await exRes.arrayBuffer());}catch{}
     setS(exIdx,"done");
     setS(exIdx+1,"loading");
-    await buildSheetExcelJS(wb,folderName,wizData.brand,wizData.model,wizData.year,savedPhotos,wizData.coolant,wizData.group);
+    await buildSheetExcelJS(wb,folderName,wizData.brand,wizData.model,wizData.year,savedPhotos,wizData.coolant,wizData.group,sectionComposites);
     buildIndexSheet(wb);
     setS(exIdx+1,"done");
     setS(exIdx+2,"loading");
@@ -1020,7 +1030,7 @@ async function makeComposite(photos){
 //  BUILD EXCEL SHEET
 //  1 section = 1 composite image (ไม่มีปัญหา anchor)
 // ════════════════════════════════════════════════
-async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant="",group=""){
+async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant="",group="",sectionComposites={}){
   const sn=(model||"Cabinet").substring(0,31).replace(/[\\/?*[\]:]/g,"_");
   const ex=wb.getWorksheet(sn);if(ex)wb.removeWorksheet(ex.id);
   const ws=wb.addWorksheet(sn);
@@ -1065,23 +1075,19 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
       ws.getRow(r).height=30;
       ws.getCell(r,1).value="(ไม่มีรูป)";ws.getCell(r,1).font={italic:true,size:10,color:{argb:"FF9CA3AF"}};r++;
     } else {
-      // ส่ง photo objects ไปให้ makeComposite (มีทั้ง dataUrl และ preview)
+      // ใช้ composite ที่สร้างไว้ก่อน upload (ขณะ File objects ยังอยู่)
+      const composite=sectionComposites[p.key];
       const validPhotos=photos.filter(ph=>(ph.dataUrl&&ph.dataUrl.includes("base64,"))||ph.preview);
-      const urls=validPhotos.map(ph=>ph.preview||"").filter(Boolean);
-      if(validPhotos.length){
+      if(composite){
         try{
-          const composite=await makeComposite(validPhotos);
-          if(composite){
-            const imgId=wb.addImage({base64:composite,extension:"jpeg"});
-            for(let rr=r;rr<r+IMG_ROWS;rr++) ws.getRow(rr).height=14;
-            // ฝังภาพเดียว: tl=col0,row(r-1)  br=col(n),row(r-1+IMG_ROWS)
-            ws.addImage(imgId,{
-              tl:{col:0, row:r-1},
-              br:{col:validPhotos.length, row:r-1+IMG_ROWS}
-            });
-            r+=IMG_ROWS;
-          }
-        }catch(e){console.warn("composite error:",e);}
+          const imgId=wb.addImage({base64:composite,extension:"jpeg"});
+          for(let rr=r;rr<r+IMG_ROWS;rr++) ws.getRow(rr).height=14;
+          ws.addImage(imgId,{
+            tl:{col:0, row:r-1},
+            br:{col:Math.max(validPhotos.length,1), row:r-1+IMG_ROWS}
+          });
+          r+=IMG_ROWS;
+        }catch(e){console.warn("addImage error:",e);}
       }
       // ชื่อไฟล์
       ws.getRow(r).height=12;
