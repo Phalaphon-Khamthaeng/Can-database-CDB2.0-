@@ -896,12 +896,26 @@ async function doUpload(){
     buildIndexSheet(wb);
     setS(exIdx+1,"done");
     setS(exIdx+2,"loading");
-    let excelBuf=await wb.xlsx.writeBuffer();
-    excelBuf=await fixDrawingAnchors(excelBuf);
-    const exUp=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,
-      {method:"PUT",headers:{...H,"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
-       body:new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})});
-    if(!exUp.ok) throw new Error("อัปโหลด Excel ไม่ได้");
+    const excelBuf=await wb.xlsx.writeBuffer();
+    const fixedBuf=await fixDrawingAnchors(excelBuf);
+    // retry สูงสุด 3 ครั้ง กรณีไฟล์ถูก lock (HTTP 423)
+    let exUp; let lastErr="";
+    for(let attempt=1;attempt<=3;attempt++){
+      exUp=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,
+        {method:"PUT",headers:{...H,"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+         body:new Blob([fixedBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})});
+      if(exUp.ok) break;
+      lastErr=exUp.status;
+      if(exUp.status===423){
+        // ไฟล์ถูก lock — รอ 3 วินาทีแล้ว retry
+        document.getElementById("up-prog-label").textContent=`⏳ ไฟล์ถูกล็อก กำลัง retry (${attempt}/3)...`;
+        await new Promise(r=>setTimeout(r,3000));
+      } else break;
+    }
+    if(!exUp.ok){
+      if(lastErr===423) throw new Error("ไฟล์ Excel เปิดอยู่ใน SharePoint — กรุณาปิดไฟล์ก่อนแล้วลองใหม่");
+      throw new Error("อัปโหลด Excel ไม่ได้ ("+lastErr+")");
+    }
     setS(exIdx+2,"done");
     // Save record
     const photosStorage=Object.fromEntries(PS.map(p=>[p.key,(savedPhotos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))  ]));
