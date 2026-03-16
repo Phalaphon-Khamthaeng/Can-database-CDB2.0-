@@ -749,10 +749,29 @@ function handleFiles(e,k){addFiles(k,Array.from(e.target.files));e.target.value=
 function addFiles(key,files){
   files.filter(f=>f.type.startsWith("image/")).forEach(f=>{
     const preview=URL.createObjectURL(f);
-    wizData.photos[key].push({file:f,preview,dataUrl:null,name:f.name});
-    const rd=new FileReader();
-    rd.onloadend=()=>{const idx=wizData.photos[key].findIndex(p=>p.preview===preview);if(idx>=0)wizData.photos[key][idx].dataUrl=rd.result;};
-    rd.readAsDataURL(f);
+    const entry={file:f,preview,dataUrl:null,thumbUrl:null,name:f.name};
+    wizData.photos[key].push(entry);
+
+    // สร้าง thumbnail 300x300 ทันทีตอนเลือกไฟล์ — เก็บไว้ใช้ใน Excel
+    const img=new Image();
+    img.onload=()=>{
+      try{
+        const cv=document.createElement("canvas");
+        cv.width=300; cv.height=300;
+        cv.getContext("2d").drawImage(img,0,0,300,300);
+        entry.thumbUrl=cv.toDataURL("image/jpeg",0.75);
+      }catch(e){}
+      // อ่าน dataUrl ด้วย
+      const rd=new FileReader();
+      rd.onloadend=()=>{ entry.dataUrl=rd.result; };
+      rd.readAsDataURL(f);
+    };
+    img.onerror=()=>{
+      const rd=new FileReader();
+      rd.onloadend=()=>{ entry.dataUrl=rd.result; };
+      rd.readAsDataURL(f);
+    };
+    img.src=preview;
     renderWiz();
   });
 }
@@ -1000,7 +1019,7 @@ function loadImage(src){
 
 async function makeComposite(photos){
   if(!photos.length) return null;
-  const W=250,H=250,PAD=4;
+  const W=300,H=300,PAD=4;
   const cv=document.createElement("canvas");
   cv.width=photos.length*W+(photos.length-1)*PAD;
   cv.height=H;
@@ -1010,20 +1029,13 @@ async function makeComposite(photos){
 
   for(let i=0;i<photos.length;i++){
     const ph=photos[i];
-    let img=null;
-    // ลองตามลำดับ: File → preview → dataUrl
-    if(ph.file){
-      const url=URL.createObjectURL(ph.file);
-      img=await loadImage(url);
-      URL.revokeObjectURL(url);
-    }
-    if(!img&&ph.preview) img=await loadImage(ph.preview);
-    if(!img&&ph.dataUrl)  img=await loadImage(ph.dataUrl);
-    if(img&&img.width&&img.height){
-      ctx.drawImage(img,i*(W+PAD),0,W,H);
-    }
+    // ใช้ thumbUrl ที่สร้างไว้ตั้งแต่ตอนเลือกไฟล์ (เสถียรที่สุด)
+    const src=ph.thumbUrl||ph.dataUrl||null;
+    if(!src) continue;
+    const img=await loadImage(src);
+    if(img&&img.width) ctx.drawImage(img,i*(W+PAD),0,W,H);
   }
-  return cv.toDataURL("image/jpeg",0.8).split(",")[1];
+  return cv.toDataURL("image/jpeg",0.82).split(",")[1];
 }
 
 // ════════════════════════════════════════════════
