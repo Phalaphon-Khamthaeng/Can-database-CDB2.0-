@@ -1071,11 +1071,15 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
       ws.getRow(r).height=30;
       ws.getCell(r,1).value="(ไม่มีรูป)";ws.getCell(r,1).font={italic:true,size:10,color:{argb:"FF9CA3AF"}};r++;
     } else {
-      const validUrls=photos.filter(ph=>ph.dataUrl&&ph.dataUrl.includes("base64,")).map(ph=>ph.dataUrl);
-      if(validUrls.length){
+      // ใช้ preview (blob URL) แทน dataUrl — เล็กกว่า โหลดเร็วกว่า 100x
+      const validUrls=photos.filter(ph=>ph.preview&&ph.preview.startsWith("blob:"))
+        .map(ph=>ph.preview);
+      // fallback: ถ้าไม่มี blob URL ใช้ dataUrl
+      const urls=validUrls.length>0 ? validUrls :
+        photos.filter(ph=>ph.dataUrl&&ph.dataUrl.includes("base64,")).map(ph=>ph.dataUrl);
+      if(urls.length){
         try{
-          // รวมเป็นภาพเดียว
-          const composite=await makeComposite(validUrls);
+          const composite=await makeComposite(urls);
           if(composite){
             const imgId=wb.addImage({base64:composite,extension:"jpeg"});
             for(let rr=r;rr<r+IMG_ROWS;rr++) ws.getRow(rr).height=14;
