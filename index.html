@@ -6,6 +6,7 @@
 <title>SUN VENDING — Cabinet Database</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -517,7 +518,7 @@ async function syncFromSharePoint(){
     renderList();
     if(btn){btn.innerHTML=`🔄 ซิงค์ (${spRecs.length})`;btn.disabled=false;}
   }catch(e){
-    if(btn){btn.innerHTML="⚠️ ซิงค์ไม่ได้";btn.disabled=false;}
+    if(btn){btn.innerHTML="🔄 ซิงค์";btn.disabled=false;}
     console.error(e);
   }
 }
@@ -895,7 +896,8 @@ async function doUpload(){
     buildIndexSheet(wb);
     setS(exIdx+1,"done");
     setS(exIdx+2,"loading");
-    const excelBuf=await wb.xlsx.writeBuffer();
+    let excelBuf=await wb.xlsx.writeBuffer();
+    excelBuf=await fixDrawingAnchors(excelBuf);
     const exUp=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,
       {method:"PUT",headers:{...H,"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
        body:new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})});
@@ -1015,6 +1017,37 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
     ws.getRow(r++).height=6;
   }
 }
+// ════════════════════════════════════════════════
+//  JSZIP FIX: oneCellAnchor → twoCellAnchor
+//  (Excel Online จะแสดงรูปได้)
+// ════════════════════════════════════════════════
+async function fixDrawingAnchors(buf){
+  try{
+    const zip=await JSZip.loadAsync(buf);
+    const drawingFiles=Object.keys(zip.files).filter(n=>/xl\/drawings\/drawing.*\.xml$/.test(n));
+    for(const dfn of drawingFiles){
+      let xml=await zip.files[dfn].async("string");
+      // แปลง oneCellAnchor → twoCellAnchor พร้อมแทน <xdr:ext> ด้วย <xdr:to>
+      xml=xml.replace(/<xdr:oneCellAnchor>([\s\S]*?)<\/xdr:oneCellAnchor>/g,(match,inner)=>{
+        // ดึง col/row จาก <xdr:from>
+        const colM=inner.match(/<xdr:from>[\s\S]*?<xdr:col>(\d+)<\/xdr:col>/);
+        const rowM=inner.match(/<xdr:from>[\s\S]*?<xdr:row>(\d+)<\/xdr:row>/);
+        const col=colM?parseInt(colM[1]):0;
+        const row=rowM?parseInt(rowM[1]):0;
+        // แทน <xdr:ext .../> ด้วย <xdr:to>
+        const fixed=inner.replace(/<xdr:ext[^\/]*\/>/,
+          `<xdr:to><xdr:col>${col+1}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row+14}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>`);
+        return `<xdr:twoCellAnchor editAs="oneCell">${fixed}</xdr:twoCellAnchor>`;
+      });
+      zip.file(dfn,xml);
+    }
+    return await zip.generateAsync({type:"arraybuffer",compression:"DEFLATE"});
+  }catch(e){
+    console.warn("fixDrawingAnchors error:",e);
+    return buf;
+  }
+}
+
 function resizeToBase64(dataUrl,maxW,maxH){
   return new Promise((res,rej)=>{
     const img=new Image();
