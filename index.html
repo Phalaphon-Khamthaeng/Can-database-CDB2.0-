@@ -892,7 +892,7 @@ async function doUpload(){
     try{const exRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,{headers:H});if(exRes.ok)await wb.xlsx.load(await exRes.arrayBuffer());}catch{}
     setS(exIdx,"done");
     setS(exIdx+1,"loading");
-    await buildSheetExcelJS(wb,folderName,wizData.brand,wizData.model,wizData.year,savedPhotos,wizData.coolant,wizData.group);
+    buildSheetExcelJS(wb,folderName,wizData.brand,wizData.model,wizData.year,savedPhotos,wizData.coolant,wizData.group);
     buildIndexSheet(wb);
     setS(exIdx+1,"done");
     setS(exIdx+2,"loading");
@@ -965,7 +965,7 @@ function buildIndexSheet(wb){
 // ════════════════════════════════════════════════
 //  BUILD EXCEL SHEET  (br = twoCellAnchor → Excel Online เห็นรูป)
 // ════════════════════════════════════════════════
-async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant="",group=""){
+function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant="",group=""){
   const sn=(model||"Cabinet").substring(0,31).replace(/[\\/?*[\]:]/g,"_");
   const ex=wb.getWorksheet(sn);if(ex)wb.removeWorksheet(ex.id);
   const ws=wb.addWorksheet(sn);
@@ -999,12 +999,15 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
     else{
       ws.getRow(r).height=IH;
       for(let i=0;i<photos.length;i++){
-        const ph=photos[i];if(!ph.dataUrl||!ph.dataUrl.startsWith("data:")) continue;
+        const ph=photos[i];
+        if(!ph.dataUrl||!ph.dataUrl.includes("base64,")) continue;
         try{
-          const b64=await resizeToBase64(ph.dataUrl,400,400);
-          const imgId=wb.addImage({base64:b64,extension:"jpeg"});
-          ws.addImage(imgId,{tl:{col:i+1,row:r-1},br:{col:i+2,row:r}}); // ✅ twoCellAnchor
-        }catch(e){console.warn("embed:",ph.name,e);}
+          const b64=ph.dataUrl.split("base64,")[1];
+          const mime=ph.dataUrl.match(/data:([^;]+)/)?.[1]||"image/jpeg";
+          const ext=(mime.split("/")[1]||"jpeg").replace("jpg","jpeg");
+          const imgId=wb.addImage({base64:b64,extension:ext});
+          ws.addImage(imgId,{tl:{col:i+1,row:r-1},br:{col:i+2,row:r}});
+        }catch(e){console.warn("embed img:",ph.name,e);}
       }
       r++;
       ws.getRow(r).height=14;
@@ -1048,19 +1051,7 @@ async function fixDrawingAnchors(buf){
   }
 }
 
-function resizeToBase64(dataUrl,maxW,maxH){
-  return new Promise((res,rej)=>{
-    const img=new Image();
-    img.onload=()=>{
-      let w=img.naturalWidth||img.width,h=img.naturalHeight||img.height;
-      if(!w||!h){rej(new Error("size 0"));return;}
-      if(w>maxW||h>maxH){if(w>h){h=Math.round(h*maxW/w);w=maxW;}else{w=Math.round(w*maxH/h);h=maxH;}}
-      const cv=document.createElement("canvas");cv.width=w;cv.height=h;
-      cv.getContext("2d").drawImage(img,0,0,w,h);
-      res(cv.toDataURL("image/jpeg",.55).split(",")[1]);
-    };img.onerror=rej;img.src=dataUrl;
-  });
-}
+
 </script>
 </body>
 </html>
