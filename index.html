@@ -846,12 +846,32 @@ async function doUpload(){
       .map(ph=>new Promise(res=>{const r=new FileReader();r.onloadend=()=>{ph.dataUrl=r.result;res();};r.readAsDataURL(ph.file);}))
   );
 
-  // Step 2: สร้าง composite image สำหรับแต่ละ section ก่อน upload (ขณะที่ File objects ยังอยู่ครบ)
+  // Step 2: สร้าง thumbnail + composite พร้อมกันเลย
   const sectionComposites={};
   for(const p of PS){
     const photos=wizData.photos[p.key]||[];
-    if(photos.length){
-      sectionComposites[p.key]=await makeComposite(photos);
+    if(!photos.length) continue;
+    const W=300,H=300,PAD=4;
+    const cv=document.createElement("canvas");
+    cv.width=photos.length*W+(photos.length-1)*PAD;
+    cv.height=H;
+    const ctx=cv.getContext("2d");
+    ctx.fillStyle="#fff";
+    ctx.fillRect(0,0,cv.width,cv.height);
+    let anyDrawn=false;
+    await Promise.all(photos.map((ph,i)=>new Promise(res=>{
+      const src=ph.preview||ph.dataUrl;
+      if(!src){res();return;}
+      const img=new Image();
+      img.onload=()=>{
+        try{ctx.drawImage(img,i*(W+PAD),0,W,H);anyDrawn=true;}catch(e){}
+        res();
+      };
+      img.onerror=res;
+      img.src=src;
+    })));
+    if(anyDrawn){
+      sectionComposites[p.key]=cv.toDataURL("image/jpeg",0.82).split(",")[1];
     }
   }
 
