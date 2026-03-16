@@ -983,36 +983,30 @@ async function makeComposite(dataUrls){
   const n=dataUrls.length;
   if(!n) return null;
 
+  // โหลดทุกรูปก่อน แล้วค่อยวาด (Promise.all รอครบ)
+  const imgs=await Promise.all(dataUrls.map(du=>new Promise(res=>{
+    const img=new Image();
+    img.onload=()=>res(img);
+    img.onerror=()=>res(null);
+    img.src=du; // data URL ใช้ได้โดยตรง ไม่ต้อง fetch
+  })));
+
   const cv=document.createElement("canvas");
   cv.width=n*W+(n-1)*PAD;
   cv.height=H;
   const ctx=cv.getContext("2d");
-  ctx.fillStyle="#f3f4f6";
+  ctx.fillStyle="#ffffff";
   ctx.fillRect(0,0,cv.width,cv.height);
 
-  for(let i=0;i<dataUrls.length;i++){
-    try{
-      // แปลง dataUrl → Blob → createImageBitmap
-      const res=await fetch(dataUrls[i]);
-      const blob=await res.blob();
-      const bmp=await createImageBitmap(blob);
-      // crop center square แล้ว draw
-      const s=Math.min(bmp.width,bmp.height);
-      const sx=(bmp.width-s)/2, sy=(bmp.height-s)/2;
-      ctx.drawImage(bmp,sx,sy,s,s,i*(W+PAD),0,W,H);
-      bmp.close();
-    }catch(e){
-      // ถ้าล้มเหลว วาด placeholder สีเทา
-      ctx.fillStyle="#d1d5db";
-      ctx.fillRect(i*(W+PAD),0,W,H);
-      ctx.fillStyle="#6b7280";
-      ctx.font="16px sans-serif";
-      ctx.textAlign="center";
-      ctx.fillText(`รูป ${i+1}`,i*(W+PAD)+W/2,H/2);
-      console.warn("makeComposite img fail:",i,e);
-    }
-  }
-  return cv.toDataURL("image/jpeg",0.85).split(",")[1];
+  imgs.forEach((img,i)=>{
+    if(!img) return;
+    const s=Math.min(img.naturalWidth,img.naturalHeight);
+    const sx=(img.naturalWidth-s)/2, sy=(img.naturalHeight-s)/2;
+    ctx.drawImage(img,sx,sy,s,s,i*(W+PAD),0,W,H);
+  });
+
+  const b64=cv.toDataURL("image/jpeg",0.85).split(",")[1];
+  return b64||null;
 }
 
 // ════════════════════════════════════════════════
