@@ -846,7 +846,7 @@ async function doUpload(){
       .map(ph=>new Promise(res=>{const r=new FileReader();r.onloadend=()=>{ph.dataUrl=r.result;res();};r.readAsDataURL(ph.file);}))
   );
 
-  // Step 2: สร้าง thumbnail + composite พร้อมกันเลย
+  // Step 2: สร้าง composite จาก File object โดยตรง (File = Blob, ไม่ต้องผ่าน URL)
   const sectionComposites={};
   for(const p of PS){
     const photos=wizData.photos[p.key]||[];
@@ -859,17 +859,20 @@ async function doUpload(){
     ctx.fillStyle="#fff";
     ctx.fillRect(0,0,cv.width,cv.height);
     let anyDrawn=false;
-    await Promise.all(photos.map((ph,i)=>new Promise(res=>{
-      const src=ph.preview||ph.dataUrl;
-      if(!src){res();return;}
-      const img=new Image();
-      img.onload=()=>{
-        try{ctx.drawImage(img,i*(W+PAD),0,W,H);anyDrawn=true;}catch(e){}
-        res();
-      };
-      img.onerror=res;
-      img.src=src;
-    })));
+    for(let i=0;i<photos.length;i++){
+      const ph=photos[i];
+      try{
+        // createImageBitmap รับ Blob/File โดยตรง ไม่ต้องแปลงอะไร
+        const src=ph.file||null;
+        if(!src) continue;
+        const bmp=await createImageBitmap(src);
+        ctx.drawImage(bmp,i*(W+PAD),0,W,H);
+        bmp.close();
+        anyDrawn=true;
+      }catch(e){
+        console.warn("composite",p.key,"slot",i,"fail:",e.message);
+      }
+    }
     if(anyDrawn){
       sectionComposites[p.key]=cv.toDataURL("image/jpeg",0.82).split(",")[1];
     }
