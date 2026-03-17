@@ -509,7 +509,7 @@ async function syncFromSharePoint(){
       const brand=String(ws.getCell(2,2).value||""),model=String(ws.getCell(3,2).value||"");
       if(!model&&!brand) return;
       const year=String(ws.getCell(4,2).value||""),coolant=String(ws.getCell(5,2).value||""),group=String(ws.getCell(6,2).value||"");
-      const folderName=[model,brand,year].filter(Boolean).join("_");
+      const folderName=[model,brand,year].filter(v=>v&&v!=="—"&&v!=="-").join("_");
       spRecs.push({id:"sp_"+ws.name,brand,model,year,coolant,group,uploaded:true,folderName,
         photos:Object.fromEntries(PS.map(p=>[p.key,[]])),date:"SharePoint",fromSP:true});
     });
@@ -890,7 +890,7 @@ function summaryHtml(){
         </div>`;}).join("")}
     </div></div>`;
 }
-function getFolderName(){return [wizData.model,wizData.brand,wizData.year].filter(Boolean).join("_")||"Cabinet_"+Date.now();}
+function getFolderName(){return [wizData.model,wizData.brand,wizData.year].filter(v=>v&&v!=="—"&&v!=="-").join("_")||"Cabinet_"+Date.now();}
 function setBrand(n){wizData.brand=n;const el=document.getElementById("wiz-brand");if(el)el.value=n;}
 function wizBack(){if(wizStep>0){wizStep--;renderWiz();}}
 async function wizNext(){
