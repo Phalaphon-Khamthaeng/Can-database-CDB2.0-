@@ -209,7 +209,7 @@ input{font-family:'DM Sans',sans-serif;}
         <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">SharePoint Site Host</label><input id="cfg-site" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:13px;color:var(--g800);outline:none;" value="sun108.sharepoint.com"/></div>
         <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">SharePoint Site Name</label><input id="cfg-site-name" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:13px;color:var(--g800);outline:none;" value="ITRDmanagement"/></div>
         <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">Path โฟลเดอร์ Model (ใน Documents)</label><input id="cfg-model-path" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:13px;color:var(--g800);outline:none;" value="RD/Knowledge/Used Can Database/CDB(Web app)/Model"/></div>
-        <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">ชื่อไฟล์ Excel หลัก</label><input id="cfg-excel-name" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:13px;color:var(--g800);outline:none;" value="Used_Can_Web.xlsx"/></div>
+        <div><label style="font-size:13px;font-weight:600;color:var(--g800);display:block;margin-bottom:5px;">ชื่อไฟล์ Excel หลัก</label><input id="cfg-excel-name" style="width:100%;padding:10px 14px;border:1px solid var(--g200);border-radius:8px;font-size:13px;color:var(--g800);outline:none;" value="Used_Can_Web_v2.xlsx"/></div>
       </div>
       <button class="btn btn-red btn-full" style="margin-top:20px;" onclick="saveConfig()">💾 บันทึกการตั้งค่า</button>
       <button class="btn btn-outline btn-full" style="margin-top:10px;border-color:#FECACA;color:#991B1B;" onclick="clearData()">🗑️ ล้างข้อมูลทั้งหมด (Local)</button>
@@ -309,7 +309,7 @@ let CFG = {
   spSite    : "sun108.sharepoint.com",
   spSiteName: "ITRDmanagement",
   modelPath : "RD/Knowledge/Used Can Database/CDB(Web app)/Model",
-  excelName : "Used_Can_Web.xlsx",
+  excelName : "Used_Can_Web_v2.xlsx",
   excelPath : "RD/Knowledge/Used Can Database/CDB(Web app)",
   redirectUri: "https://phalaphon-khamthaeng.github.io/Can-database-CDB2.0-/",
 };
@@ -387,7 +387,7 @@ async function listSpFolder(folderPath){
   // บังคับค่า path กลับเป็น default เสมอ
   CFG.modelPath="RD/Knowledge/Used Can Database/CDB(Web app)/Model";
   CFG.excelPath="RD/Knowledge/Used Can Database/CDB(Web app)";
-  CFG.excelName="Used_Can_Web.xlsx";
+  CFG.excelName="Used_Can_Web_v2.xlsx";
   const sr=localStorage.getItem("cabinet_records");
   if(sr) try{
     records=JSON.parse(sr).map(r=>({
