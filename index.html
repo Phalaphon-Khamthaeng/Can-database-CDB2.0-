@@ -839,54 +839,62 @@ async function wizNext(){
 //  UPLOAD
 // ════════════════════════════════════════════════
 async function doUpload(){
-  // Step 1: ensure dataUrl ready
+  // Step 1: ensure dataUrl ready ทุกรูป
   await Promise.all(
     PS.flatMap(p=>wizData.photos[p.key]||[]).filter(ph=>!ph.dataUrl&&ph.file)
       .map(ph=>new Promise(res=>{const r=new FileReader();r.onloadend=()=>{ph.dataUrl=r.result;res();};r.readAsDataURL(ph.file);}))
   );
 
-  // Step 2: สร้าง composite — max 4 รูปต่อแถว ป้องกัน canvas กว้างเกิน
+  // Step 2: ย่อรูปแต่ละใบเป็น 250x250 JPEG เล็กๆ ก่อน แล้วค่อยรวม composite
+  // (dataUrl ใหญ่ทำให้ canvas วาดได้ แต่ต้องย่อก่อนเพื่อให้ toDataURL ไม่ตัน)
   const sectionComposites={};
-  const _holder=document.createElement("div");
-  _holder.style.cssText="position:fixed;left:-9999px;top:-9999px;opacity:0;pointer-events:none;";
-  document.body.appendChild(_holder);
-
   for(const p of PS){
     const photos=wizData.photos[p.key]||[];
     if(!photos.length) continue;
-    const W=250,H=250,PAD=4,COLS=4;
-    const rows=Math.ceil(photos.length/COLS);
-    const cols=Math.min(photos.length,COLS);
+
+    // ขั้นที่ 1: ย่อแต่ละรูปเป็น thumbnail 250x250
+    const thumbs=[];
+    for(const ph of photos){
+      if(!ph.dataUrl) continue;
+      const thumb=await new Promise(res=>{
+        const img=new Image();
+        img.onload=()=>{
+          const tc=document.createElement("canvas");
+          tc.width=250; tc.height=250;
+          const tctx=tc.getContext("2d");
+          tctx.fillStyle="#fff";
+          tctx.fillRect(0,0,250,250);
+          tctx.drawImage(img,0,0,250,250);
+          res({data:tc.toDataURL("image/jpeg",0.7), name:ph.savedName||ph.name});
+        };
+        img.onerror=()=>res(null);
+        img.src=ph.dataUrl;
+      });
+      if(thumb) thumbs.push(thumb);
+    }
+    if(!thumbs.length) continue;
+
+    // ขั้นที่ 2: รวม thumbnail เล็กๆ เป็น composite
+    const COLS=4, W=250, H=250, PAD=4;
+    const rows=Math.ceil(thumbs.length/COLS);
+    const cols=Math.min(thumbs.length,COLS);
     const cv=document.createElement("canvas");
     cv.width=cols*W+(cols-1)*PAD;
     cv.height=rows*H+(rows-1)*PAD;
-    _holder.appendChild(cv);
     const ctx=cv.getContext("2d");
     ctx.fillStyle="#fff";
     ctx.fillRect(0,0,cv.width,cv.height);
-
-    for(let i=0;i<photos.length;i++){
-      const ph=photos[i];
-      if(!ph.file) continue;
+    for(let i=0;i<thumbs.length;i++){
       const col=i%COLS, row=Math.floor(i/COLS);
-      const x=col*(W+PAD), y=row*(H+PAD);
       await new Promise(res=>{
-        const url=URL.createObjectURL(ph.file);
         const img=new Image();
-        img.onload=()=>{
-          ctx.drawImage(img,x,y,W,H);
-          URL.revokeObjectURL(url);
-          res();
-        };
-        img.onerror=()=>{URL.revokeObjectURL(url);res();};
-        img.src=url;
+        img.onload=()=>{ctx.drawImage(img,col*(W+PAD),row*(H+PAD),W,H);res();};
+        img.onerror=res;
+        img.src=thumbs[i].data; // thumbnail เล็กๆ โหลดเร็ว
       });
     }
-    await new Promise(r=>requestAnimationFrame(r));
     sectionComposites[p.key]=cv.toDataURL("image/jpeg",0.82).split(",")[1];
-    _holder.removeChild(cv);
   }
-  document.body.removeChild(_holder);
 
   if(!await ensureToken()) return;
   showPage("uploading");
