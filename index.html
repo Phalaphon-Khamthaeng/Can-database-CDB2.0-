@@ -845,36 +845,29 @@ async function doUpload(){
       .map(ph=>new Promise(res=>{const r=new FileReader();r.onloadend=()=>{ph.dataUrl=r.result;res();};r.readAsDataURL(ph.file);}))
   );
 
-  // Step 2: รอให้ thumbData พร้อมทุกรูป (รอ img.onload ใน addFiles)
-  await new Promise(res=>{
-    const check=()=>{
-      const allReady=PS.flatMap(p=>wizData.photos[p.key]||[]).every(ph=>ph.thumbData||ph.dataUrl);
-      if(allReady) res();
-      else setTimeout(check,200);
-    };
-    check();
-  });
-
-  // Step 3: สร้าง composite จาก thumbData ที่เก็บไว้ตั้งแต่เลือกไฟล์
+  // Step 2: สร้าง composite — ใช้ URL.createObjectURL(ph.file) สร้าง blob URL ใหม่สด
   const sectionComposites={};
   for(const p of PS){
     const photos=wizData.photos[p.key]||[];
-    const withThumb=photos.filter(ph=>ph.thumbData||ph.dataUrl);
-    if(!withThumb.length) continue;
+    if(!photos.length) continue;
     const W=300,H=300,PAD=4;
     const cv=document.createElement("canvas");
-    cv.width=withThumb.length*W+(withThumb.length-1)*PAD;
+    cv.width=photos.length*W+(photos.length-1)*PAD;
     cv.height=H;
     const ctx=cv.getContext("2d");
     ctx.fillStyle="#fff";
     ctx.fillRect(0,0,cv.width,cv.height);
-    // รอทุกรูปโหลดก่อนวาด
-    await Promise.all(withThumb.map((ph,i)=>new Promise(res=>{
+    const urls=[];
+    await Promise.all(photos.map((ph,i)=>new Promise(res=>{
+      if(!ph.file){res();return;}
+      const url=URL.createObjectURL(ph.file); // blob URL ใหม่สด จาก File ที่ยังอยู่ใน memory
+      urls.push(url);
       const img=new Image();
       img.onload=()=>{ctx.drawImage(img,i*(W+PAD),0,W,H);res();};
       img.onerror=res;
-      img.src=ph.thumbData||ph.dataUrl;
+      img.src=url;
     })));
+    urls.forEach(u=>URL.revokeObjectURL(u));
     sectionComposites[p.key]=cv.toDataURL("image/jpeg",0.82).split(",")[1];
   }
 
