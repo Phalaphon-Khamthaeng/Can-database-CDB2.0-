@@ -392,7 +392,7 @@ async function listSpFolder(folderPath){
   if(sr) try{
     records=JSON.parse(sr).map(r=>({
       ...r,
-      photos:Object.fromEntries(PS.map(p=>[p.key,(r.photos?.[p.key]||[]).map(ph=>({savedName:ph.savedName||"",name:ph.name||"",preview:""}))  ])),
+      photos:Object.fromEntries(PS.map(p=>[p.key,(r.photos?.[p.key]||[]).map(ph=>({savedName:ph.savedName||"",name:ph.name||"",preview:""}))])),
     }));
   }catch{}
   // Populate config form
@@ -612,17 +612,41 @@ async function showDetail(idx){
   const status=document.getElementById("detail-load-status");
   btnLoad.dataset.idx=idx;
   if(accessToken){
-    const hasPhotos=PS.some(p=>(r.photos?.[p.key]||[]).length>0);
-    if(hasPhotos){
-      btnLoad.style.display="none";
-      status.textContent="⏳ กำลังโหลดรูป...";
+    btnLoad.style.display="none";
+    status.textContent="⏳ กำลังโหลดรูป...";
+    // ถ้า fromSP และ photos ว่าง → populate ก่อนแล้วค่อย render+load
+    if(r.fromSP && !PS.some(p=>(r.photos?.[p.key]||[]).length>0)){
+      populateSpPhotos(r).then(()=>{
+        // re-render photos section หลัง populate
+        document.getElementById("detail-photos").innerHTML=PS.map(p=>{
+          const photos=r.photos?.[p.key]||[];
+          if(!photos.length) return `<div class="detail-card"><div style="height:80px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:28px;">${p.icon}</div><div class="detail-card-label">${p.icon} ${p.label}</div></div>`;
+          return `<div class="detail-card has-photo">
+            <div class="detail-photos-strip">
+              ${photos.map((ph,i)=>{
+                const sp=ph.savedName?`${CFG.modelPath}/${r.folderName}/${ph.savedName}`:"";
+                const ca=sp?(_imgCache[sp]||""):"";
+                return `<img id="di-${p.key}-${i}" src="${ca}" class="detail-img-${ca?"loaded":"loading"}" ${sp?`data-sp-path="${sp}"`:""}
+                  onclick="openLightbox(this)" onerror="this.style.opacity='0.1'" title="${ph.savedName||ph.name||""}"/>`;
+              }).join("")}
+            </div>
+            <div class="detail-card-label">${p.icon} ${p.label} <span class="count-badge">${photos.length}</span></div>
+          </div>`;
+        }).join("");
+        const hasAny=PS.some(p=>(r.photos?.[p.key]||[]).length>0);
+        if(hasAny){
+          status.textContent="⏳ กำลังโหลดรูป...";
+          _autoLoadDetailImages();
+        } else {
+          btnLoad.style.display="flex";
+          btnLoad.innerHTML="🔄 ลองโหลดอีกครั้ง";
+          status.textContent="⚠️ ไม่พบรูปใน SharePoint";
+        }
+      });
+    } else {
       _autoLoadDetailImages();
-    }else{
-      btnLoad.style.display="flex";
-      btnLoad.innerHTML="🔄 โหลดรูปจาก SharePoint";
-      status.textContent="📂 กดเพื่อดึงรูปจาก SP";
     }
-  }else{
+  } else {
     btnLoad.style.display="flex";
     btnLoad.innerHTML="🖼️ โหลดรูป";
     status.textContent="🔐 Login เพื่อดูรูป";
@@ -638,6 +662,15 @@ async function populateSpPhotos(r){
     });
     if(!PS.some(p=>(r.photos[p.key]||[]).length>0)&&files.length)
       r.photos["nameplate"]=files.map(f=>({savedName:f.name,name:f.name,preview:""}));
+    // ✅ cache photo list ลง localStorage ไม่ต้องดึงใหม่ทุกครั้ง
+    try{
+      const cached=JSON.parse(localStorage.getItem("cabinet_records")||"[]");
+      const ci=cached.findIndex(c=>c.folderName===r.folderName);
+      if(ci>=0){
+        cached[ci].photos=Object.fromEntries(PS.map(p=>[p.key,(r.photos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))]));
+        localStorage.setItem("cabinet_records",JSON.stringify(cached));
+      }
+    }catch{}
   }catch(e){console.warn("populateSpPhotos:",e.message);}
 }
 async function triggerLoadImages(){
