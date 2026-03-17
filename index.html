@@ -131,7 +131,12 @@ input{font-family:'DM Sans',sans-serif;}
   background-size:200% 100%;
   animation:shimmer 1.2s infinite;
 }
-.detail-img-loaded{opacity:1;transition:opacity .3s ease;animation:none;background:none;}
+.detail-img-loaded{
+  opacity:1 !important;
+  background:none !important;
+  animation:none !important;
+  transition:opacity .3s ease;
+}
 @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5};}
 /* Lightbox */
@@ -373,6 +378,8 @@ async function loadSpImg(imgEl, filePath){
     _imgCache[filePath]=url;
     imgEl.src=url;
     imgEl.classList.replace("detail-img-loading","detail-img-loaded");
+    imgEl.style.background="none";
+    imgEl.style.animation="none";
   }catch(e){console.warn("loadSpImg:",filePath,e);}
 }
 
