@@ -125,8 +125,9 @@ input{font-family:'DM Sans',sans-serif;}
 .detail-card.has-photo{border-color:var(--green);}
 .detail-photos-strip{display:flex;gap:4px;flex-wrap:wrap;padding:6px;}
 .detail-photos-strip img{height:70px;width:70px;object-fit:cover;border-radius:6px;border:1px solid var(--g200);background:var(--g100);transition:opacity .4s;cursor:zoom-in;}
-.detail-img-loading{opacity:0.2;}
-.detail-img-loaded{opacity:1;}
+.detail-img-loading{opacity:0;background:linear-gradient(90deg,#f0f0f0 25%,#e0e0e0 50%,#f0f0f0 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;}
+.detail-img-loaded{opacity:1;transition:opacity .35s ease;}
+@keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5};}
 /* Lightbox */
 .lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:none;align-items:center;justify-content:center;cursor:zoom-out;}
