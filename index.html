@@ -152,6 +152,7 @@ input{font-family:'DM Sans',sans-serif;}
       <button id="btn-list-logout" onclick="doLogout()" style="display:none;" class="btn btn-outline btn-sm">🚪</button>
       <button id="btn-sync" onclick="syncFromSharePoint()" style="display:none;" class="btn btn-outline btn-sm">🔄 ซิงค์</button>
       <button id="btn-list-login" onclick="doLogin(false)" class="login-btn" style="display:none;">🔐 Login</button>
+      <button onclick="deployToGitHub()" class="btn btn-outline btn-sm" title="Deploy ขึ้น GitHub Pages">🚀</button>
       <button onclick="startWizard()" class="btn btn-red">+ เพิ่มตู้</button>
     </div>
   </div>
@@ -845,8 +846,12 @@ async function doUpload(){
       .map(ph=>new Promise(res=>{const r=new FileReader();r.onloadend=()=>{ph.dataUrl=r.result;res();};r.readAsDataURL(ph.file);}))
   );
 
-  // Step 2: สร้าง composite — ใช้ URL.createObjectURL(ph.file) สร้าง blob URL ใหม่สด
+  // Step 2: สร้าง composite — canvas attach กับ DOM ป้องกัน GC
   const sectionComposites={};
+  const _holder=document.createElement("div");
+  _holder.style.cssText="position:fixed;left:-9999px;top:-9999px;opacity:0;pointer-events:none;";
+  document.body.appendChild(_holder);
+
   for(const p of PS){
     const photos=wizData.photos[p.key]||[];
     if(!photos.length) continue;
@@ -854,22 +859,32 @@ async function doUpload(){
     const cv=document.createElement("canvas");
     cv.width=photos.length*W+(photos.length-1)*PAD;
     cv.height=H;
+    _holder.appendChild(cv); // attach กับ DOM
     const ctx=cv.getContext("2d");
     ctx.fillStyle="#fff";
     ctx.fillRect(0,0,cv.width,cv.height);
-    const urls=[];
-    await Promise.all(photos.map((ph,i)=>new Promise(res=>{
-      if(!ph.file){res();return;}
-      const url=URL.createObjectURL(ph.file); // blob URL ใหม่สด จาก File ที่ยังอยู่ใน memory
-      urls.push(url);
-      const img=new Image();
-      img.onload=()=>{ctx.drawImage(img,i*(W+PAD),0,W,H);res();};
-      img.onerror=res;
-      img.src=url;
-    })));
-    urls.forEach(u=>URL.revokeObjectURL(u));
+
+    for(let i=0;i<photos.length;i++){
+      const ph=photos[i];
+      if(!ph.file) continue;
+      await new Promise(res=>{
+        const url=URL.createObjectURL(ph.file);
+        const img=new Image();
+        img.onload=()=>{
+          ctx.drawImage(img,i*(W+PAD),0,W,H);
+          URL.revokeObjectURL(url);
+          res();
+        };
+        img.onerror=()=>{URL.revokeObjectURL(url);res();};
+        img.src=url;
+      });
+    }
+    // รอ 1 frame ให้ browser flush การวาด
+    await new Promise(r=>requestAnimationFrame(r));
     sectionComposites[p.key]=cv.toDataURL("image/jpeg",0.82).split(",")[1];
+    _holder.removeChild(cv);
   }
+  document.body.removeChild(_holder);
 
   if(!await ensureToken()) return;
   showPage("uploading");
@@ -1131,7 +1146,42 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
 }
 
 // ════════════════════════════════════════════════
-//  JSZIP FIX: oneCellAnchor → twoCellAnchor
+//  DEPLOY TO GITHUB PAGES
+// ════════════════════════════════════════════════
+async function deployToGitHub(){
+  const OWNER="phalaphon-khamthaeng";
+  const REPO="Can-database-CDB2.0-";
+  const FILE="index.html";
+  const TOKEN="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";
+  const API=`https://api.github.com/repos/${OWNER}/${REPO}/contents/${FILE}`;
+
+  const btn=document.querySelector('[onclick="deployToGitHub()"]');
+  if(btn){btn.innerHTML="⏳";btn.disabled=true;}
+
+  try{
+    // อ่านไฟล์ปัจจุบันเพื่อดึง SHA
+    const getRes=await fetch(API,{headers:{Authorization:`token ${TOKEN}`,Accept:"application/vnd.github.v3+json"}});
+    const getData=await getRes.json();
+    const sha=getData.sha;
+
+    // อ่านไฟล์ HTML ตัวเอง
+    const htmlContent=document.documentElement.outerHTML;
+    const b64=btoa(unescape(encodeURIComponent(htmlContent)));
+
+    // Push ขึ้น GitHub
+    const putRes=await fetch(API,{
+      method:"PUT",
+      headers:{Authorization:`token ${TOKEN}`,Accept:"application/vnd.github.v3+json","Content-Type":"application/json"},
+      body:JSON.stringify({message:"Update CDB app",content:b64,sha})
+    });
+    if(!putRes.ok) throw new Error(await putRes.text());
+    if(btn){btn.innerHTML="✅";btn.disabled=false;setTimeout(()=>btn.innerHTML="🚀",3000);}
+    alert("✅ Deploy สำเร็จ! รอ ~1 นาทีแล้วเข้า GitHub Pages ได้เลย");
+  }catch(e){
+    if(btn){btn.innerHTML="🚀";btn.disabled=false;}
+    alert("❌ Deploy ล้มเหลว: "+e.message);
+  }
+}
 //  ต้อง match IMG_ROWS=14 ใน buildSheetExcelJS
 // ════════════════════════════════════════════════
 async function fixDrawingAnchors(buf){
