@@ -749,29 +749,28 @@ function handleFiles(e,k){addFiles(k,Array.from(e.target.files));e.target.value=
 function addFiles(key,files){
   files.filter(f=>f.type.startsWith("image/")).forEach(f=>{
     const preview=URL.createObjectURL(f);
-    const entry={file:f,preview,dataUrl:null,thumbUrl:null,name:f.name};
+    const entry={file:f,preview,dataUrl:null,thumbData:null,name:f.name};
     wizData.photos[key].push(entry);
 
-    // สร้าง thumbnail 300x300 ทันทีตอนเลือกไฟล์ — เก็บไว้ใช้ใน Excel
-    const img=new Image();
-    img.onload=()=>{
-      try{
-        const cv=document.createElement("canvas");
-        cv.width=300; cv.height=300;
-        cv.getContext("2d").drawImage(img,0,0,300,300);
-        entry.thumbUrl=cv.toDataURL("image/jpeg",0.75);
-      }catch(e){}
-      // อ่าน dataUrl ด้วย
-      const rd=new FileReader();
-      rd.onloadend=()=>{ entry.dataUrl=rd.result; };
-      rd.readAsDataURL(f);
+    // อ่านไฟล์เป็น dataUrl แล้วสร้าง thumbnail 300x300 เก็บไว้เลย
+    const rd=new FileReader();
+    rd.onloadend=()=>{
+      entry.dataUrl=rd.result;
+      // สร้าง thumbnail
+      const img=new Image();
+      img.onload=()=>{
+        try{
+          const tc=document.createElement("canvas");
+          tc.width=300; tc.height=300;
+          tc.getContext("2d").drawImage(img,0,0,300,300);
+          entry.thumbData=tc.toDataURL("image/jpeg",0.7);
+        }catch(e){
+          entry.thumbData=entry.dataUrl; // fallback
+        }
+      };
+      img.src=entry.dataUrl;
     };
-    img.onerror=()=>{
-      const rd=new FileReader();
-      rd.onloadend=()=>{ entry.dataUrl=rd.result; };
-      rd.readAsDataURL(f);
-    };
-    img.src=preview;
+    rd.readAsDataURL(f);
     renderWiz();
   });
 }
@@ -846,36 +845,37 @@ async function doUpload(){
       .map(ph=>new Promise(res=>{const r=new FileReader();r.onloadend=()=>{ph.dataUrl=r.result;res();};r.readAsDataURL(ph.file);}))
   );
 
-  // Step 2: สร้าง composite จาก File object โดยตรง (File = Blob, ไม่ต้องผ่าน URL)
+  // Step 2: รอให้ thumbData พร้อมทุกรูป (รอ img.onload ใน addFiles)
+  await new Promise(res=>{
+    const check=()=>{
+      const allReady=PS.flatMap(p=>wizData.photos[p.key]||[]).every(ph=>ph.thumbData||ph.dataUrl);
+      if(allReady) res();
+      else setTimeout(check,200);
+    };
+    check();
+  });
+
+  // Step 3: สร้าง composite จาก thumbData ที่เก็บไว้ตั้งแต่เลือกไฟล์
   const sectionComposites={};
   for(const p of PS){
     const photos=wizData.photos[p.key]||[];
-    if(!photos.length) continue;
+    const withThumb=photos.filter(ph=>ph.thumbData||ph.dataUrl);
+    if(!withThumb.length) continue;
     const W=300,H=300,PAD=4;
     const cv=document.createElement("canvas");
-    cv.width=photos.length*W+(photos.length-1)*PAD;
+    cv.width=withThumb.length*W+(withThumb.length-1)*PAD;
     cv.height=H;
     const ctx=cv.getContext("2d");
     ctx.fillStyle="#fff";
     ctx.fillRect(0,0,cv.width,cv.height);
-    let anyDrawn=false;
-    for(let i=0;i<photos.length;i++){
-      const ph=photos[i];
-      try{
-        // createImageBitmap รับ Blob/File โดยตรง ไม่ต้องแปลงอะไร
-        const src=ph.file||null;
-        if(!src) continue;
-        const bmp=await createImageBitmap(src);
-        ctx.drawImage(bmp,i*(W+PAD),0,W,H);
-        bmp.close();
-        anyDrawn=true;
-      }catch(e){
-        console.warn("composite",p.key,"slot",i,"fail:",e.message);
-      }
-    }
-    if(anyDrawn){
-      sectionComposites[p.key]=cv.toDataURL("image/jpeg",0.82).split(",")[1];
-    }
+    // รอทุกรูปโหลดก่อนวาด
+    await Promise.all(withThumb.map((ph,i)=>new Promise(res=>{
+      const img=new Image();
+      img.onload=()=>{ctx.drawImage(img,i*(W+PAD),0,W,H);res();};
+      img.onerror=res;
+      img.src=ph.thumbData||ph.dataUrl;
+    })));
+    sectionComposites[p.key]=cv.toDataURL("image/jpeg",0.82).split(",")[1];
   }
 
   if(!await ensureToken()) return;
