@@ -610,8 +610,23 @@ async function showDetail(idx){
   }).join("");
   const btnLoad=document.getElementById("btn-detail-load");
   const status=document.getElementById("detail-load-status");
-  if(accessToken){btnLoad.style.display="none";status.textContent="⏳ กำลังโหลดรูป...";_autoLoadDetailImages();}
-  else{btnLoad.style.display="flex";status.textContent="🔐 Login เพื่อดูรูป";}
+  btnLoad.dataset.idx=idx;
+  if(accessToken){
+    const hasPhotos=PS.some(p=>(r.photos?.[p.key]||[]).length>0);
+    if(hasPhotos){
+      btnLoad.style.display="none";
+      status.textContent="⏳ กำลังโหลดรูป...";
+      _autoLoadDetailImages();
+    }else{
+      btnLoad.style.display="flex";
+      btnLoad.innerHTML="🔄 โหลดรูปจาก SharePoint";
+      status.textContent="📂 กดเพื่อดึงรูปจาก SP";
+    }
+  }else{
+    btnLoad.style.display="flex";
+    btnLoad.innerHTML="🖼️ โหลดรูป";
+    status.textContent="🔐 Login เพื่อดูรูป";
+  }
   showPage("detail");
 }
 async function populateSpPhotos(r){
@@ -626,11 +641,33 @@ async function populateSpPhotos(r){
   }catch(e){console.warn("populateSpPhotos:",e.message);}
 }
 async function triggerLoadImages(){
-  if(await ensureToken()){
-    document.getElementById("btn-detail-load").style.display="none";
-    document.getElementById("detail-load-status").textContent="⏳ กำลังโหลด...";
-    await _autoLoadDetailImages();
-  }
+  if(!await ensureToken()) return;
+  const btnLoad=document.getElementById("btn-detail-load");
+  const idx=parseInt(btnLoad.dataset.idx||"0");
+  const r=records[idx];
+  btnLoad.style.display="none";
+  const status=document.getElementById("detail-load-status");
+  status.textContent="⏳ กำลังดึงรายการรูปจาก SharePoint...";
+  // re-populate photos จาก SP ใหม่
+  if(r.fromSP) await populateSpPhotos(r);
+  // re-render photos section
+  document.getElementById("detail-photos").innerHTML=PS.map(p=>{
+    const photos=r.photos?.[p.key]||[];
+    if(!photos.length) return `<div class="detail-card"><div style="height:80px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:28px;">${p.icon}</div><div class="detail-card-label">${p.icon} ${p.label}</div></div>`;
+    return `<div class="detail-card has-photo">
+      <div class="detail-photos-strip">
+        ${photos.map((ph,i)=>{
+          const sp=ph.savedName?`${CFG.modelPath}/${r.folderName}/${ph.savedName}`:"";
+          const ca=sp?(_imgCache[sp]||""):"";
+          return `<img id="di-${p.key}-${i}" src="${ca}" class="detail-img-${ca?"loaded":"loading"}" ${sp?`data-sp-path="${sp}"`:""}
+            onclick="openLightbox(this)" onerror="this.style.opacity='0.1'" title="${ph.savedName||ph.name||""}"/>`;
+        }).join("")}
+      </div>
+      <div class="detail-card-label">${p.icon} ${p.label} <span class="count-badge">${photos.length}</span></div>
+    </div>`;
+  }).join("");
+  status.textContent="⏳ กำลังโหลดรูป...";
+  await _autoLoadDetailImages();
 }
 async function _autoLoadDetailImages(){
   const imgs=document.querySelectorAll("#detail-photos img[data-sp-path]");
