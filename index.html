@@ -22,7 +22,14 @@ button{cursor:pointer;font-family:'DM Sans',sans-serif;}
 input{font-family:'DM Sans',sans-serif;}
 .page{display:none;min-height:100vh;}
 .page.active{display:block;}
-.header{background:var(--white);border-bottom:1px solid var(--g200);padding:14px 20px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.06);}
+.header{background:var(--white);border-bottom:1px solid var(--g200);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.06);gap:8px;}
+.header-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+@media(max-width:480px){
+  .logo-text .l2{display:none;}
+  .btn-label-hide{display:none;}
+  .header-actions .btn-sm{padding:7px 8px;font-size:11px;}
+  .btn-add{padding:10px 12px !important;font-size:13px !important;}
+}
 .logo{display:flex;align-items:center;gap:8px;cursor:pointer;}
 .logo-s{width:36px;height:36px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:22px;}
 .logo-text .l1{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--red);letter-spacing:2px;line-height:1;}
@@ -120,18 +127,20 @@ input{font-family:'DM Sans',sans-serif;}
 .up-label.error{color:#991B1B;}
 .login-btn{display:flex;align-items:center;gap:5px;padding:7px 13px;background:var(--blue-bg);border:1px solid var(--blue-light);border-radius:20px;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer;border-style:solid;}
 /* Detail */
-.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-.detail-card{border-radius:10px;overflow:hidden;border:1px solid var(--g200);}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;}
+.detail-card{border-radius:10px;overflow:hidden;border:1px solid var(--g200);cursor:pointer;transition:box-shadow .2s;}
+.detail-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.1);}
 .detail-card.has-photo{border-color:var(--green);}
-.detail-card-label{
-  display:flex;align-items:center;gap:5px;
-  padding:6px 10px;
-  font-size:11px;font-weight:600;color:var(--g600);
-  background:var(--g50);border-top:1px solid var(--g200);
-  line-height:1;
-}
-.detail-photos-strip{display:flex;gap:4px;flex-wrap:wrap;padding:6px;}
-.detail-photos-strip img{height:70px;width:70px;object-fit:cover;border-radius:6px;border:1px solid var(--g200);background:var(--g100);transition:opacity .4s;cursor:zoom-in;}
+.detail-card-thumb{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--g100);}
+.detail-card-preview{position:relative;overflow:hidden;}
+.detail-card-preview img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
+.detail-card-overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;}
+.detail-card-empty{height:80px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:28px;}
+.detail-card-label{display:flex;align-items:center;gap:5px;padding:6px 10px;font-size:11px;font-weight:600;color:var(--g600);background:var(--g50);border-top:1px solid var(--g200);line-height:1;}
+/* Photo expand panel */
+.detail-expand{display:none;padding:8px;background:var(--white);border-top:1px solid var(--g200);}
+.detail-expand.open{display:flex;flex-wrap:wrap;gap:4px;}
+.detail-expand img{width:calc(33.33% - 4px);aspect-ratio:1;object-fit:cover;border-radius:6px;cursor:zoom-in;}
 .detail-img-loading{
   opacity:1;
   background:linear-gradient(90deg,#e5e7eb 25%,#d1d5db 50%,#e5e7eb 75%);
@@ -164,13 +173,13 @@ input{font-family:'DM Sans',sans-serif;}
       <div class="logo-s">S</div>
       <div class="logo-text"><div class="l1">SUN VENDING</div><div class="l2">CAN DATABASE</div></div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center;">
-      <span id="list-user-badge" style="display:none;font-size:12px;color:var(--green);background:var(--green-bg);padding:4px 10px;border-radius:20px;border:1px solid #BBF7D0;"></span>
-      <button onclick="showPage('config')" class="btn btn-outline btn-sm">⚙️ ตั้งค่า</button>
+    <div style="display:flex;gap:8px;align-items:center;" class="header-actions">
+      <span id="list-user-badge" style="display:none;font-size:11px;color:var(--green);background:var(--green-bg);padding:4px 8px;border-radius:20px;border:1px solid #BBF7D0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;"></span>
+      <button onclick="showPage('config')" class="btn btn-outline btn-sm">⚙️ <span class="btn-label-hide">ตั้งค่า</span></button>
       <button id="btn-list-logout" onclick="doLogout()" style="display:none;" class="btn btn-outline btn-sm">🚪</button>
-      <button id="btn-sync" onclick="syncFromSharePoint()" style="display:none;" class="btn btn-outline btn-sm">🔄 ซิงค์</button>
-      <button id="btn-list-login" onclick="doLogin(false)" class="login-btn" style="display:none;">🔐 Login</button>
-      <button onclick="startWizard()" class="btn btn-red">+ เพิ่มตู้</button>
+      <button id="btn-sync" onclick="syncFromSharePoint()" style="display:none;" class="btn btn-outline btn-sm">🔄 <span class="btn-label-hide">ซิงค์</span></button>
+      <button id="btn-list-login" onclick="doLogin(false)" class="login-btn" style="display:none;">🔐 <span class="btn-label-hide">Login</span></button>
+      <button onclick="startWizard()" class="btn btn-red btn-add">+ เพิ่มตู้</button>
     </div>
   </div>
   <div class="container">
@@ -645,21 +654,7 @@ async function showDetail(idx){
     ${r.uploaded?`<div style="margin-top:10px;padding:8px 12px;background:var(--blue-bg);border-radius:8px;font-size:12px;color:var(--blue);font-weight:600;">☁️ อัปโหลดใน SharePoint แล้ว · 📁 ${r.folderName||""}</div>`:""}`;
   // ถ้า fromSP และ photos ว่าง → ดึงรายการจาก SP folder
   if(r.fromSP&&accessToken&&!PS.some(p=>(r.photos?.[p.key]||[]).length>0)) await populateSpPhotos(r);
-  document.getElementById("detail-photos").innerHTML=PS.map(p=>{
-    const photos=r.photos?.[p.key]||[];
-    if(!photos.length) return `<div class="detail-card"><div style="height:80px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:28px;">${p.icon}</div><div class="detail-card-label">${p.icon} ${p.label}</div></div>`;
-    return `<div class="detail-card has-photo">
-      <div class="detail-photos-strip">
-        ${photos.map((ph,i)=>{
-          const sp=ph.savedName?`${CFG.modelPath}/${r.folderName}/${ph.savedName}`:"";
-          const ca=sp?(_imgCache[sp]||""):"";
-          return `<img id="di-${p.key}-${i}" src="${ca}" class="detail-img-${ca?"loaded":"loading"}" ${sp?`data-sp-path="${sp}"`:""}
-            onclick="openLightbox(this)" onerror="this.style.opacity='0.1'" title="${ph.savedName||ph.name||""}"/>`;
-        }).join("")}
-      </div>
-      <div class="detail-card-label">${p.icon} ${p.label} <span class="count-badge">${photos.length}</span></div>
-    </div>`;
-  }).join("");
+  document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);
   const btnLoad=document.getElementById("btn-detail-load");
   const status=document.getElementById("detail-load-status");
   btnLoad.dataset.idx=idx;
@@ -670,22 +665,7 @@ async function showDetail(idx){
     // ถ้า fromSP และ photos ว่าง → populate ก่อนแล้วค่อย render+load
     if(r.fromSP && !PS.some(p=>(r.photos?.[p.key]||[]).length>0)){
       populateSpPhotos(r).then(()=>{
-        // re-render photos section หลัง populate
-        document.getElementById("detail-photos").innerHTML=PS.map(p=>{
-          const photos=r.photos?.[p.key]||[];
-          if(!photos.length) return `<div class="detail-card"><div style="height:80px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:28px;">${p.icon}</div><div class="detail-card-label">${p.icon} ${p.label}</div></div>`;
-          return `<div class="detail-card has-photo">
-            <div class="detail-photos-strip">
-              ${photos.map((ph,i)=>{
-                const sp=ph.savedName?`${CFG.modelPath}/${r.folderName}/${ph.savedName}`:"";
-                const ca=sp?(_imgCache[sp]||""):"";
-                return `<img id="di-${p.key}-${i}" src="${ca}" class="detail-img-${ca?"loaded":"loading"}" ${sp?`data-sp-path="${sp}"`:""}
-                  onclick="openLightbox(this)" onerror="this.style.opacity='0.1'" title="${ph.savedName||ph.name||""}"/>`;
-              }).join("")}
-            </div>
-            <div class="detail-card-label">${p.icon} ${p.label} <span class="count-badge">${photos.length}</span></div>
-          </div>`;
-        }).join("");
+        document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);
         const hasAny=PS.some(p=>(r.photos?.[p.key]||[]).length>0);
         if(hasAny){
           status.textContent="⏳ กำลังโหลดรูป...";
@@ -736,22 +716,7 @@ async function triggerLoadImages(){
   status.textContent="⏳ กำลังดึงรายการรูปจาก SharePoint...";
   // re-populate photos จาก SP ใหม่
   if(r.fromSP) await populateSpPhotos(r);
-  // re-render photos section
-  document.getElementById("detail-photos").innerHTML=PS.map(p=>{
-    const photos=r.photos?.[p.key]||[];
-    if(!photos.length) return `<div class="detail-card"><div style="height:80px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:28px;">${p.icon}</div><div class="detail-card-label">${p.icon} ${p.label}</div></div>`;
-    return `<div class="detail-card has-photo">
-      <div class="detail-photos-strip">
-        ${photos.map((ph,i)=>{
-          const sp=ph.savedName?`${CFG.modelPath}/${r.folderName}/${ph.savedName}`:"";
-          const ca=sp?(_imgCache[sp]||""):"";
-          return `<img id="di-${p.key}-${i}" src="${ca}" class="detail-img-${ca?"loaded":"loading"}" ${sp?`data-sp-path="${sp}"`:""}
-            onclick="openLightbox(this)" onerror="this.style.opacity='0.1'" title="${ph.savedName||ph.name||""}"/>`;
-        }).join("")}
-      </div>
-      <div class="detail-card-label">${p.icon} ${p.label} <span class="count-badge">${photos.length}</span></div>
-    </div>`;
-  }).join("");
+  document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);
   status.textContent="⏳ กำลังโหลดรูป...";
   await _autoLoadDetailImages();
 }
@@ -769,6 +734,53 @@ async function _autoLoadDetailImages(){
   }
   status.textContent=`✅ โหลดครบ ${total} รูป`;
   setTimeout(()=>status.textContent="",3000);
+}
+
+// ════════════════════════════════════════════════
+//  RENDER DETAIL PHOTOS (tap-to-expand design)
+// ════════════════════════════════════════════════
+function renderDetailPhotosHTML(r){
+  return PS.map(p=>{
+    const photos=r.photos?.[p.key]||[];
+    if(!photos.length) return `
+      <div class="detail-card">
+        <div class="detail-card-empty">${p.icon}</div>
+        <div class="detail-card-label">${p.icon} ${p.label}</div>
+      </div>`;
+    const firstSp=photos[0]?.savedName?`${CFG.modelPath}/${r.folderName}/${photos[0].savedName}`:"";
+    const firstCa=firstSp?(_imgCache[firstSp]||""):"";
+    const expandImgs=photos.map((ph,i)=>{
+      const sp=ph.savedName?`${CFG.modelPath}/${r.folderName}/${ph.savedName}`:"";
+      const ca=sp?(_imgCache[sp]||""):"";
+      return `<img id="di-${p.key}-${i}" src="${ca}" class="detail-img-${ca?"loaded":"loading"}"
+        ${sp?`data-sp-path="${sp}"`:""}
+        onclick="event.stopPropagation();openLightbox(this)"
+        onerror="this.style.opacity='0.1'"/>`;
+    }).join("");
+    return `<div class="detail-card has-photo" onclick="toggleExpand('${p.key}')">
+      <div class="detail-card-preview">
+        <img id="dthumb-${p.key}" src="${firstCa}"
+          class="detail-img-${firstCa?"loaded":"loading"}"
+          ${firstSp?`data-sp-path="${firstSp}"`:""}
+          style="width:100%;aspect-ratio:1;object-fit:cover;display:block;"
+          onerror="this.style.opacity='0.1'"/>
+        <div class="detail-card-overlay">📷 ${photos.length} รูป</div>
+      </div>
+      <div class="detail-card-label">${p.icon} ${p.label} <span class="count-badge">${photos.length}</span></div>
+      <div class="detail-expand" id="expand-${p.key}">${expandImgs}</div>
+    </div>`;
+  }).join("");
+}
+function toggleExpand(key){
+  const el=document.getElementById("expand-"+key);
+  if(!el) return;
+  const isOpen=el.classList.toggle("open");
+  // โหลดรูปใน expand เมื่อเปิดครั้งแรก
+  if(isOpen&&accessToken){
+    el.querySelectorAll("img[data-sp-path]").forEach(img=>{
+      if(!img.src.startsWith("blob:")) loadSpImg(img,img.dataset.spPath);
+    });
+  }
 }
 
 // ════════════════════════════════════════════════
@@ -1058,11 +1070,11 @@ async function doUpload(){
     if(!drv) throw new Error("ไม่พบ Drive");
     const driveId=drv.id; _cachedDriveId=driveId;
     setS(0,"done");
-    // Step 1 — folder
+    // Step 1 — folder (replace ถ้ามีอยู่แล้ว ไม่สร้างใหม่เป็น (1))
     setS(1,"loading");
     await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(CFG.modelPath)}:/children`,
       {method:"POST",headers:{...H,"Content-Type":"application/json"},
-       body:JSON.stringify({name:folderName,folder:{},["@microsoft.graph.conflictBehavior"]:"rename"})});
+       body:JSON.stringify({name:folderName,folder:{},["@microsoft.graph.conflictBehavior"]:"replace"})});
     setS(1,"done");
     // Upload photos
     const savedPhotos=Object.fromEntries(PS.map(p=>[p.key,[]]));
@@ -1129,9 +1141,23 @@ async function doUpload(){
     document.getElementById("success-detail").innerHTML=`📁 <strong>${folderName}</strong><br>📷 <strong>${tp} รูป</strong><br>📊 Sheet <strong>"${(wizData.model||"Cabinet").substring(0,31)}"</strong>`;
     setTimeout(()=>showPage("success"),800);
   }catch(e){
+    // ═══ AUTO CLEANUP: ลบโฟลเดอร์ที่สร้างไปแล้วถ้า upload ไม่สำเร็จ ═══
+    try{
+      if(accessToken && folderName){
+        const H2={Authorization:"Bearer "+accessToken};
+        const folderPath=`${CFG.modelPath}/${folderName}`;
+        const itemRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(folderPath)}`,{headers:H2});
+        if(itemRes.ok){
+          const item=await itemRes.json();
+          await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/items/${item.id}`,{method:"DELETE",headers:H2});
+          console.log("🧹 Cleanup: ลบโฟลเดอร์ที่ upload ไม่สำเร็จแล้ว:",folderName);
+        }
+      }
+    }catch(cleanupErr){console.warn("Cleanup failed:",cleanupErr);}
+
     const el=document.getElementById("up-error");
     el.style.display="block";
-    el.innerHTML=`<strong>❌ Error:</strong> ${e.message}<br><br><button class="btn btn-outline btn-sm" onclick="showPage('wizard');renderWiz()">← กลับแก้ไข</button>`;
+    el.innerHTML=`<strong>❌ Error:</strong> ${e.message}<br><small style="color:var(--g400);">🧹 ลบข้อมูลที่อัปโหลดไปแล้วเรียบร้อย</small><br><br><button class="btn btn-outline btn-sm" onclick="showPage('wizard');renderWiz()">← กลับแก้ไข</button>`;
     document.getElementById("up-title").textContent="เกิดข้อผิดพลาด";
     document.getElementById("up-title").style.color="var(--red)";
   }
