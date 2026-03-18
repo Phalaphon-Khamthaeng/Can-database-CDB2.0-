@@ -23,12 +23,15 @@ input{font-family:'DM Sans',sans-serif;}
 .page{display:none;min-height:100vh;}
 .page.active{display:block;}
 .header{background:var(--white);border-bottom:1px solid var(--g200);padding:10px 16px;display:flex;justify-content:space-between;align-items:center;position:sticky;top:0;z-index:100;box-shadow:0 1px 3px rgba(0,0,0,.06);gap:8px;}
-.header-actions{display:flex;gap:6px;align-items:center;flex-shrink:0;}
+.header-actions{display:flex;gap:5px;align-items:center;flex-shrink:0;}
 @media(max-width:480px){
-  .logo-text .l2{display:none;}
+  .logo-text{display:none;}
+  .logo-s{width:28px;height:28px;font-size:16px;border-radius:6px;}
+  .header{padding:8px 12px;}
   .btn-label-hide{display:none;}
-  .header-actions .btn-sm{padding:7px 8px;font-size:11px;}
-  .btn-add{padding:10px 12px !important;font-size:13px !important;}
+  .header-actions .btn-sm{padding:6px 8px;font-size:12px;}
+  .btn-add{padding:8px 12px !important;font-size:13px !important;}
+  #list-user-badge{max-width:80px;font-size:10px;padding:3px 6px;}
 }
 .logo{display:flex;align-items:center;gap:8px;cursor:pointer;}
 .logo-s{width:36px;height:36px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:22px;}
@@ -174,7 +177,7 @@ input{font-family:'DM Sans',sans-serif;}
       <div class="logo-text"><div class="l1">SUN VENDING</div><div class="l2">CAN DATABASE</div></div>
     </div>
     <div style="display:flex;gap:8px;align-items:center;" class="header-actions">
-      <span id="list-user-badge" style="display:none;font-size:11px;color:var(--green);background:var(--green-bg);padding:4px 8px;border-radius:20px;border:1px solid #BBF7D0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;"></span>
+      <span id="list-user-badge" onclick="doLogout()" style="display:none;font-size:11px;color:var(--green);background:var(--green-bg);padding:4px 8px;border-radius:20px;border:1px solid #BBF7D0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;cursor:pointer;title:'กดเพื่อออกจากระบบ'"></span>
       <button onclick="showPage('config')" class="btn btn-outline btn-sm">⚙️ <span class="btn-label-hide">ตั้งค่า</span></button>
       <button id="btn-list-logout" onclick="doLogout()" style="display:none;" class="btn btn-outline btn-sm">🚪</button>
       <button id="btn-sync" onclick="syncFromSharePoint()" style="display:none;" class="btn btn-outline btn-sm">🔄 <span class="btn-label-hide">ซิงค์</span></button>
@@ -535,7 +538,7 @@ function updateUserUI(){
   const s=(id,txt)=>{const el=document.getElementById(id);if(el){el.style.display=txt?"inline-flex":"none";if(txt)el.textContent=txt;}};
   const sd=(id,v,m="flex")=>{const el=document.getElementById(id);if(el)el.style.display=v?m:"none";};
   if(loggedIn){
-    s("list-user-badge","☁️ "+currentUser); sd("btn-list-logout",true); sd("btn-sync",true); sd("btn-list-login",false); sd("login-gate",false);
+    s("list-user-badge","☁️ "+currentUser); sd("btn-list-logout",false); sd("btn-sync",true); sd("btn-list-login",false); sd("login-gate",false);
     s("wiz-user-badge","☁️ "+currentUser); sd("btn-wiz-login",false);
   }else{
     s("list-user-badge",""); sd("btn-list-logout",false); sd("btn-sync",false); sd("btn-list-login",true,"flex"); sd("login-gate",true,"flex");
