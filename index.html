@@ -1375,7 +1375,7 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
   ti.font={bold:true,size:16,color:{argb:"FF1F2937"}};ti.alignment={vertical:"middle"};
   ti.border={bottom:{style:"medium",color:{argb:AC}}};r++;
 
-  for(const [lb,vl] of [["Brand",brand],["Model",model],["Year",year],["Coolant",coolant],["Group",group]]){
+  for(const [lb,vl] of [["Brand",brand],["Model",model],["Year",year]]){
     ws.getRow(r).height=22;
     const lc=ws.getCell(r,1);lc.value=lb;lc.font={bold:true,size:11,color:{argb:"FF6B7280"}};
     lc.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF9FAFB"}};lc.alignment={vertical:"middle",indent:1};lc.border=B;
