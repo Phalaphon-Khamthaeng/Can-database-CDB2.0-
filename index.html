@@ -186,8 +186,9 @@ input{font-family:'DM Sans',sans-serif;}
   <div class="header">
     <button class="btn btn-outline btn-sm" onclick="showPage('list')">← กลับ</button>
     <span id="detail-title" style="font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:1px;color:var(--g800);"></span>
-    <div style="min-width:80px;text-align:right;">
+    <div style="min-width:80px;text-align:right;display:flex;gap:6px;justify-content:flex-end;">
       <button id="btn-detail-load" onclick="triggerLoadImages()" style="display:none;" class="btn btn-outline btn-sm">🖼️ โหลดรูป</button>
+      <button id="btn-detail-delete" onclick="confirmDelete()" class="btn btn-sm" style="background:#FEF2F2;border:1.5px solid #FECACA;color:#991B1B;">🗑️ ลบ</button>
     </div>
   </div>
   <div class="container">
@@ -285,6 +286,38 @@ input{font-family:'DM Sans',sans-serif;}
     <div id="success-detail" style="font-size:13px;color:var(--g400);text-align:center;max-width:340px;line-height:1.8;"></div>
     <button class="btn btn-red" style="margin-top:8px;font-size:16px;padding:14px 32px;" onclick="showPage('list')">ดูรายการทั้งหมด</button>
     <button class="btn btn-outline" style="font-size:14px;" onclick="startWizard()">+ บันทึกตู้ถัดไป</button>
+  </div>
+</div>
+
+<!-- ═══ DELETE MODAL ═══ -->
+<div id="delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:28px 24px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.2);">
+    <div style="font-size:40px;margin-bottom:12px;">🗑️</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--g800);margin-bottom:8px;">ลบข้อมูลตู้นี้?</div>
+    <div id="delete-modal-name" style="font-size:14px;font-weight:600;color:var(--red);margin-bottom:6px;"></div>
+    <div style="font-size:12px;color:var(--g400);margin-bottom:22px;line-height:1.6;">จะลบ <strong>โฟลเดอร์รูปภาพ</strong> และ <strong>Sheet ใน Excel</strong><br>ออกจาก SharePoint ทั้งหมด ไม่สามารถกู้คืนได้</div>
+    <div style="display:flex;gap:10px;">
+      <button onclick="document.getElementById('delete-modal').style.display='none'" class="btn btn-outline" style="flex:1;">ยกเลิก</button>
+      <button onclick="doDelete()" class="btn btn-red" style="flex:1;">ลบเลย</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ DELETING PAGE ═══ -->
+<div id="page-deleting" class="page">
+  <div style="min-height:100vh;background:var(--g50);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;">
+    <div style="width:100%;max-width:500px;">
+      <div style="text-align:center;margin-bottom:28px;">
+        <div id="del-main-icon" style="width:64px;height:64px;border-radius:20px;background:#FEF2F2;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:34px;">🗑️</div>
+        <div id="del-title" style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--g800);letter-spacing:2px;">กำลังลบ...</div>
+        <div style="margin-top:10px;">
+          <div class="prog-wrap"><div class="prog-fill" id="del-prog" style="width:0%;background:linear-gradient(90deg,#991B1B,var(--red));"></div></div>
+          <div id="del-prog-label" style="font-size:12px;color:var(--g400);margin-top:6px;"></div>
+        </div>
+      </div>
+      <div class="card"><div id="del-steps"></div></div>
+      <div id="del-error" style="display:none;margin-top:14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px;font-size:13px;color:#991B1B;"></div>
+    </div>
   </div>
 </div>
 
@@ -439,7 +472,6 @@ function showPage(n){
   document.getElementById("page-"+n).classList.add("active");
   if(n==="list") renderList();
 }
-
 // ════════════════════════════════════════════════
 //  CONFIG
 // ════════════════════════════════════════════════
@@ -624,6 +656,7 @@ async function showDetail(idx){
   const btnLoad=document.getElementById("btn-detail-load");
   const status=document.getElementById("detail-load-status");
   btnLoad.dataset.idx=idx;
+  document.getElementById("btn-detail-delete").dataset.idx=idx;
   if(accessToken){
     btnLoad.style.display="none";
     status.textContent="⏳ กำลังโหลดรูป...";
@@ -1096,6 +1129,111 @@ async function doUpload(){
     document.getElementById("up-title").style.color="var(--red)";
   }
 }
+// ════════════════════════════════════════════════
+//  DELETE
+// ════════════════════════════════════════════════
+let _deleteIdx = -1;
+function confirmDelete(){
+  const btnDel=document.getElementById("btn-detail-delete");
+  _deleteIdx=parseInt(btnDel.dataset.idx||"0");
+  const r=records[_deleteIdx];
+  document.getElementById("delete-modal-name").textContent=`📁 ${r.folderName||r.model||"ไม่ระบุ"}`;
+  document.getElementById("delete-modal").style.display="flex";
+}
+async function doDelete(){
+  document.getElementById("delete-modal").style.display="none";
+  if(!await ensureToken()) return;
+  const r=records[_deleteIdx];
+  showPage("deleting");
+  document.getElementById("del-error").style.display="none";
+  document.getElementById("del-main-icon").textContent="🗑️";
+  document.getElementById("del-title").textContent="กำลังลบ...";
+  document.getElementById("del-title").style.color="var(--g800)";
+
+  const steps=[
+    {label:"🔐 เชื่อมต่อ SharePoint"},
+    {label:`📁 ลบโฟลเดอร์: ${r.folderName}`},
+    {label:`📊 อ่านไฟล์ Excel`},
+    {label:`🗂️ ลบ Sheet: ${r.model||r.folderName}`},
+    {label:"💾 บันทึก Excel กลับ SharePoint"},
+    {label:"🧹 ลบข้อมูลใน Browser"},
+  ];
+  let done=0;
+  const renderSteps=()=>{
+    document.getElementById("del-prog").style.width=Math.round((done/steps.length)*100)+"%";
+    document.getElementById("del-prog-label").textContent=done+" / "+steps.length+" ขั้นตอน";
+    document.getElementById("del-steps").innerHTML=steps.map(s=>`
+      <div class="up-step"><div class="up-icon ${s.status||"pending"}">${s.status==="done"?"✅":s.status==="loading"?"⏳":s.status==="error"?"❌":"⬜"}</div>
+        <span class="up-label ${s.status||"pending"}">${s.label}</span></div>`).join("");
+  };
+  const setS=(i,st)=>{steps[i].status=st;if(st==="done")done++;renderSteps();};
+  steps.forEach((_,i)=>steps[i].status="pending"); renderSteps();
+
+  try{
+    const H={Authorization:"Bearer "+accessToken};
+    // Step 0 — connect
+    setS(0,"loading");
+    const did=await getSpDriveId();
+    setS(0,"done");
+
+    // Step 1 — ลบโฟลเดอร์
+    setS(1,"loading");
+    if(r.folderName){
+      const folderPath=`${CFG.modelPath}/${r.folderName}`;
+      const itemRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(folderPath)}`,{headers:H});
+      if(itemRes.ok){
+        const item=await itemRes.json();
+        await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/items/${item.id}`,{method:"DELETE",headers:H});
+      }
+    }
+    setS(1,"done");
+
+    // Step 2 — อ่าน Excel
+    setS(2,"loading");
+    const wb=new ExcelJS.Workbook();
+    const exPath=`${CFG.excelPath}/${CFG.excelName}`;
+    const exRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(exPath)}:/content`,{headers:H});
+    if(exRes.ok) await wb.xlsx.load(await exRes.arrayBuffer());
+    setS(2,"done");
+
+    // Step 3 — ลบ Sheet
+    setS(3,"loading");
+    const sn=(r.model||"Cabinet").substring(0,31).replace(/[\\/?*[\]:]/g,"_");
+    const ws=wb.getWorksheet(sn);
+    if(ws) wb.removeWorksheet(ws.id);
+    buildIndexSheet(wb);
+    setS(3,"done");
+
+    // Step 4 — บันทึก Excel
+    setS(4,"loading");
+    let excelBuf=await wb.xlsx.writeBuffer();
+    excelBuf=await fixDrawingAnchors(excelBuf);
+    const exUp=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(exPath)}:/content`,
+      {method:"PUT",headers:{...H,"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
+       body:new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})});
+    if(!exUp.ok) throw new Error("อัปโหลด Excel ไม่ได้ ("+exUp.status+")");
+    setS(4,"done");
+
+    // Step 5 — ลบ local
+    setS(5,"loading");
+    records.splice(_deleteIdx,1);
+    try{localStorage.setItem("cabinet_records",JSON.stringify(records.map(rec=>({...rec,photos:Object.fromEntries(PS.map(p=>[p.key,(rec.photos?.[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))]))}))));}catch{}
+    setS(5,"done");
+
+    document.getElementById("del-main-icon").textContent="✅";
+    document.getElementById("del-title").textContent="ลบสำเร็จ!";
+    document.getElementById("del-title").style.color="var(--green)";
+    setTimeout(()=>showPage("list"),1000);
+
+  }catch(e){
+    const el=document.getElementById("del-error");
+    el.style.display="block";
+    el.innerHTML=`<strong>❌ Error:</strong> ${e.message}<br><br><button class="btn btn-outline btn-sm" onclick="showPage('list')">← กลับหน้าหลัก</button>`;
+    document.getElementById("del-title").textContent="เกิดข้อผิดพลาด";
+    document.getElementById("del-title").style.color="var(--red)";
+  }
+}
+
 function getRenamedFile(fn,prefix,idx,originalName){return `${fn}_${prefix}_${idx+1}.${(originalName||"img.jpg").split(".").pop()||"jpg"}`;}
 function encPath(p){return p.split("/").map(encodeURIComponent).join("/");}
 
