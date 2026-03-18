@@ -850,11 +850,11 @@ function textStepHtml(label,hint,icon,id,val){
       <button onclick="setBrand('Sanden')" class="btn btn-sm" style="background:#1E3A5F;color:#fff;border:2px solid #1E3A5F;">🔷 Sanden</button>
     </div>`:""}
     <div style="width:100%;max-width:360px;margin-top:${isBrand?4:0}px;">
-      <input id="${id}" type="${isYear?"number":"text"}" value="${val}"
-        placeholder="${isBrand?"หรือพิมพ์เอง...":isYear?"2012":"พิมพ์ "+label+"..."}"
+      <input id="${id}" type="${isYear?"number":"text"}" value="${isYear?(val||"2012"):val}"
+        placeholder="${isBrand?"หรือพิมพ์เอง...":isYear?"เช่น 2012":"พิมพ์ "+label+"..."}"
         autocomplete="off" ${isYear?`min="1980" max="2035"`:""}
         style="width:100%;padding:13px 18px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;text-align:center;"
-        onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"/>
+        onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'" placeholder="${isBrand?"หรือพิมพ์เอง...":isYear?"เช่น 2012":"พิมพ์ "+label+"..."}"/>
     </div>${extraFields}
   </div>`;
 }
