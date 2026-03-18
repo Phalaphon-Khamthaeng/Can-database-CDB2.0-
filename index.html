@@ -637,7 +637,7 @@ function renderList(){
       <span style="align-self:center;color:var(--g300);font-size:20px;">›</span>
     </div>`;
   }).join("");
-  if(accessToken) setTimeout(lazyLoadListThumbs,100);
+  // ไม่โหลด thumbnail อัตโนมัติ — ประหยัด bandwidth รอให้กดเข้า detail แทน
 }
 async function lazyLoadListThumbs(){
   const imgs=document.querySelectorAll("img[data-sp-path].detail-img-loading");
