@@ -388,7 +388,7 @@ const PS = [
   {key:"door_side",       label:"Door Side",               sub:"ด้านในประตูตู้",              prefix:"DoorSide",       icon:"🚪"},
   {key:"master_box",      label:"Master Box & Remote",     sub:"กล่องควบคุมหลักและรีโมต",      prefix:"MasterBox",      icon:"🖲️"},
   {key:"boards_inside",   label:"Boards Inside Power Box", sub:"บอร์ดภายในกล่องไฟ",           prefix:"BoardsInside",   icon:"🔧"},
-  {key:"inventory_side",  label:"Inventory Side",          sub:"ด้านช่องสินค้า",              prefix:"InventorySide",  icon:"📊"},
+  {key:"inventory_side",  label:"Inventory Side",          sub:"ด้านช่องสินค้า",              prefix:"InventorySide",  icon:"🥤"},
   {key:"master_board",    label:"Master Board",            sub:"บอร์ดควบคุมหลัก",             prefix:"MasterBoard",    icon:"🖥️"},
   {key:"compressor",      label:"Compressor",              sub:"คอมเพรสเซอร์ระบบทำความเย็น",   prefix:"Compressor",     icon:"❄️"},
 ];
@@ -632,7 +632,7 @@ function renderList(){
           <span class="tag ${cnt>0?"green":""}">📷 ${cnt} (${sects}/${PS.length})</span>
           ${r.uploaded?`<span class="tag blue">☁️ SP</span>`:""}
         </div>
-        <div class="rec-date">📅 ${r.date||""}</div>
+        <div class="rec-date">${r.date||""}</div>
       </div>
       <span style="align-self:center;color:var(--g300);font-size:20px;">›</span>
     </div>`;
@@ -830,7 +830,10 @@ function renderWiz(){
     document.getElementById("wiz-tracker").innerHTML=PS.map((p,i)=>{
       const state=i+3<s?"done":i+3===s?"active":"upcoming";
       const cnt=wizData.photos[p.key]?.length||0;
-      return `<div class="tracker-item ${state}">${p.icon} ${p.label}${cnt>0?` <span class="count-badge">${cnt}</span>`:""}</div>`;
+      const targetStep=i+3;
+      return `<div class="tracker-item ${state}" onclick="wizGoTo(${targetStep})" style="cursor:pointer;">
+        ${p.icon} ${p.label}${cnt>0?` <span class="count-badge">${cnt}</span>`:""}
+      </div>`;
     }).join("");
   }else document.getElementById("wiz-tracker").innerHTML="";
 }
@@ -961,6 +964,13 @@ function summaryHtml(){
 function getFolderName(){return [wizData.model,wizData.brand,wizData.year].filter(v=>v&&v!=="—"&&v!=="-").join("_")||"Cabinet_"+Date.now();}
 function setBrand(n){wizData.brand=n;const el=document.getElementById("wiz-brand");if(el)el.value=n;}
 function wizBack(){if(wizStep>0){wizStep--;renderWiz();}}
+function wizGoTo(step){
+  // บันทึกค่าปัจจุบันก่อนเปลี่ยน step
+  if(wizStep===0) wizData.brand=document.getElementById("wiz-brand")?.value||wizData.brand;
+  if(wizStep===1) wizData.model=document.getElementById("wiz-model")?.value||wizData.model;
+  if(wizStep===2) wizData.year=document.getElementById("wiz-year")?.value||wizData.year;
+  wizStep=step; renderWiz();
+}
 async function wizNext(){
   if(wizStep===0) wizData.brand  =document.getElementById("wiz-brand")?.value||wizData.brand;
   if(wizStep===1) wizData.model  =document.getElementById("wiz-model")?.value||wizData.model;
