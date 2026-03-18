@@ -860,14 +860,25 @@ function textStepHtml(label,hint,icon,id,val){
 }
 function photoStepHtml(ps){
   const photos=wizData.photos[ps.key]||[];
+  const isOther=ps.key==="other";
   return `<div class="photo-section" style="width:100%;max-width:460px;">
     <div class="step-icon">${ps.icon}</div>
     <div class="step-title">${ps.label}</div>
     <div class="step-sub">${ps.sub}<br><span style="color:var(--blue);font-size:12px;">📌 หลายรูปได้ · 📋 Ctrl+V paste</span></div>
     <div class="photo-grid" id="photo-grid-${ps.key}">
-      ${photos.map((ph,i)=>`<div class="photo-thumb"><img src="${ph.preview}"/>
-        <button class="del-btn" onclick="removePhoto('${ps.key}',${i})">✕</button>
-        <span class="img-num">รูปที่ ${i+1}</span></div>`).join("")}
+      ${photos.map((ph,i)=>`<div style="display:flex;flex-direction:column;gap:4px;">
+        <div class="photo-thumb">
+          <img src="${ph.preview}"/>
+          <button class="del-btn" onclick="removePhoto('${ps.key}',${i})">✕</button>
+          <span class="img-num">รูปที่ ${i+1}</span>
+        </div>
+        ${isOther?`<input type="text" value="${ph.caption||""}"
+          placeholder="ระบุชื่อ (ไม่บังคับ)"
+          oninput="wizData.photos['${ps.key}'][${i}].caption=this.value"
+          style="width:100%;padding:5px 8px;font-size:11px;border:1.5px solid var(--g200);border-radius:6px;outline:none;color:var(--g800);"
+          onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"
+          onkeydown="event.stopPropagation()"/>`:``}
+      </div>`).join("")}
       <div class="add-photo-btn" id="drop-${ps.key}" onclick="triggerFileInput('${ps.key}')">
         <span>📷</span><p>เพิ่มรูป<br/>${photos.length===0?"(คลิกหรือลาก)":"(เพิ่มอีก)"}</p>
       </div>
@@ -979,6 +990,20 @@ async function wizNext(){
     wizData.coolant=document.getElementById("wiz-coolant")?.value||wizData.coolant;
     wizData.group  =document.getElementById("wiz-group")?.value||wizData.group;
   }
+  // ตรวจสอบ caption ของ Other section
+  if(wizStep>=3&&wizStep<TOTAL-1){
+    const p=PS[wizStep-3];
+    if(p.key==="other"){
+      const photos=wizData.photos["other"]||[];
+      const missing=photos.findIndex(ph=>!(ph.caption||"").trim());
+      if(missing>=0){
+        showToast(`⚠️ กรุณาระบุชื่อรูปที่ ${missing+1} ก่อน`);
+        const input=document.querySelector(`#photo-grid-other input[type=text]:nth-of-type(${missing+1})`);
+        if(input) input.focus();
+        return;
+      }
+    }
+  }
   if(wizStep===TOTAL-1){await doUpload();return;}
   wizStep++;renderWiz();
 }
@@ -1055,7 +1080,7 @@ async function doUpload(){
   const steps=[
     {label:"🔐 เชื่อมต่อ SharePoint"},
     {label:"📁 สร้างโฟลเดอร์: "+folderName},
-    ...allPhotos.map(ph=>({label:`${ph.step.icon} ${ph.step.label} #${ph.idx+1}: ${getRenamedFile(folderName,ph.step.prefix,ph.idx,ph.name)}`})),
+    ...allPhotos.map(ph=>({label:`${ph.step.icon} ${ph.step.label} #${ph.idx+1}${ph.caption?` — ${ph.caption}`:""}: ${getRenamedFile(folderName,ph.step.prefix,ph.idx,ph.name,ph.caption||"")}`})),
     {label:"📊 อ่านไฟล์ Excel"},
     {label:"📝 เพิ่ม Sheet: "+wizData.model},
     {label:"🔧 แก้ไข Drawing Anchors"},
@@ -1093,7 +1118,7 @@ async function doUpload(){
     const savedPhotos=Object.fromEntries(PS.map(p=>[p.key,[]]));
     for(let i=0;i<allPhotos.length;i++){
       const ph=allPhotos[i]; setS(i+2,"loading");
-      const newName=getRenamedFile(folderName,ph.step.prefix,ph.idx,ph.name);
+      const newName=getRenamedFile(folderName,ph.step.prefix,ph.idx,ph.name,ph.caption||"");
       const upPath=`${CFG.modelPath}/${folderName}/${newName}`;
       const upRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(upPath)}:/content`,
         {method:"PUT",headers:{...H,"Content-Type":ph.file.type||"image/jpeg"},body:ph.file});
@@ -1280,7 +1305,15 @@ async function doDelete(){
   }
 }
 
-function getRenamedFile(fn,prefix,idx,originalName){return `${fn}_${prefix}_${idx+1}.${(originalName||"img.jpg").split(".").pop()||"jpg"}`;}
+function getRenamedFile(fn,prefix,idx,originalName,caption=""){
+  const ext=(originalName||"img.jpg").split(".").pop()||"jpg";
+  if(caption&&caption.trim()){
+    // ใช้ caption เป็นชื่อไฟล์ ลบอักขระพิเศษออก
+    const safeName=caption.trim().replace(/[\\/?*[\]:]/g,"_").replace(/\s+/g,"_");
+    return `${fn}_${prefix}_${idx+1}_${safeName}.${ext}`;
+  }
+  return `${fn}_${prefix}_${idx+1}.${ext}`;
+}
 function encPath(p){return p.split("/").map(encodeURIComponent).join("/");}
 
 // ════════════════════════════════════════════════
@@ -1415,11 +1448,12 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
           r+=imgRows;
         }catch(e){console.warn("addImage error:",e);}
       }
-      // ชื่อไฟล์
+      // ชื่อไฟล์ + caption (สำหรับ Other section)
       ws.getRow(r).height=12;
       photos.forEach((ph,i)=>{
         const fc=ws.getCell(r,i+1);
-        fc.value=`${i+1}. ${ph.savedName||ph.name||""}`;
+        const caption=p.key==="other"&&ph.caption?` — ${ph.caption}`:"";
+        fc.value=`${i+1}. ${ph.savedName||ph.name||""}${caption}`;
         fc.font={size:8,color:{argb:"FF6B7280"}};fc.alignment={wrapText:true,vertical:"top"};
       });
       r++;
