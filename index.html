@@ -1438,33 +1438,25 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
       const validPhotos=photos.filter(ph=>(ph.dataUrl&&ph.dataUrl.includes("base64,"))||ph.preview);
       if(composite&&validPhotos.length){
         try{
-          // วางแต่ละรูปแยก คอลัมน์ละ 1 รูป คำนวณความสูงจากสัดส่วนแต่ละรูป
-          // col width = 42 units ≈ 300px, row height = 14pt ≈ 19px
+          // คำนวณ br จากสัดส่วนจริงของ composite image
+          // col width ≈ 300px, row height ≈ 19px
           const COL_PX=300, ROW_PX=19;
-          let maxImgH=8;
-          const imgHList=await Promise.all(validPhotos.map(ph=>new Promise(res=>{
-            const src=ph.dataUrl||"";
-            if(!src.includes("base64,")){res(IMG_ROWS);return;}
+          const totalCols=validPhotos.length;
+          const compImg=await new Promise(res=>{
             const img=new Image();
-            img.onload=()=>{
-              const h=Math.round(COL_PX*(img.height/img.width)/ROW_PX);
-              res(Math.max(8,Math.min(h,80)));
-            };
-            img.onerror=()=>res(IMG_ROWS);
-            img.src=src;
-          })));
-          maxImgH=Math.max(...imgHList);
-          for(let rr=r;rr<r+maxImgH;rr++) ws.getRow(rr).height=14;
-          for(let i=0;i<validPhotos.length;i++){
-            const ph=validPhotos[i];
-            const src=ph.dataUrl||null;
-            if(!src||!src.includes("base64,")) continue;
-            const b64=src.split(",")[1];
-            const ext=(ph.name||"img.jpg").split(".").pop().toLowerCase()||"jpeg";
-            const imgId=wb.addImage({base64:b64,extension:ext==="jpg"?"jpeg":ext});
-            ws.addImage(imgId,{tl:{col:i,row:r-1},br:{col:i+1,row:r-1+imgHList[i]}});
+            img.onload=()=>res(img);
+            img.onerror=()=>res(null);
+            img.src="data:image/jpeg;base64,"+composite;
+          });
+          let imgH=IMG_ROWS;
+          if(compImg){
+            const totalW=totalCols*COL_PX;
+            imgH=Math.max(8,Math.min(Math.round(totalW*(compImg.height/compImg.width)/ROW_PX),80));
           }
-          r+=maxImgH;
+          for(let rr=r;rr<r+imgH;rr++) ws.getRow(rr).height=14;
+          const imgId=wb.addImage({base64:composite,extension:"jpeg"});
+          ws.addImage(imgId,{tl:{col:0,row:r-1},br:{col:totalCols,row:r-1+imgH}});
+          r+=imgH;
         }catch(e){console.warn("addImage error:",e);}
       }
       // ชื่อไฟล์ + caption (สำหรับ Other section)
