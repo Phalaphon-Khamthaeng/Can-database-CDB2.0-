@@ -1438,12 +1438,22 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
       const validPhotos=photos.filter(ph=>(ph.dataUrl&&ph.dataUrl.includes("base64,"))||ph.preview);
       if(composite&&validPhotos.length){
         try{
-          // วางแต่ละรูปแยกกัน แนวนอน คอลัมน์ละ 1 รูป
-          const colW=42; // column width units
-          const imgH=IMG_ROWS; // rows ต่อรูป
+          // คำนวณ imgH จากสัดส่วนรูปแรก — รูปกว้างมาก rows น้อย, รูปสี่เหลี่ยม rows มาก
+          let imgH=IMG_ROWS;
+          const firstSrc=(validPhotos[0]?.dataUrl||"");
+          if(firstSrc.includes("base64,")){
+            imgH=await new Promise(res=>{
+              const img=new Image();
+              img.onload=()=>{
+                // col width ~42 units ≈ 300px, 1 row height=14pt ≈ 19px
+                const h=Math.round(300*(img.height/img.width)/19);
+                res(Math.max(8,Math.min(h,60)));
+              };
+              img.onerror=()=>res(IMG_ROWS);
+              img.src=firstSrc;
+            });
+          }
           for(let rr=r;rr<r+imgH;rr++) ws.getRow(rr).height=14;
-
-          // สร้าง thumbnail แยกจาก sectionComposites ไม่ได้ ต้องใช้ dataUrl โดยตรง
           for(let i=0;i<validPhotos.length;i++){
             const ph=validPhotos[i];
             const src=ph.dataUrl||null;
@@ -1451,11 +1461,7 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
             const b64=src.split(",")[1];
             const ext=(ph.name||"img.jpg").split(".").pop().toLowerCase()||"jpeg";
             const imgId=wb.addImage({base64:b64,extension:ext==="jpg"?"jpeg":ext});
-            // oneCell anchor — Excel รักษาสัดส่วนต้นฉบับ ไม่บีบ
-            ws.addImage(imgId,{
-              tl:{col:i, row:r-1},
-              ext:{width:300, height:200}
-            });
+            ws.addImage(imgId,{tl:{col:i,row:r-1},br:{col:i+1,row:r-1+imgH}});
           }
           r+=imgH;
         }catch(e){console.warn("addImage error:",e);}
