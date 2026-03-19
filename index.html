@@ -605,7 +605,7 @@ function renderList(){
   });
   document.getElementById("stat-total").textContent   =records.length;
   document.getElementById("stat-fuji").textContent    =records.filter(r=>r.brand==="Fuji").length;
-  document.getElementById("stat-national").textContent=records.filter(r=>r.brand==="National"||r.brand==="Panasonic").length;
+  document.getElementById("stat-national").textContent=records.filter(r=>r.brand==="National & Panasonic"||r.brand==="National"||r.brand==="Panasonic").length;
   document.getElementById("stat-sanden").textContent  =records.filter(r=>r.brand==="Sanden").length;
   const c=document.getElementById("list-container");
   if(!filtered.length){
@@ -845,7 +845,7 @@ function textStepHtml(label,hint,icon,id,val){
     <div class="step-title">${label}</div>
     <div class="step-sub">${hint}</div>
     ${isBrand?`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0;">
-      <button onclick="setBrand('National')" class="btn btn-sm" style="background:#FDE68A;color:#78350F;border:2px solid #F59E0B;">🟡 National</button>
+      <button onclick="setBrand('National & Panasonic')" class="btn btn-sm" style="background:#FDE68A;color:#78350F;border:2px solid #F59E0B;">🟡 National & Panasonic</button>
       <button onclick="setBrand('Fuji')" class="btn btn-sm" style="background:#BFDBFE;color:#1E3A5F;border:2px solid #3B82F6;">🔵 Fuji</button>
       <button onclick="setBrand('Sanden')" class="btn btn-sm" style="background:#1E3A5F;color:#fff;border:2px solid #1E3A5F;">🔷 Sanden</button>
     </div>`:""}
