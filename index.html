@@ -984,7 +984,16 @@ function wizGoTo(step){
 }
 async function wizNext(){
   if(wizStep===0) wizData.brand  =document.getElementById("wiz-brand")?.value||wizData.brand;
-  if(wizStep===1) wizData.model  =document.getElementById("wiz-model")?.value||wizData.model;
+  if(wizStep===1){
+    wizData.model=document.getElementById("wiz-model")?.value||wizData.model;
+    // ตรวจสอบชื่อซ้ำกับที่มีอยู่ใน records
+    const fn=[wizData.model,wizData.brand,wizData.year].filter(v=>v&&v!=="—"&&v!=="-").join("_");
+    const dup=records.find(r=>r.folderName===fn);
+    if(dup){
+      const ok=confirm(`⚠️ พบข้อมูลซ้ำ!\n\n"${fn}"\n\nมีอยู่แล้วใน SharePoint\nต้องการดำเนินการต่อไหม? (จะทับข้อมูลเดิม)`);
+      if(!ok) return;
+    }
+  }
   if(wizStep===2){
     wizData.year   =document.getElementById("wiz-year")?.value||wizData.year;
     wizData.coolant=document.getElementById("wiz-coolant")?.value||wizData.coolant;
