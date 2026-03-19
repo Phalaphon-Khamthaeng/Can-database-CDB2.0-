@@ -1196,7 +1196,12 @@ async function doUpload(){
 
     const el=document.getElementById("up-error");
     el.style.display="block";
-    el.innerHTML=`<strong>❌ Error:</strong> ${e.message}<br><small style="color:var(--g400);">🧹 ลบข้อมูลที่อัปโหลดไปแล้วเรียบร้อย</small><br><br><button class="btn btn-outline btn-sm" onclick="showPage('wizard');renderWiz()">← กลับแก้ไข</button>`;
+    el.innerHTML=`<strong>❌ Error:</strong> ${e.message}<br><small style="color:var(--g400);">🧹 ลบข้อมูลที่อัปโหลดไปแล้วเรียบร้อย</small><br><br>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn btn-red btn-sm" onclick="retryUpload()">🔄 ส่งใหม่อีกครั้ง</button>
+        <button class="btn btn-outline btn-sm" onclick="resetAndBack()">← กลับแก้ไข</button>
+        <button class="btn btn-outline btn-sm" onclick="showPage('list')">🏠 หน้าหลัก</button>
+      </div>`;
     document.getElementById("up-title").textContent="เกิดข้อผิดพลาด";
     document.getElementById("up-title").style.color="var(--red)";
   }
@@ -1304,6 +1309,33 @@ async function doDelete(){
     document.getElementById("del-title").textContent="เกิดข้อผิดพลาด";
     document.getElementById("del-title").style.color="var(--red)";
   }
+}
+
+function retryUpload(){
+  // ส่งใหม่โดยใช้ wizData เดิม ไม่ต้องกรอกใหม่
+  document.getElementById("up-error").style.display="none";
+  document.getElementById("up-prog").style.width="0%";
+  document.getElementById("up-prog-label").textContent="";
+  document.getElementById("up-steps").innerHTML="";
+  document.getElementById("up-main-icon").textContent="☁️";
+  document.getElementById("up-title").textContent="กำลังอัปโหลด...";
+  document.getElementById("up-title").style.color="var(--g800)";
+  doUpload();
+}
+
+function resetAndBack(){
+  // reset upload page state ให้ครบก่อนกลับ wizard
+  document.getElementById("up-error").style.display="none";
+  document.getElementById("up-prog").style.width="0%";
+  document.getElementById("up-prog-label").textContent="";
+  document.getElementById("up-steps").innerHTML="";
+  document.getElementById("up-main-icon").textContent="☁️";
+  document.getElementById("up-title").textContent="กำลังอัปโหลด...";
+  document.getElementById("up-title").style.color="var(--g800)";
+  // กลับไป wizard step สุดท้าย (summary)
+  wizStep=TOTAL-1;
+  showPage("wizard");
+  renderWiz();
 }
 
 function getRenamedFile(fn,prefix,idx,originalName,caption=""){
