@@ -873,7 +873,7 @@ function photoStepHtml(ps){
           <span class="img-num">รูปที่ ${i+1}</span>
         </div>
         ${isOther?`<input type="text" value="${ph.caption||""}"
-          placeholder="ระบุชื่อ"
+          placeholder="ระบุชื่อ (ไม่บังคับ)"
           oninput="wizData.photos['${ps.key}'][${i}].caption=this.value"
           style="width:100%;padding:5px 8px;font-size:11px;border:1.5px solid var(--g200);border-radius:6px;outline:none;color:var(--g800);"
           onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"
@@ -1446,14 +1446,15 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
           // สร้าง thumbnail แยกจาก sectionComposites ไม่ได้ ต้องใช้ dataUrl โดยตรง
           for(let i=0;i<validPhotos.length;i++){
             const ph=validPhotos[i];
-            const src=ph.dataUrl||ph.thumbData||null;
+            const src=ph.dataUrl||null;
             if(!src||!src.includes("base64,")) continue;
             const b64=src.split(",")[1];
             const ext=(ph.name||"img.jpg").split(".").pop().toLowerCase()||"jpeg";
             const imgId=wb.addImage({base64:b64,extension:ext==="jpg"?"jpeg":ext});
+            // oneCell anchor — Excel รักษาสัดส่วนต้นฉบับ ไม่บีบ
             ws.addImage(imgId,{
-              tl:{col:i,   row:r-1},
-              br:{col:i+1, row:r-1+imgH}
+              tl:{col:i, row:r-1},
+              ext:{width:300, height:200}
             });
           }
           r+=imgH;
