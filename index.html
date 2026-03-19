@@ -1024,20 +1024,25 @@ async function doUpload(){
     const photos=wizData.photos[p.key]||[];
     if(!photos.length) continue;
 
-    // ย่อแต่ละรูปเป็น thumbnail 250x250
+    // ย่อแต่ละรูปเป็น thumbnail 400x400
     const thumbs=[];
     for(const ph of photos){
       if(!ph.dataUrl) continue;
       const thumb=await new Promise(res=>{
         const img=new Image();
         img.onload=()=>{
+          const W=400,H=400;
           const tc=document.createElement("canvas");
-          tc.width=250; tc.height=250;
+          tc.width=W; tc.height=H;
           const tctx=tc.getContext("2d");
           tctx.fillStyle="#fff";
-          tctx.fillRect(0,0,250,250);
-          tctx.drawImage(img,0,0,250,250);
-          res({data:tc.toDataURL("image/jpeg",0.7), name:ph.savedName||ph.name});
+          tctx.fillRect(0,0,W,H);
+          // object-fit: cover — ตัดตรงกลาง ไม่บีบสัดส่วน
+          const scale=Math.max(W/img.width, H/img.height);
+          const sw=img.width*scale, sh=img.height*scale;
+          const sx=(W-sw)/2, sy=(H-sh)/2;
+          tctx.drawImage(img,sx,sy,sw,sh);
+          res({data:tc.toDataURL("image/jpeg",0.85), name:ph.savedName||ph.name});
         };
         img.onerror=()=>res(null);
         img.src=ph.dataUrl;
@@ -1046,8 +1051,8 @@ async function doUpload(){
     }
     if(!thumbs.length) continue;
 
-    // รวม thumbnail เล็กๆ เป็น composite
-    const COLS=4, W=250, H=250, PAD=4;
+    // รวม thumbnail เป็น composite (max 3 ต่อแถว เพื่อให้รูปใหญ่ขึ้น)
+    const COLS=3, W=400, H=400, PAD=4;
     const rows=Math.ceil(thumbs.length/COLS);
     const cols=Math.min(thumbs.length,COLS);
     const cv=document.createElement("canvas");
@@ -1392,7 +1397,7 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
   const ex=wb.getWorksheet(sn);if(ex)wb.removeWorksheet(ex.id);
   const ws=wb.addWorksheet(sn);
 
-  for(let c=1;c<=20;c++) ws.getColumn(c).width=36;
+  for(let c=1;c<=20;c++) ws.getColumn(c).width=42;
   const tabColor=b=>{const bl=(b||"").toLowerCase();
     if(bl.includes("fuji"))    return "FF93C5FD";
     if(bl.includes("national")||bl.includes("panasonic")) return "FFFDE68A";
@@ -1416,7 +1421,7 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
   }
   ws.getRow(r).height=14; r++;
 
-  const IMG_ROWS=15;
+  const IMG_ROWS=22;
 
   for(const p of PS){
     const photos=savedPhotos[p.key]||[];
@@ -1436,7 +1441,7 @@ async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,cool
       const validPhotos=photos.filter(ph=>(ph.dataUrl&&ph.dataUrl.includes("base64,"))||ph.preview);
       if(composite){
         try{
-          const COLS=4;
+          const COLS=3;
           const rows=Math.ceil(validPhotos.length/COLS);
           const imgRows=IMG_ROWS*rows;
           for(let rr=r;rr<r+imgRows;rr++) ws.getRow(rr).height=14;
