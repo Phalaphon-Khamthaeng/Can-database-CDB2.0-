@@ -721,46 +721,43 @@ async function showDetail(idx){
 }
 async function populateSpPhotos(r){
   try{
-    const files=await listSpFolder(`${CFG.modelPath}/${r.folderName}`);
-    // map PS_BASE ก่อน
+    const safeFolderName=sanitizeSP(r.folderName||"");
+    // อัปเดต folderName ใน record ให้ตรงกับ SP จริง
+    if(safeFolderName!==r.folderName) r.spFolderName=safeFolderName;
+    const files=await listSpFolder(`${CFG.modelPath}/${safeFolderName}`);
     PS_BASE.forEach(p=>{
       const m=files.filter(f=>f.name&&f.name.includes(p.prefix));
       if(m.length) r.photos[p.key]=m.map(f=>({savedName:f.name,name:f.name,preview:""}));
     });
-    // ตรวจจับ custom sections จากชื่อไฟล์ที่ไม่ match PS_BASE prefix ใดเลย
     const knownPrefixes=PS_BASE.map(p=>p.prefix);
     const unknownFiles=files.filter(f=>{
       if(!f.name) return false;
       return !knownPrefixes.some(px=>f.name.includes(px));
     });
-    // จัดกลุ่มโดยดู prefix จากชื่อไฟล์ เช่น "FolderName_PrefixName_1.jpg"
     const customGroups={};
     unknownFiles.forEach(f=>{
       const parts=f.name.replace(/\.[^.]+$/,"").split("_");
-      // prefix คือส่วนที่ 2 จาก folderName_prefix_N
-      const folderParts=(r.folderName||"").split("_").length;
+      const folderParts=safeFolderName.split("_").length;
       const prefix=parts.slice(folderParts,parts.length-1).join("_");
       if(!prefix) return;
       if(!customGroups[prefix]) customGroups[prefix]=[];
       customGroups[prefix].push(f);
     });
-    // สร้าง customSections ถ้ายังไม่มี
     if(!r.customSections) r.customSections=[];
     Object.entries(customGroups).forEach(([prefix,grpFiles])=>{
       const key="custom_"+prefix.toLowerCase()+"_detected";
-      if(!r.customSections.find(c=>c.prefix===prefix)){
+      if(!r.customSections.find(c=>c.prefix===prefix))
         r.customSections.push({key,label:prefix,sub:"รูปภาพ "+prefix,prefix,icon:"📷"});
-      }
       const sect=r.customSections.find(c=>c.prefix===prefix);
       if(sect) r.photos[sect.key]=grpFiles.map(f=>({savedName:f.name,name:f.name,preview:""}));
     });
     if(!PS_BASE.some(p=>(r.photos[p.key]||[]).length>0)&&!r.customSections?.length&&files.length)
       r.photos["nameplate"]=files.map(f=>({savedName:f.name,name:f.name,preview:""}));
-    // cache ลง localStorage
     try{
       const cached=JSON.parse(localStorage.getItem("cabinet_records")||"[]");
       const ci=cached.findIndex(c=>c.folderName===r.folderName);
       if(ci>=0){
+        cached[ci].spFolderName=safeFolderName;
         cached[ci].photos=Object.fromEntries(PS_BASE.map(p=>[p.key,(r.photos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))]));
         cached[ci].customSections=r.customSections;
         localStorage.setItem("cabinet_records",JSON.stringify(cached));
@@ -814,10 +811,11 @@ function renderDetailPhotosHTML(r){
         <div class="detail-card-empty">${p.icon}</div>
         <div class="detail-card-label">${p.icon} ${p.label}</div>
       </div>`;
-    const firstSp=photos[0]?.savedName?`${CFG.modelPath}/${r.folderName}/${photos[0].savedName}`:"";
+    const folder=r.spFolderName||sanitizeSP(r.folderName||"");
+    const firstSp=photos[0]?.savedName?`${CFG.modelPath}/${folder}/${photos[0].savedName}`:"";
     const firstCa=firstSp?(_imgCache[firstSp]||""):"";
     const expandImgs=photos.map((ph,i)=>{
-      const sp=ph.savedName?`${CFG.modelPath}/${r.folderName}/${ph.savedName}`:"";
+      const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
       const ca=sp?(_imgCache[sp]||""):"";
       return `<img id="di-${p.key}-${i}" src="${ca}" class="detail-img-${ca?"loaded":"loading"}"
         ${sp?`data-sp-path="${sp}"`:""}
