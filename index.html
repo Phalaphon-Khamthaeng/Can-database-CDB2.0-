@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>SUN VENDING — Cabinet Database</title>
+<title>Can Data Base</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -308,6 +308,23 @@ input{font-family:'DM Sans',sans-serif;}
   </div>
 </div>
 
+<!-- ═══ ADD SECTION MODAL ═══ -->
+<div id="add-section-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.2);">
+    <div style="font-size:36px;margin-bottom:10px;">➕</div>
+    <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--g800);margin-bottom:6px;">เพิ่ม Section ใหม่</div>
+    <div style="font-size:12px;color:var(--g400);margin-bottom:16px;">เช่น กลอนประตู, สายไฟ, ช่องใส่เหรียญ</div>
+    <input id="add-section-input" type="text" placeholder="ชื่อ Section..."
+      style="width:100%;padding:10px 14px;border:2px solid var(--g200);border-radius:8px;font-size:14px;outline:none;text-align:center;"
+      onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"
+      onkeydown="if(event.key==='Enter')confirmAddSection();if(event.key==='Escape')document.getElementById('add-section-modal').style.display='none'"/>
+    <div style="display:flex;gap:10px;margin-top:16px;">
+      <button onclick="document.getElementById('add-section-modal').style.display='none'" class="btn btn-outline" style="flex:1;">ยกเลิก</button>
+      <button onclick="confirmAddSection()" class="btn btn-red" style="flex:1;">✅ เพิ่ม</button>
+    </div>
+  </div>
+</div>
+
 <!-- ═══ DELETE MODAL ═══ -->
 <div id="delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:16px;padding:28px 24px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.2);">
@@ -377,8 +394,8 @@ let CFG = {
   redirectUri: "https://phalaphon-khamthaeng.github.io/Can-database-CDB2.0-/",
 };
 
-// 12 Photo sections
-const PS = [
+// 12 Photo sections (base — ไม่แก้ตรงนี้)
+const PS_BASE = [
   {key:"nameplate",       label:"Nameplate",              sub:"ป้ายข้อมูลหลักของตู้",         prefix:"Nameplate",      icon:"🏷️"},
   {key:"other_nameplate", label:"Other Nameplate",         sub:"ป้ายข้อมูลเพิ่มเติม",          prefix:"OtherNameplate", icon:"📋"},
   {key:"outside",         label:"Outside",                 sub:"ภาพรวมภายนอกตู้",             prefix:"Outside",        icon:"📦"},
@@ -392,7 +409,12 @@ const PS = [
   {key:"compressor",      label:"Compressor",              sub:"คอมเพรสเซอร์ระบบทำความเย็น",   prefix:"Compressor",     icon:"❄️"},
   {key:"other",           label:"Other",                   sub:"รูปภาพอื่นๆ เพิ่มเติม",        prefix:"Other",          icon:"📌"},
 ];
-const TOTAL = 3 + PS.length + 1; // 16
+// custom sections เพิ่มได้ระหว่าง wizard
+let PS_CUSTOM = [];
+// PS รวม base + custom (dynamic)
+let PS = [...PS_BASE];
+const getTotal = ()=> 3 + PS.length + 1;
+let TOTAL = getTotal();
 
 let records = [];
 let msalApp = null, accessToken = null, currentUser = null;
@@ -797,6 +819,9 @@ document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLightbox();});
 //  WIZARD
 // ════════════════════════════════════════════════
 function startWizard(){
+  PS_CUSTOM=[];
+  PS=[...PS_BASE];
+  TOTAL=getTotal();
   wizStep=0; wizData={brand:"",model:"",year:"",coolant:"",group:"",photos:{}};
   PS.forEach(p=>wizData.photos[p.key]=[]);
   showPage("wizard"); renderWiz(); updateUserUI();
@@ -808,6 +833,7 @@ function confirmCancel(){
   PS.forEach(p=>wizData.photos[p.key]=[]);showPage("list");
 }
 function renderWiz(){
+  TOTAL=getTotal();
   const s=wizStep;
   document.getElementById("wiz-prog").style.width=Math.round((s/(TOTAL-1))*100)+"%";
   document.getElementById("wiz-step-num").textContent=(s+1)+" / "+TOTAL;
@@ -831,10 +857,12 @@ function renderWiz(){
       const state=i+3<s?"done":i+3===s?"active":"upcoming";
       const cnt=wizData.photos[p.key]?.length||0;
       const targetStep=i+3;
-      return `<div class="tracker-item ${state}" onclick="wizGoTo(${targetStep})" style="cursor:pointer;">
-        ${p.icon} ${p.label}${cnt>0?` <span class="count-badge">${cnt}</span>`:""}
+      const isCustom=PS_CUSTOM.find(c=>c.key===p.key);
+      return `<div class="tracker-item ${state}" style="cursor:pointer;position:relative;">
+        <span onclick="wizGoTo(${targetStep})">${p.icon} ${p.label}${cnt>0?` <span class="count-badge">${cnt}</span>`:""}</span>
+        ${isCustom?`<span onclick="removeCustomSection('${p.key}')" style="margin-left:4px;color:#991B1B;font-weight:700;font-size:11px;cursor:pointer;" title="ลบ section นี้">✕</span>`:""}
       </div>`;
-    }).join("");
+    }).join("")+`<div class="tracker-item upcoming" onclick="promptAddSection()" style="cursor:pointer;border-style:dashed;color:var(--blue);border-color:var(--blue);">➕ เพิ่ม Section</div>`;
   }else document.getElementById("wiz-tracker").innerHTML="";
 }
 function textStepHtml(label,hint,icon,id,val){
@@ -974,6 +1002,36 @@ function summaryHtml(){
 }
 function getFolderName(){return [wizData.model,wizData.brand,wizData.year].filter(v=>v&&v!=="—"&&v!=="-").join("_")||"Cabinet_"+Date.now();}
 function setBrand(n){wizData.brand=n;const el=document.getElementById("wiz-brand");if(el)el.value=n;}
+function promptAddSection(){
+  document.getElementById("add-section-modal").style.display="flex";
+  document.getElementById("add-section-input").value="";
+  setTimeout(()=>document.getElementById("add-section-input").focus(),100);
+}
+function confirmAddSection(){
+  const name=document.getElementById("add-section-input").value.trim();
+  document.getElementById("add-section-modal").style.display="none";
+  if(!name) return;
+  const label=name;
+  const key="custom_"+label.replace(/\s+/g,"_").toLowerCase()+"_"+Date.now();
+  const prefix=label.replace(/\s+/g,"");
+  const newSection={key,label,sub:"รูปภาพ "+label,prefix,icon:"📷",custom:true};
+  PS_CUSTOM.push(newSection);
+  PS=[...PS_BASE,...PS_CUSTOM];
+  TOTAL=getTotal();
+  wizData.photos[key]=[];
+  showToast("✅ เพิ่ม Section: "+label);
+  renderWiz();
+}
+function removeCustomSection(key){
+  PS_CUSTOM=PS_CUSTOM.filter(c=>c.key!==key);
+  PS=[...PS_BASE,...PS_CUSTOM];
+  TOTAL=getTotal();
+  delete wizData.photos[key];
+  if(wizStep>=PS.length+3) wizStep=PS.length+2;
+  showToast("🗑️ ลบ Section แล้ว");
+  renderWiz();
+}
+
 function wizBack(){if(wizStep>0){wizStep--;renderWiz();}}
 function wizGoTo(step){
   // บันทึกค่าปัจจุบันก่อนเปลี่ยน step
