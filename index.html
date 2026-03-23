@@ -407,7 +407,6 @@ const PS_BASE = [
   {key:"inventory_side",  label:"Inventory Side",          sub:"ด้านช่องสินค้า",              prefix:"InventorySide",  icon:"🥤"},
   {key:"master_board",    label:"Master Board",            sub:"บอร์ดควบคุมหลัก",             prefix:"MasterBoard",    icon:"🖥️"},
   {key:"compressor",      label:"Compressor",              sub:"คอมเพรสเซอร์ระบบทำความเย็น",   prefix:"Compressor",     icon:"❄️"},
-  {key:"other",           label:"Other",                   sub:"รูปภาพอื่นๆ เพิ่มเติม",        prefix:"Other",          icon:"📌"},
 ];
 // custom sections เพิ่มได้ระหว่าง wizard
 let PS_CUSTOM = [];
@@ -794,9 +793,11 @@ async function _autoLoadDetailImages(){
 //  RENDER DETAIL PHOTOS (tap-to-expand design)
 // ════════════════════════════════════════════════
 function renderDetailPhotosHTML(r){
-  // รวม PS_BASE กับ custom sections ของ record นี้
   const customSects=(r.customSections||[]);
-  const allPS=[...PS_BASE,...customSects];
+  // ถ้า record เก่ามี "other" ให้แสดงด้วย แม้จะไม่อยู่ใน PS_BASE แล้ว
+  const otherSection={key:"other",label:"Other",sub:"รูปภาพอื่นๆ เพิ่มเติม",prefix:"Other",icon:"📌"};
+  const hasOther=(r.photos?.["other"]||[]).length>0;
+  const allPS=[...PS_BASE,...(hasOther?[otherSection]:[]),...customSects];
   return allPS.map(p=>{
     const photos=r.photos?.[p.key]||[];
     if(!photos.length) return `
