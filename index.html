@@ -194,7 +194,7 @@ input{font-family:'DM Sans',sans-serif;}
     </div>
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
-      <input type="text" id="search-input" placeholder="ค้นหา Brand / Model / Year..." oninput="renderList()"/>
+      <input type="text" id="search-input" placeholder="ค้นหา Brand / Model / Year... (ใช้ * เช่น FE*LHPAP)" oninput="renderList()"/>
     </div>
     <div id="list-container"></div>
   </div>
@@ -617,12 +617,21 @@ function setFilter(el,brand){
   el.classList.add("active");
   renderList();
 }
+function matchSearch(text, query){
+  if(!query) return true;
+  // รองรับ * เป็น wildcard เช่น FE*LHPAP, *36*, ***
+  if(query.includes("*")){
+    const pattern=query.replace(/[.+?^${}()|[\]\\]/g,"\\$&").replace(/\*/g,".*");
+    return new RegExp(pattern,"i").test(text);
+  }
+  return text.toLowerCase().includes(query.toLowerCase());
+}
 function renderList(){
   const q=(document.getElementById("search-input")?.value||"").toLowerCase();
   const filtered=records.filter(r=>{
-    const matchSearch=[r.brand,r.model,r.year].join(" ").toLowerCase().includes(q);
+    const searchText=[r.brand,r.model,r.year].join(" ");
     const matchBrand=!_filterBrand||r.brand===_filterBrand;
-    return matchSearch&&matchBrand;
+    return matchSearch(searchText,q)&&matchBrand;
   });
   document.getElementById("stat-total").textContent   =records.length;
   document.getElementById("stat-fuji").textContent    =records.filter(r=>r.brand==="Fuji").length;
@@ -1033,7 +1042,10 @@ function summaryHtml(){
         </div>`;}).join("")}
     </div></div>`;
 }
-function getFolderName(){return [wizData.model,wizData.brand,wizData.year].filter(v=>v&&v!=="—"&&v!=="-").join("_")||"Cabinet_"+Date.now();}
+function getFolderName(){
+  const fn=[wizData.model,wizData.brand,wizData.year].filter(v=>v&&v!=="—"&&v!=="-").join("_");
+  return sanitizeSP(fn)||"Cabinet_"+Date.now();
+}
 function setBrand(n){wizData.brand=n;const el=document.getElementById("wiz-brand");if(el)el.value=n;}
 function promptAddSection(){
   document.getElementById("add-section-modal").style.display="flex";
@@ -1440,14 +1452,18 @@ function resetAndBack(){
   renderWiz();
 }
 
+// แทน * ด้วย x และลบอักขระต้องห้ามอื่นๆ ใน SharePoint
+function sanitizeSP(s){
+  return (s||"").replace(/\*/g,"x").replace(/[":<>?/\\|#%{}~&[\]]/g,"").replace(/\s+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"").trim();
+}
 function getRenamedFile(fn,prefix,idx,originalName,caption=""){
   const ext=(originalName||"img.jpg").split(".").pop()||"jpg";
+  const safeFn=sanitizeSP(fn);
   if(caption&&caption.trim()){
-    // ใช้ caption เป็นชื่อไฟล์ ลบอักขระพิเศษออก
-    const safeName=caption.trim().replace(/[\\/?*[\]:]/g,"_").replace(/\s+/g,"_");
-    return `${fn}_${prefix}_${idx+1}_${safeName}.${ext}`;
+    const safeCap=sanitizeSP(caption.trim()).replace(/\s+/g,"_");
+    return `${safeFn}_${prefix}_${idx+1}_${safeCap}.${ext}`;
   }
-  return `${fn}_${prefix}_${idx+1}.${ext}`;
+  return `${safeFn}_${prefix}_${idx+1}.${ext}`;
 }
 function encPath(p){return p.split("/").map(encodeURIComponent).join("/");}
 
