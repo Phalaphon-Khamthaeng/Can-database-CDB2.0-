@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Can Data Base</title>
+<title>SUN VENDING — Cabinet Database</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -714,18 +714,47 @@ async function showDetail(idx){
 async function populateSpPhotos(r){
   try{
     const files=await listSpFolder(`${CFG.modelPath}/${r.folderName}`);
-    PS.forEach(p=>{
+    // map PS_BASE ก่อน
+    PS_BASE.forEach(p=>{
       const m=files.filter(f=>f.name&&f.name.includes(p.prefix));
       if(m.length) r.photos[p.key]=m.map(f=>({savedName:f.name,name:f.name,preview:""}));
     });
-    if(!PS.some(p=>(r.photos[p.key]||[]).length>0)&&files.length)
+    // ตรวจจับ custom sections จากชื่อไฟล์ที่ไม่ match PS_BASE prefix ใดเลย
+    const knownPrefixes=PS_BASE.map(p=>p.prefix);
+    const unknownFiles=files.filter(f=>{
+      if(!f.name) return false;
+      return !knownPrefixes.some(px=>f.name.includes(px));
+    });
+    // จัดกลุ่มโดยดู prefix จากชื่อไฟล์ เช่น "FolderName_PrefixName_1.jpg"
+    const customGroups={};
+    unknownFiles.forEach(f=>{
+      const parts=f.name.replace(/\.[^.]+$/,"").split("_");
+      // prefix คือส่วนที่ 2 จาก folderName_prefix_N
+      const folderParts=(r.folderName||"").split("_").length;
+      const prefix=parts.slice(folderParts,parts.length-1).join("_");
+      if(!prefix) return;
+      if(!customGroups[prefix]) customGroups[prefix]=[];
+      customGroups[prefix].push(f);
+    });
+    // สร้าง customSections ถ้ายังไม่มี
+    if(!r.customSections) r.customSections=[];
+    Object.entries(customGroups).forEach(([prefix,grpFiles])=>{
+      const key="custom_"+prefix.toLowerCase()+"_detected";
+      if(!r.customSections.find(c=>c.prefix===prefix)){
+        r.customSections.push({key,label:prefix,sub:"รูปภาพ "+prefix,prefix,icon:"📷"});
+      }
+      const sect=r.customSections.find(c=>c.prefix===prefix);
+      if(sect) r.photos[sect.key]=grpFiles.map(f=>({savedName:f.name,name:f.name,preview:""}));
+    });
+    if(!PS_BASE.some(p=>(r.photos[p.key]||[]).length>0)&&!r.customSections?.length&&files.length)
       r.photos["nameplate"]=files.map(f=>({savedName:f.name,name:f.name,preview:""}));
-    // ✅ cache photo list ลง localStorage ไม่ต้องดึงใหม่ทุกครั้ง
+    // cache ลง localStorage
     try{
       const cached=JSON.parse(localStorage.getItem("cabinet_records")||"[]");
       const ci=cached.findIndex(c=>c.folderName===r.folderName);
       if(ci>=0){
-        cached[ci].photos=Object.fromEntries(PS.map(p=>[p.key,(r.photos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))]));
+        cached[ci].photos=Object.fromEntries(PS_BASE.map(p=>[p.key,(r.photos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))]));
+        cached[ci].customSections=r.customSections;
         localStorage.setItem("cabinet_records",JSON.stringify(cached));
       }
     }catch{}
@@ -765,7 +794,10 @@ async function _autoLoadDetailImages(){
 //  RENDER DETAIL PHOTOS (tap-to-expand design)
 // ════════════════════════════════════════════════
 function renderDetailPhotosHTML(r){
-  return PS.map(p=>{
+  // รวม PS_BASE กับ custom sections ของ record นี้
+  const customSects=(r.customSections||[]);
+  const allPS=[...PS_BASE,...customSects];
+  return allPS.map(p=>{
     const photos=r.photos?.[p.key]||[];
     if(!photos.length) return `
       <div class="detail-card">
@@ -1236,7 +1268,9 @@ async function doUpload(){
     // Save record
     const photosStorage=Object.fromEntries(PS.map(p=>[p.key,(savedPhotos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))  ]));
     const newRec={id:Date.now(),brand:wizData.brand,model:wizData.model,year:wizData.year,coolant:wizData.coolant,group:wizData.group,
-      uploaded:true,folderName,photos:photosStorage,date:new Date().toLocaleDateString("th-TH",{year:"numeric",month:"short",day:"numeric"})};
+      uploaded:true,folderName,photos:photosStorage,
+      customSections:PS_CUSTOM.map(p=>({key:p.key,label:p.label,sub:p.sub,prefix:p.prefix,icon:p.icon})),
+      date:new Date().toLocaleDateString("th-TH",{year:"numeric",month:"short",day:"numeric"})};
     records.unshift({...newRec,photos:savedPhotos});
     try{localStorage.setItem("cabinet_records",JSON.stringify([newRec,...records.slice(1)]));}
     catch{try{localStorage.setItem("cabinet_records",JSON.stringify(records.map(r=>({...r,photos:Object.fromEntries(PS.map(p=>[p.key,[]]))}))));} catch{}}
