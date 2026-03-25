@@ -157,83 +157,7 @@ input{font-family:'DM Sans',sans-serif;}
 .drag-handle:hover{color:var(--purple);}
 .drag-handle:active{cursor:grabbing;}
 
-/* ── SPLIT VIEW OVERLAY ── */
-.split-overlay{
-  position:fixed;inset:0;background:#000;z-index:9999;
-  display:none;flex-direction:column;
-  overflow:hidden;
-}
-.split-overlay.open{display:flex;}
-.split-topbar{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:10px 16px;background:rgba(0,0,0,.7);flex-shrink:0;gap:8px;
-  border-bottom:1px solid rgba(255,255,255,.1);
-}
-.split-label{font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.7);}
-.split-label.sl{color:var(--purple-light);}
-.split-label.sr{color:var(--blue-light);}
-.split-topbar-center{font-size:11px;color:rgba(255,255,255,.4);text-align:center;flex:1;}
-.split-close{background:rgba(255,255,255,.12);border:none;color:#fff;font-size:16px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
-
-/* the main split viewport */
-.split-viewport{
-  flex:1;position:relative;overflow:hidden;touch-action:none;
-}
-.split-img-left,.split-img-right{
-  position:absolute;inset:0;
-  display:flex;align-items:center;justify-content:center;
-  overflow:hidden;
-}
-.split-img-left img,.split-img-right img{
-  width:100%;height:100%;object-fit:contain;
-  user-select:none;pointer-events:none;
-  -webkit-user-drag:none;
-}
-/* clip left side */
-.split-img-left{clip-path:inset(0 50% 0 0);}
-/* clip right side */
-.split-img-right{clip-path:inset(0 0 0 50%);}
-
-/* divider line */
-.split-divider{
-  position:absolute;top:0;bottom:0;width:3px;
-  background:rgba(255,255,255,.9);
-  transform:translateX(-50%);
-  cursor:ew-resize;
-  z-index:10;
-  box-shadow:0 0 8px rgba(0,0,0,.6);
-  left:50%;
-}
-.split-handle{
-  position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  width:36px;height:36px;border-radius:50%;
-  background:#fff;
-  display:flex;align-items:center;justify-content:center;
-  font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.4);
-  cursor:ew-resize;user-select:none;
-}
-/* badge overlays */
-.split-badge-left,.split-badge-right{
-  position:absolute;top:12px;font-size:10px;font-weight:700;
-  padding:3px 10px;border-radius:20px;pointer-events:none;z-index:5;
-}
-.split-badge-left{left:12px;background:rgba(124,58,237,.85);color:#fff;}
-.split-badge-right{right:12px;background:rgba(37,99,235,.85);color:#fff;}
-
-/* nav arrows */
-.split-nav{
-  display:flex;align-items:center;justify-content:space-between;
-  padding:8px 16px;background:rgba(0,0,0,.6);flex-shrink:0;gap:12px;
-}
-.split-nav-btn{
-  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
-  color:#fff;font-size:12px;font-weight:700;padding:6px 16px;border-radius:20px;
-  cursor:pointer;transition:all .2s;flex:1;text-align:center;
-}
-.split-nav-btn:hover{background:rgba(255,255,255,.2);}
-.split-nav-btn:disabled{opacity:.3;cursor:default;}
-.split-photo-counter{color:rgba(255,255,255,.5);font-size:11px;min-width:60px;text-align:center;}
+/* old split view CSS removed - using inline styles in bigcmp-overlay */
 
 /* ════ COMPARE PAGE ════ */
 #page-compare{background:var(--g50);}
@@ -582,25 +506,70 @@ input{font-family:'DM Sans',sans-serif;}
 </div>
 <div class="toast-bar" id="toast-bar"></div>
 
-<!-- ═══ SPLIT VIEW OVERLAY ═══ -->
-<div class="split-overlay" id="split-overlay">
-  <div class="split-topbar">
-    <span class="split-label sl" id="split-label-l">🟣 ตู้ที่ 1</span>
-    <div class="split-topbar-center">ลากแนวกลางเพื่อเปรียบเทียบ</div>
-    <span class="split-label sr" id="split-label-r">🔵 ตู้ที่ 2</span>
-    <button class="split-close" onclick="closeSplit()">✕</button>
+<!-- ═══ BIG COMPARE OVERLAY ═══ -->
+<div id="bigcmp-overlay" style="display:none;position:fixed;inset:0;background:#0A0A0A;z-index:9999;flex-direction:column;">
+  <!-- Top bar -->
+  <div id="bigcmp-topbar" style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(0,0,0,.8);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;">
+    <!-- Left title -->
+    <div style="flex:1;min-width:0;">
+      <div id="bigcmp-title-l" style="font-size:11px;font-weight:700;color:#C4B5FD;letter-spacing:1px;">🟣 ตู้ที่ 1</div>
+      <div id="bigcmp-model-l" style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+    </div>
+    <!-- Mode toggle buttons -->
+    <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+      <button id="bigcmp-mode-side" onclick="setBigCmpMode('side')" style="padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">◫ เคียงกัน</button>
+      <button id="bigcmp-mode-split" onclick="setBigCmpMode('split')" style="padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1.5px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);cursor:pointer;">⇄ Slider</button>
+      <button onclick="closeBigCmp()" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
+    </div>
+    <!-- Right title -->
+    <div style="flex:1;min-width:0;text-align:right;">
+      <div id="bigcmp-title-r" style="font-size:11px;font-weight:700;color:#93C5FD;letter-spacing:1px;">🔵 ตู้ที่ 2</div>
+      <div id="bigcmp-model-r" style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+    </div>
   </div>
-  <div class="split-viewport" id="split-viewport">
-    <div class="split-img-left" id="split-left"><img id="split-img-l" src="" alt="" draggable="false"/></div>
-    <div class="split-img-right" id="split-right"><img id="split-img-r" src="" alt="" draggable="false"/></div>
-    <div class="split-badge-left" id="split-badge-l">🟣 ตู้ที่ 1</div>
-    <div class="split-badge-right" id="split-badge-r">🔵 ตู้ที่ 2</div>
-    <div class="split-divider" id="split-divider"><div class="split-handle">⇄</div></div>
+
+  <!-- Main view area -->
+  <div id="bigcmp-main" style="flex:1;position:relative;overflow:hidden;display:flex;">
+
+    <!-- ── SIDE BY SIDE mode ── -->
+    <div id="bigcmp-side" style="display:flex;width:100%;height:100%;gap:2px;">
+      <div style="flex:1;position:relative;overflow:hidden;background:#111;">
+        <img id="bigcmp-img-l" src="" style="width:100%;height:100%;object-fit:contain;" draggable="false"/>
+        <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(124,58,237,.85);color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;pointer-events:none;" id="bigcmp-badge-l">🟣 ตู้ที่ 1</div>
+      </div>
+      <div style="width:2px;background:rgba(255,255,255,.12);flex-shrink:0;"></div>
+      <div style="flex:1;position:relative;overflow:hidden;background:#111;">
+        <img id="bigcmp-img-r" src="" style="width:100%;height:100%;object-fit:contain;" draggable="false"/>
+        <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(37,99,235,.85);color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;pointer-events:none;" id="bigcmp-badge-r">🔵 ตู้ที่ 2</div>
+      </div>
+    </div>
+
+    <!-- ── SPLIT SLIDER mode ── -->
+    <div id="bigcmp-slider" style="display:none;width:100%;height:100%;position:relative;overflow:hidden;background:#111;">
+      <!-- Left (clipped) -->
+      <div id="bcmp-sl-left" style="position:absolute;inset:0;overflow:hidden;">
+        <img id="bcmp-sl-img-l" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;" draggable="false"/>
+        <div style="position:absolute;top:14px;left:14px;background:rgba(124,58,237,.85);color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;" id="bcmp-sl-badge-l">🟣 ตู้ที่ 1</div>
+      </div>
+      <!-- Right (clipped) -->
+      <div id="bcmp-sl-right" style="position:absolute;inset:0;overflow:hidden;">
+        <img id="bcmp-sl-img-r" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;" draggable="false"/>
+        <div style="position:absolute;top:14px;right:14px;background:rgba(37,99,235,.85);color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;" id="bcmp-sl-badge-r">🔵 ตู้ที่ 2</div>
+      </div>
+      <!-- Divider -->
+      <div id="bcmp-divider" style="position:absolute;top:0;bottom:0;left:50%;width:4px;background:#fff;transform:translateX(-50%);cursor:ew-resize;z-index:10;box-shadow:0 0 12px rgba(0,0,0,.8);">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,.5);color:#374151;font-weight:700;user-select:none;">⇄</div>
+      </div>
+    </div>
+
   </div>
-  <div class="split-nav">
-    <button class="split-nav-btn" id="split-prev" onclick="splitNav(-1)">← ก่อนหน้า</button>
-    <span class="split-photo-counter" id="split-counter">1 / 1</span>
-    <button class="split-nav-btn" id="split-next" onclick="splitNav(1)">ถัดไป →</button>
+
+  <!-- Bottom nav -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:rgba(0,0,0,.7);flex-shrink:0;gap:12px;">
+    <button id="bigcmp-prev" onclick="bigCmpNav(-1)" style="padding:8px 20px;border-radius:20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex:1;">← แถวก่อนหน้า</button>
+    <!-- Thumbnail strip -->
+    <div id="bigcmp-thumbstrip" style="display:flex;gap:6px;overflow-x:auto;flex:3;justify-content:center;padding:0 4px;"></div>
+    <button id="bigcmp-next" onclick="bigCmpNav(1)" style="padding:8px 20px;border-radius:20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex:1;text-align:right;">แถวถัดไป →</button>
   </div>
 </div>
 
@@ -863,7 +832,7 @@ function renderCmpBody(recs,filledIdx){
       const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
       const ca=sp?(_imgCache[sp]||""):"";
       // ถ้ามี 2 ตู้ แสดง hint สำหรับ split view
-      const splitHint=recs.length===2&&i===0?`<span style="position:absolute;top:5px;right:5px;background:rgba(124,58,237,.8);color:#fff;font-size:9px;padding:2px 7px;border-radius:8px;">⇄ กดเปิดเทียบ</span>`:"";
+      const splitHint=`<span style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.45);color:#fff;font-size:9px;padding:2px 7px;border-radius:8px;">⊞ ขยาย</span>`;
       return `<div style="flex:1;position:relative;border-radius:10px;overflow:hidden;background:var(--g100);aspect-ratio:1;border:2px solid ${borderColor};">
         <img id="ci-${i}-${row}" src="${ca}"
           class="${ca?"detail-img-loaded":"detail-img-loading cmp-skeleton"}"
@@ -894,24 +863,13 @@ function renderCmpBody(recs,filledIdx){
   if(accessToken) loadCmpImages();
 }
 
-// ─── click: single col → lightbox, 2-col row col0 → split view ───
+// ─── click on any image in compare → open big compare overlay ───
 function handleCmpImgClick(row,colIdx){
   const filledIdx=_compareSlots.filter(s=>s!=null);
   const recs=filledIdx.map(i=>records[i]);
-  if(recs.length===2){
-    // open split view for this row
+  if(recs.length>=2){
+    // always open big compare overlay — กดรูปไหนก็เปิด overlay เทียบกัน
     openSplitView(row,recs);
-  } else {
-    // 3-col → lightbox
-    const r=recs[colIdx];
-    const photos=r.photos?.[_cmpActiveSection]||[];
-    const ph=photos[row];if(!ph)return;
-    const folder=r.spFolderName||sanitizeSP(r.folderName||"");
-    const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
-    const ca=sp?(_imgCache[sp]||""):"";
-    document.getElementById("lightbox-img").src=ca||ph.preview||"";
-    document.getElementById("lb-cap").textContent=`${SLOT_COLORS[colIdx].label} · ${r.model||""} · ${ph.savedName||ph.name||""}`;
-    document.getElementById("lightbox").classList.add("open");
   }
 }
 
@@ -969,106 +927,163 @@ function openLbCmp(el,name,slot){
 }
 
 // ════════════════════════════════════════════════
-//  SPLIT VIEW (before/after slider)
+//  BIG COMPARE OVERLAY
+//  2 modes: "side" (side-by-side) | "split" (slider)
 // ════════════════════════════════════════════════
-let _splitCurrentRow=0;
+let _bigRow=0, _bigRecs=[], _bigMode="side", _bcmpDragging=false;
 
-function openSplitView(row,recs){
-  _splitCurrentRow=row;
-  _splitRecs=recs;
-  loadSplitRow(row,recs);
-  document.getElementById("split-overlay").classList.add("open");
-  initSplitDrag();
+function openSplitView(row, recs){
+  _bigRow=row; _bigRecs=recs;
+  // default to side-by-side
+  setBigCmpMode("side");
+  _loadBigRow(row);
+  _buildThumbStrip();
+  document.getElementById("bigcmp-overlay").style.display="flex";
+  _initSliderDrag();
 }
 
-let _splitRecs=[];
+function closeBigCmp(){
+  document.getElementById("bigcmp-overlay").style.display="none";
+}
 
-function loadSplitRow(row,recs){
+function setBigCmpMode(mode){
+  _bigMode=mode;
+  document.getElementById("bigcmp-side").style.display=mode==="side"?"flex":"none";
+  document.getElementById("bigcmp-slider").style.display=mode==="split"?"block":"none";
+  // button styles
+  const bs=document.getElementById("bigcmp-mode-side");
+  const bsl=document.getElementById("bigcmp-mode-split");
+  if(bs){bs.style.background=mode==="side"?"rgba(255,255,255,.2)":"transparent";bs.style.color=mode==="side"?"#fff":"rgba(255,255,255,.4)";bs.style.borderColor=mode==="side"?"rgba(255,255,255,.3)":"rgba(255,255,255,.1)";}
+  if(bsl){bsl.style.background=mode==="split"?"rgba(255,255,255,.2)":"transparent";bsl.style.color=mode==="split"?"#fff":"rgba(255,255,255,.4)";bsl.style.borderColor=mode==="split"?"rgba(255,255,255,.3)":"rgba(255,255,255,.1)";}
+  if(mode==="split") _setSliderPos(50);
+  _loadBigRow(_bigRow); // reload images for current mode
+}
+
+function _getImg(r, row){
+  const photos=r.photos?.[_cmpActiveSection]||[];
+  const ph=photos[row]; if(!ph) return "";
+  const folder=r.spFolderName||sanitizeSP(r.folderName||"");
+  const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
+  return sp?(_imgCache[sp]||""):ph.preview||"";
+}
+
+function _loadImgEl(el, r, row){
+  const photos=r.photos?.[_cmpActiveSection]||[];
+  const ph=photos[row]; if(!ph){el.src="";return;}
+  const folder=r.spFolderName||sanitizeSP(r.folderName||"");
+  const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
+  const ca=sp?(_imgCache[sp]||""):"";
+  if(ca){el.src=ca;}
+  else if(accessToken&&sp){el.src="";loadSpImg(el,sp);}
+  else el.src=ph.preview||"";
+}
+
+function _loadBigRow(row){
+  const recs=_bigRecs;
   const maxRows=Math.max(...recs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
-  // Update counter & nav
-  document.getElementById("split-counter").textContent=`แถว ${row+1} / ${maxRows}`;
-  document.getElementById("split-prev").disabled=row<=0;
-  document.getElementById("split-next").disabled=row>=maxRows-1;
-  // Labels
-  document.getElementById("split-label-l").textContent=SLOT_COLORS[0].label+" "+recs[0].model;
-  document.getElementById("split-label-r").textContent=SLOT_COLORS[1].label+" "+recs[1].model;
-  document.getElementById("split-badge-l").textContent=SLOT_COLORS[0].label;
-  document.getElementById("split-badge-r").textContent=SLOT_COLORS[1].label;
-  // Load images
-  [0,1].forEach(i=>{
-    const r=recs[i];
-    const photos=r.photos?.[_cmpActiveSection]||[];
-    const ph=photos[row];
-    const imgEl=document.getElementById(i===0?"split-img-l":"split-img-r");
-    if(!ph){imgEl.src="";return;}
-    const folder=r.spFolderName||sanitizeSP(r.folderName||"");
-    const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
-    const ca=sp?(_imgCache[sp]||""):"";
-    if(ca){imgEl.src=ca;}
-    else if(accessToken&&sp){loadSpImg(imgEl,sp);}
-    else imgEl.src=ph.preview||"";
+  // Nav
+  const prev=document.getElementById("bigcmp-prev");
+  const next=document.getElementById("bigcmp-next");
+  if(prev) prev.disabled=row<=0;
+  if(next) next.disabled=row>=maxRows-1;
+  // Headers
+  const labels=["bigcmp-title-l","bigcmp-title-r"];
+  const models=["bigcmp-model-l","bigcmp-model-r"];
+  const badges=["bigcmp-badge-l","bigcmp-badge-r","bcmp-sl-badge-l","bcmp-sl-badge-r"];
+  recs.forEach((r,i)=>{
+    const slot=SLOT_COLORS[i];
+    const el=document.getElementById(labels[i]);if(el)el.textContent=slot.label;
+    const em=document.getElementById(models[i]);if(em)em.textContent=r.model||"";
   });
-  // Reset divider to 50%
-  setSplitPos(50);
+  // Side-by-side images
+  _loadImgEl(document.getElementById("bigcmp-img-l"),recs[0],row);
+  _loadImgEl(document.getElementById("bigcmp-img-r"),recs[1],row);
+  // Slider images
+  _loadImgEl(document.getElementById("bcmp-sl-img-l"),recs[0],row);
+  _loadImgEl(document.getElementById("bcmp-sl-img-r"),recs[1],row);
+  // Highlight thumb
+  document.querySelectorAll(".bigcmp-thumb").forEach((t,i)=>{
+    t.style.outline=i===row?"3px solid #a78bfa":"none";
+    t.style.opacity=i===row?"1":"0.55";
+  });
 }
 
-function splitNav(dir){
-  const maxRows=Math.max(..._splitRecs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
-  const next=_splitCurrentRow+dir;
+function bigCmpNav(dir){
+  const maxRows=Math.max(..._bigRecs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
+  const next=_bigRow+dir;
   if(next<0||next>=maxRows)return;
-  _splitCurrentRow=next;
-  loadSplitRow(_splitCurrentRow,_splitRecs);
+  _bigRow=next;
+  _loadBigRow(_bigRow);
 }
 
-function closeSplit(){
-  document.getElementById("split-overlay").classList.remove("open");
+function bigCmpGoRow(row){
+  _bigRow=row;
+  _loadBigRow(row);
 }
 
-function setSplitPos(pct){
-  pct=Math.max(5,Math.min(95,pct));
-  document.getElementById("split-left").style.clipPath=`inset(0 ${100-pct}% 0 0)`;
-  document.getElementById("split-right").style.clipPath=`inset(0 0 0 ${pct}%)`;
-  document.getElementById("split-divider").style.left=pct+"%";
+function _buildThumbStrip(){
+  const strip=document.getElementById("bigcmp-thumbstrip");
+  if(!strip) return;
+  const maxRows=Math.max(..._bigRecs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
+  let html="";
+  for(let i=0;i<maxRows;i++){
+    const src=_getImg(_bigRecs[0],i)||_getImg(_bigRecs[1],i)||"";
+    html+=`<div class="bigcmp-thumb" onclick="bigCmpGoRow(${i})"
+      style="width:48px;height:48px;flex-shrink:0;border-radius:7px;overflow:hidden;cursor:pointer;
+      outline:${i===_bigRow?"3px solid #a78bfa":"none"};opacity:${i===_bigRow?"1":"0.55"};transition:all .2s;">
+      ${src?`<img src="${src}" style="width:100%;height:100%;object-fit:cover;" draggable="false"/>`:`<div style="width:100%;height:100%;background:#222;display:flex;align-items:center;justify-content:center;color:#555;font-size:16px;">📷</div>`}
+    </div>`;
+  }
+  strip.innerHTML=html;
 }
 
-function initSplitDrag(){
-  const vp=document.getElementById("split-viewport");
-  const divider=document.getElementById("split-divider");
+// ── Slider drag ──
+function _setSliderPos(pct){
+  pct=Math.max(3,Math.min(97,pct));
+  const left=document.getElementById("bcmp-sl-left");
+  const right=document.getElementById("bcmp-sl-right");
+  const divider=document.getElementById("bcmp-divider");
+  if(left) left.style.clipPath=`inset(0 ${100-pct}% 0 0)`;
+  if(right) right.style.clipPath=`inset(0 0 0 ${pct}%)`;
+  if(divider) divider.style.left=pct+"%";
+}
+
+function _initSliderDrag(){
+  const slider=document.getElementById("bigcmp-slider");
+  const divider=document.getElementById("bcmp-divider");
+  if(!slider||!divider) return;
+  // clone to remove old listeners
+  const newDiv=divider.cloneNode(true);
+  divider.parentNode.replaceChild(newDiv,divider);
+  const getX=e=>e.touches?e.touches[0].clientX:e.clientX;
   let dragging=false;
-
-  function getX(e){return e.touches?e.touches[0].clientX:e.clientX;}
-
-  function onMove(e){
+  newDiv.addEventListener("mousedown",e=>{dragging=true;e.preventDefault();});
+  newDiv.addEventListener("touchstart",()=>{dragging=true;},{passive:true});
+  slider.addEventListener("mousemove",e=>{
+    if(!dragging)return;
+    const r=slider.getBoundingClientRect();
+    _setSliderPos(((getX(e)-r.left)/r.width)*100);
+  });
+  slider.addEventListener("touchmove",e=>{
     if(!dragging)return;
     e.preventDefault();
-    const rect=vp.getBoundingClientRect();
-    const pct=((getX(e)-rect.left)/rect.width)*100;
-    setSplitPos(pct);
-  }
-
-  // Remove old listeners by cloning
-  const newVp=vp.cloneNode(true);
-  vp.parentNode.replaceChild(newVp,vp);
-
-  // Re-grab refs after clone
-  const vp2=document.getElementById("split-viewport");
-  const div2=document.getElementById("split-divider");
-
-  div2.addEventListener("mousedown",e=>{dragging=true;e.preventDefault();});
-  div2.addEventListener("touchstart",e=>{dragging=true;},{passive:true});
-  vp2.addEventListener("mousemove",onMove);
-  vp2.addEventListener("touchmove",onMove,{passive:false});
-  vp2.addEventListener("mouseup",()=>dragging=false);
-  vp2.addEventListener("touchend",()=>dragging=false);
-  vp2.addEventListener("mouseleave",()=>dragging=false);
+    const r=slider.getBoundingClientRect();
+    _setSliderPos(((getX(e)-r.left)/r.width)*100);
+  },{passive:false});
+  const stop=()=>dragging=false;
+  slider.addEventListener("mouseup",stop);
+  slider.addEventListener("touchend",stop);
+  slider.addEventListener("mouseleave",stop);
 }
 
-// keyboard nav for split
+// keyboard
 document.addEventListener("keydown",e=>{
-  if(!document.getElementById("split-overlay").classList.contains("open"))return;
-  if(e.key==="ArrowLeft")splitNav(-1);
-  if(e.key==="ArrowRight")splitNav(1);
-  if(e.key==="Escape")closeSplit();
+  const ov=document.getElementById("bigcmp-overlay");
+  if(!ov||ov.style.display==="none")return;
+  if(e.key==="ArrowLeft"||e.key==="ArrowUp")bigCmpNav(-1);
+  if(e.key==="ArrowRight"||e.key==="ArrowDown")bigCmpNav(1);
+  if(e.key==="Escape")closeBigCmp();
+  if(e.key==="s"||e.key==="S")setBigCmpMode(_bigMode==="side"?"split":"side");
 });
 
 // ════════════════════════════════════════════════
