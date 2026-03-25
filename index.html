@@ -149,13 +149,14 @@ input{font-family:'DM Sans',sans-serif;}
 .cmp-swap-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1.5px solid var(--purple-light);background:var(--purple-bg);color:var(--purple);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .2s;}
 .cmp-swap-btn:hover{background:var(--purple);color:#fff;}
 
-/* ── DRAG REORDER ── */
-.cmp-row-drag{transition:opacity .2s,transform .2s;}
-.cmp-row-drag.dragging{opacity:.45;transform:scale(.97);}
-.cmp-row-drag.drag-over{outline:2px dashed var(--purple);border-radius:10px;outline-offset:2px;}
-.drag-handle{cursor:grab;color:var(--g300);font-size:14px;user-select:none;padding:0 4px;display:flex;align-items:center;}
-.drag-handle:hover{color:var(--purple);}
-.drag-handle:active{cursor:grabbing;}
+/* ── ROW REORDER BUTTONS ── */
+.row-move-btns{display:flex;flex-direction:column;gap:3px;flex-shrink:0;justify-content:center;}
+.row-move-btn{width:24px;height:24px;border-radius:6px;border:1px solid var(--g200);background:var(--white);
+  color:var(--g400);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;line-height:1;padding:0;}
+.row-move-btn:hover{background:var(--purple-bg);border-color:var(--purple-light);color:var(--purple);}
+.row-move-btn:disabled{opacity:.2;cursor:default;}
+.row-num{width:16px;text-align:center;font-size:10px;font-weight:700;color:var(--g300);flex-shrink:0;line-height:1;}
 
 /* old split view CSS removed - using inline styles in bigcmp-overlay */
 
@@ -508,68 +509,47 @@ input{font-family:'DM Sans',sans-serif;}
 
 <!-- ═══ BIG COMPARE OVERLAY ═══ -->
 <div id="bigcmp-overlay" style="display:none;position:fixed;inset:0;background:#0A0A0A;z-index:9999;flex-direction:column;">
+
   <!-- Top bar -->
-  <div id="bigcmp-topbar" style="display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(0,0,0,.8);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;">
-    <!-- Left title -->
-    <div style="flex:1;min-width:0;">
-      <div id="bigcmp-title-l" style="font-size:11px;font-weight:700;color:#C4B5FD;letter-spacing:1px;">🟣 ตู้ที่ 1</div>
-      <div id="bigcmp-model-l" style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
-    </div>
-    <!-- Mode toggle buttons -->
-    <div style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
-      <button id="bigcmp-mode-side" onclick="setBigCmpMode('side')" style="padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1.5px solid rgba(255,255,255,.2);background:rgba(255,255,255,.15);color:#fff;cursor:pointer;">◫ เคียงกัน</button>
-      <button id="bigcmp-mode-split" onclick="setBigCmpMode('split')" style="padding:6px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1.5px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.5);cursor:pointer;">⇄ Slider</button>
-      <button onclick="closeBigCmp()" style="width:32px;height:32px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;">✕</button>
-    </div>
-    <!-- Right title -->
-    <div style="flex:1;min-width:0;text-align:right;">
-      <div id="bigcmp-title-r" style="font-size:11px;font-weight:700;color:#93C5FD;letter-spacing:1px;">🔵 ตู้ที่ 2</div>
-      <div id="bigcmp-model-r" style="font-family:'Bebas Neue',sans-serif;font-size:18px;color:#fff;letter-spacing:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+  <div style="display:flex;align-items:center;gap:8px;padding:10px 14px;background:rgba(0,0,0,.85);border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;flex-wrap:wrap;">
+    <!-- Titles (1-3 slots, rendered by JS) -->
+    <div id="bigcmp-titles" style="display:flex;gap:6px;flex:1;min-width:0;overflow:hidden;"></div>
+    <!-- Mode buttons -->
+    <div style="display:flex;gap:5px;align-items:center;flex-shrink:0;">
+      <button id="bigcmp-mode-side" onclick="setBigCmpMode('side')"
+        style="padding:5px 11px;border-radius:20px;font-size:11px;font-weight:700;border:1.5px solid rgba(255,255,255,.25);background:rgba(255,255,255,.18);color:#fff;cursor:pointer;">◫ เคียงกัน</button>
+      <button id="bigcmp-mode-split" onclick="setBigCmpMode('split')"
+        style="padding:5px 11px;border-radius:20px;font-size:11px;font-weight:700;border:1.5px solid rgba(255,255,255,.1);background:transparent;color:rgba(255,255,255,.4);cursor:pointer;" id="bigcmp-mode-split-btn">⇄ Slider <span id="bigcmp-slider-note" style="font-size:9px;opacity:.6;">(2 ตู้)</span></button>
+      <button onclick="closeBigCmp()"
+        style="width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:15px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;">✕</button>
     </div>
   </div>
 
-  <!-- Main view area -->
-  <div id="bigcmp-main" style="flex:1;position:relative;overflow:hidden;display:flex;">
+  <!-- Main area: side-by-side -->
+  <div id="bigcmp-side" style="flex:1;display:flex;gap:2px;overflow:hidden;background:#0A0A0A;"></div>
 
-    <!-- ── SIDE BY SIDE mode ── -->
-    <div id="bigcmp-side" style="display:flex;width:100%;height:100%;gap:2px;">
-      <div style="flex:1;position:relative;overflow:hidden;background:#111;">
-        <img id="bigcmp-img-l" src="" style="width:100%;height:100%;object-fit:contain;" draggable="false"/>
-        <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(124,58,237,.85);color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;pointer-events:none;" id="bigcmp-badge-l">🟣 ตู้ที่ 1</div>
-      </div>
-      <div style="width:2px;background:rgba(255,255,255,.12);flex-shrink:0;"></div>
-      <div style="flex:1;position:relative;overflow:hidden;background:#111;">
-        <img id="bigcmp-img-r" src="" style="width:100%;height:100%;object-fit:contain;" draggable="false"/>
-        <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);background:rgba(37,99,235,.85);color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;pointer-events:none;" id="bigcmp-badge-r">🔵 ตู้ที่ 2</div>
-      </div>
+  <!-- Main area: split slider (2-col only) -->
+  <div id="bigcmp-slider" style="display:none;flex:1;position:relative;overflow:hidden;background:#111;">
+    <div id="bcmp-sl-left" style="position:absolute;inset:0;overflow:hidden;">
+      <img id="bcmp-sl-img-l" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;" draggable="false"/>
+      <div id="bcmp-sl-badge-l" style="position:absolute;top:12px;left:12px;background:rgba(124,58,237,.85);color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;">🟣 ตู้ที่ 1</div>
     </div>
-
-    <!-- ── SPLIT SLIDER mode ── -->
-    <div id="bigcmp-slider" style="display:none;width:100%;height:100%;position:relative;overflow:hidden;background:#111;">
-      <!-- Left (clipped) -->
-      <div id="bcmp-sl-left" style="position:absolute;inset:0;overflow:hidden;">
-        <img id="bcmp-sl-img-l" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;" draggable="false"/>
-        <div style="position:absolute;top:14px;left:14px;background:rgba(124,58,237,.85);color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;" id="bcmp-sl-badge-l">🟣 ตู้ที่ 1</div>
-      </div>
-      <!-- Right (clipped) -->
-      <div id="bcmp-sl-right" style="position:absolute;inset:0;overflow:hidden;">
-        <img id="bcmp-sl-img-r" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;" draggable="false"/>
-        <div style="position:absolute;top:14px;right:14px;background:rgba(37,99,235,.85);color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;" id="bcmp-sl-badge-r">🔵 ตู้ที่ 2</div>
-      </div>
-      <!-- Divider -->
-      <div id="bcmp-divider" style="position:absolute;top:0;bottom:0;left:50%;width:4px;background:#fff;transform:translateX(-50%);cursor:ew-resize;z-index:10;box-shadow:0 0 12px rgba(0,0,0,.8);">
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,.5);color:#374151;font-weight:700;user-select:none;">⇄</div>
-      </div>
+    <div id="bcmp-sl-right" style="position:absolute;inset:0;overflow:hidden;">
+      <img id="bcmp-sl-img-r" src="" style="position:absolute;inset:0;width:100%;height:100%;object-fit:contain;" draggable="false"/>
+      <div id="bcmp-sl-badge-r" style="position:absolute;top:12px;right:12px;background:rgba(37,99,235,.85);color:#fff;font-size:10px;font-weight:700;padding:3px 12px;border-radius:20px;">🔵 ตู้ที่ 2</div>
     </div>
-
+    <div id="bcmp-divider" style="position:absolute;top:0;bottom:0;left:50%;width:4px;background:#fff;transform:translateX(-50%);cursor:ew-resize;z-index:10;box-shadow:0 0 12px rgba(0,0,0,.8);">
+      <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:40px;height:40px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:0 2px 10px rgba(0,0,0,.5);color:#374151;font-weight:700;user-select:none;">⇄</div>
+    </div>
   </div>
 
   <!-- Bottom nav -->
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:10px 20px;background:rgba(0,0,0,.7);flex-shrink:0;gap:12px;">
-    <button id="bigcmp-prev" onclick="bigCmpNav(-1)" style="padding:8px 20px;border-radius:20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex:1;">← แถวก่อนหน้า</button>
-    <!-- Thumbnail strip -->
-    <div id="bigcmp-thumbstrip" style="display:flex;gap:6px;overflow-x:auto;flex:3;justify-content:center;padding:0 4px;"></div>
-    <button id="bigcmp-next" onclick="bigCmpNav(1)" style="padding:8px 20px;border-radius:20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex:1;text-align:right;">แถวถัดไป →</button>
+  <div style="display:flex;align-items:center;gap:8px;padding:8px 14px;background:rgba(0,0,0,.75);flex-shrink:0;">
+    <button id="bigcmp-prev" onclick="bigCmpNav(-1)"
+      style="padding:7px 16px;border-radius:20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">← ก่อนหน้า</button>
+    <div id="bigcmp-thumbstrip" style="display:flex;gap:5px;overflow-x:auto;flex:1;justify-content:center;padding:2px 0;"></div>
+    <button id="bigcmp-next" onclick="bigCmpNav(1)"
+      style="padding:7px 16px;border-radius:20px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:12px;font-weight:700;cursor:pointer;flex-shrink:0;">ถัดไป →</button>
   </div>
 </div>
 
@@ -845,15 +825,14 @@ function renderCmpBody(recs,filledIdx){
       </div>`;
     }).join("");
 
+    const isFirst=row===0, isLast=row===maxRows-1;
     rowsHtml+=`
-      <div class="cmp-row-drag" draggable="true" data-row="${row}"
-        style="display:flex;gap:6px;margin-bottom:8px;align-items:stretch;"
-        ondragstart="rowDragStart(event,${row})"
-        ondragover="rowDragOver(event)"
-        ondragleave="rowDragLeave(event)"
-        ondrop="rowDrop(event,${row})"
-        ondragend="rowDragEnd(event)">
-        <div class="drag-handle" title="ลากเพื่อย้ายแถว">⠿</div>
+      <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
+        <div class="row-move-btns">
+          <button class="row-move-btn" onclick="moveRow(${row},-1)" ${isFirst?"disabled":""} title="เลื่อนขึ้น">↑</button>
+          <div class="row-num">${row+1}</div>
+          <button class="row-move-btn" onclick="moveRow(${row},1)" ${isLast?"disabled":""} title="เลื่อนลง">↓</button>
+        </div>
         ${cells}
       </div>`;
   }
@@ -873,42 +852,29 @@ function handleCmpImgClick(row,colIdx){
   }
 }
 
-// ─── drag rows to reorder ───
-let _dragStartRow=null;
-function rowDragStart(e,row){
-  _dragStartRow=row;
-  e.currentTarget.classList.add("dragging");
-  e.dataTransfer.effectAllowed="move";
-}
-function rowDragOver(e){
-  e.preventDefault();
-  e.dataTransfer.dropEffect="move";
-  e.currentTarget.classList.add("drag-over");
-}
-function rowDragLeave(e){
-  e.currentTarget.classList.remove("drag-over");
-}
-function rowDrop(e,targetRow){
-  e.preventDefault();
-  e.currentTarget.classList.remove("drag-over");
-  if(_dragStartRow===null||_dragStartRow===targetRow)return;
-  // swap the photos in each rec at these rows
+// ─── move row up/down buttons ───
+function moveRow(row, dir){
+  const target=row+dir;
   const filledIdx=_compareSlots.filter(s=>s!=null);
   const recs=filledIdx.map(i=>records[i]);
+  const maxRows=Math.max(...recs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
+  if(target<0||target>=maxRows) return;
+  // swap row ↔ target in every rec's photos for this section
   recs.forEach(r=>{
-    const photos=r.photos?.[_cmpActiveSection]||[];
-    const tmp=photos[_dragStartRow];
-    photos[_dragStartRow]=photos[targetRow];
-    photos[targetRow]=tmp;
+    const photos=r.photos?.[_cmpActiveSection];
+    if(!photos) return;
+    // pad shorter arrays
+    while(photos.length<=Math.max(row,target)) photos.push(null);
+    const tmp=photos[row];
+    photos[row]=photos[target];
+    photos[target]=tmp;
   });
-  _dragStartRow=null;
   renderCmpBody(recs,filledIdx);
   renderCmpTabs(recs);
-}
-function rowDragEnd(e){
-  e.currentTarget.classList.remove("dragging");
-  e.currentTarget.classList.remove("drag-over");
-  _dragStartRow=null;
+  // also update bigcmp thumb strip if open
+  if(document.getElementById("bigcmp-overlay").style.display!=="none"){
+    _buildThumbStrip();
+  }
 }
 
 async function loadCmpImages(){
@@ -927,49 +893,91 @@ function openLbCmp(el,name,slot){
 }
 
 // ════════════════════════════════════════════════
-//  BIG COMPARE OVERLAY
-//  2 modes: "side" (side-by-side) | "split" (slider)
+//  BIG COMPARE OVERLAY  (รองรับ 2-3 ตู้)
 // ════════════════════════════════════════════════
-let _bigRow=0, _bigRecs=[], _bigMode="side", _bcmpDragging=false;
+let _bigRow=0, _bigRecs=[], _bigMode="side";
 
-function openSplitView(row, recs){
+const _SLOT_COLORS_OVERLAY=[
+  {label:"🟣 ตู้ที่ 1",bg:"rgba(124,58,237,.85)"},
+  {label:"🔵 ตู้ที่ 2",bg:"rgba(37,99,235,.85)"},
+  {label:"🟠 ตู้ที่ 3",bg:"rgba(234,88,12,.85)"},
+];
+
+function openSplitView(row,recs){
   _bigRow=row; _bigRecs=recs;
-  // default to side-by-side
+  // Slider mode available only for 2-col
+  const sliderBtn=document.getElementById("bigcmp-mode-split");
+  if(sliderBtn){
+    sliderBtn.style.display=recs.length===2?"inline-flex":"none";
+  }
   setBigCmpMode("side");
+  _buildSideArea();
   _loadBigRow(row);
   _buildThumbStrip();
   document.getElementById("bigcmp-overlay").style.display="flex";
   _initSliderDrag();
 }
 
-function closeBigCmp(){
-  document.getElementById("bigcmp-overlay").style.display="none";
-}
+function closeBigCmp(){document.getElementById("bigcmp-overlay").style.display="none";}
 
 function setBigCmpMode(mode){
+  // prevent split mode if 3 cols
+  if(mode==="split"&&_bigRecs.length!==2) return;
   _bigMode=mode;
-  document.getElementById("bigcmp-side").style.display=mode==="side"?"flex":"none";
-  document.getElementById("bigcmp-slider").style.display=mode==="split"?"block":"none";
-  // button styles
+  document.getElementById("bigcmp-side").style.display   =mode==="side"?"flex":"none";
+  document.getElementById("bigcmp-slider").style.display =mode==="split"?"flex":"none";
   const bs=document.getElementById("bigcmp-mode-side");
   const bsl=document.getElementById("bigcmp-mode-split");
-  if(bs){bs.style.background=mode==="side"?"rgba(255,255,255,.2)":"transparent";bs.style.color=mode==="side"?"#fff":"rgba(255,255,255,.4)";bs.style.borderColor=mode==="side"?"rgba(255,255,255,.3)":"rgba(255,255,255,.1)";}
-  if(bsl){bsl.style.background=mode==="split"?"rgba(255,255,255,.2)":"transparent";bsl.style.color=mode==="split"?"#fff":"rgba(255,255,255,.4)";bsl.style.borderColor=mode==="split"?"rgba(255,255,255,.3)":"rgba(255,255,255,.1)";}
-  if(mode==="split") _setSliderPos(50);
-  _loadBigRow(_bigRow); // reload images for current mode
+  [bs,bsl].forEach((b,i)=>{if(!b)return;const on=i===0?mode==="side":mode==="split";b.style.background=on?"rgba(255,255,255,.2)":"transparent";b.style.color=on?"#fff":"rgba(255,255,255,.4)";b.style.borderColor=on?"rgba(255,255,255,.3)":"rgba(255,255,255,.1)";});
+  if(mode==="split"){_setSliderPos(50);}
+  _loadBigRow(_bigRow);
 }
 
-function _getImg(r, row){
+// ── Build side-by-side columns dynamically (2 or 3) ──
+function _buildSideArea(){
+  const container=document.getElementById("bigcmp-side");
+  if(!container) return;
+  container.innerHTML=_bigRecs.map((r,i)=>{
+    const c=_SLOT_COLORS_OVERLAY[i];
+    return `<div style="flex:1;position:relative;overflow:hidden;background:#111;min-width:0;">
+      <img id="bigcmp-img-${i}" src="" style="width:100%;height:100%;object-fit:contain;" draggable="false"/>
+      <div style="position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+        background:${c.bg};color:#fff;font-size:10px;font-weight:700;
+        padding:3px 12px;border-radius:20px;pointer-events:none;white-space:nowrap;">
+        ${c.label} · ${r.model||""}
+      </div>
+    </div>${i<_bigRecs.length-1?'<div style="width:2px;background:rgba(255,255,255,.1);flex-shrink:0;"></div>':""}`;
+  }).join("");
+  // titles bar
+  const titles=document.getElementById("bigcmp-titles");
+  if(titles){
+    titles.innerHTML=_bigRecs.map((r,i)=>{
+      const c=_SLOT_COLORS_OVERLAY[i];
+      return `<div style="flex:1;min-width:0;overflow:hidden;">
+        <div style="font-size:10px;font-weight:700;letter-spacing:1px;color:${["#C4B5FD","#93C5FD","#FDBA74"][i]};">${c.label}</div>
+        <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;color:#fff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${r.model||"—"}</div>
+        <div style="font-size:10px;color:rgba(255,255,255,.35);">${[r.brand,r.year].filter(Boolean).join(" · ")||""}</div>
+      </div>`;
+    }).join('<div style="width:1px;background:rgba(255,255,255,.1);"></div>');
+  }
+}
+
+function _getSpPath(r,row){
   const photos=r.photos?.[_cmpActiveSection]||[];
-  const ph=photos[row]; if(!ph) return "";
+  const ph=photos[row];if(!ph) return "";
   const folder=r.spFolderName||sanitizeSP(r.folderName||"");
-  const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
-  return sp?(_imgCache[sp]||""):ph.preview||"";
+  return ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
 }
-
-function _loadImgEl(el, r, row){
+function _getImg(r,row){
+  const sp=_getSpPath(r,row);
+  if(!sp) return (r.photos?.[_cmpActiveSection]||[])[row]?.preview||"";
+  return _imgCache[sp]||"";
+}
+function _loadImgEl(el,r,row){
+  if(!el) return;
   const photos=r.photos?.[_cmpActiveSection]||[];
-  const ph=photos[row]; if(!ph){el.src="";return;}
+  const ph=photos[row];
+  if(!ph){el.src="";return;}
   const folder=r.spFolderName||sanitizeSP(r.folderName||"");
   const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
   const ca=sp?(_imgCache[sp]||""):"";
@@ -981,109 +989,86 @@ function _loadImgEl(el, r, row){
 function _loadBigRow(row){
   const recs=_bigRecs;
   const maxRows=Math.max(...recs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
-  // Nav
   const prev=document.getElementById("bigcmp-prev");
   const next=document.getElementById("bigcmp-next");
   if(prev) prev.disabled=row<=0;
   if(next) next.disabled=row>=maxRows-1;
-  // Headers
-  const labels=["bigcmp-title-l","bigcmp-title-r"];
-  const models=["bigcmp-model-l","bigcmp-model-r"];
-  const badges=["bigcmp-badge-l","bigcmp-badge-r","bcmp-sl-badge-l","bcmp-sl-badge-r"];
+  // Side-by-side: load each column image
   recs.forEach((r,i)=>{
-    const slot=SLOT_COLORS[i];
-    const el=document.getElementById(labels[i]);if(el)el.textContent=slot.label;
-    const em=document.getElementById(models[i]);if(em)em.textContent=r.model||"";
+    _loadImgEl(document.getElementById(`bigcmp-img-${i}`),r,row);
   });
-  // Side-by-side images
-  _loadImgEl(document.getElementById("bigcmp-img-l"),recs[0],row);
-  _loadImgEl(document.getElementById("bigcmp-img-r"),recs[1],row);
-  // Slider images
-  _loadImgEl(document.getElementById("bcmp-sl-img-l"),recs[0],row);
-  _loadImgEl(document.getElementById("bcmp-sl-img-r"),recs[1],row);
-  // Highlight thumb
+  // Slider (2-col only)
+  if(recs.length===2){
+    _loadImgEl(document.getElementById("bcmp-sl-img-l"),recs[0],row);
+    _loadImgEl(document.getElementById("bcmp-sl-img-r"),recs[1],row);
+  }
+  // Highlight thumb strip
   document.querySelectorAll(".bigcmp-thumb").forEach((t,i)=>{
     t.style.outline=i===row?"3px solid #a78bfa":"none";
-    t.style.opacity=i===row?"1":"0.55";
+    t.style.opacity=i===row?"1":"0.5";
   });
 }
 
 function bigCmpNav(dir){
   const maxRows=Math.max(..._bigRecs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
-  const next=_bigRow+dir;
-  if(next<0||next>=maxRows)return;
-  _bigRow=next;
-  _loadBigRow(_bigRow);
+  const n=_bigRow+dir;
+  if(n<0||n>=maxRows) return;
+  _bigRow=n;
+  _loadBigRow(n);
 }
-
-function bigCmpGoRow(row){
-  _bigRow=row;
-  _loadBigRow(row);
-}
+function bigCmpGoRow(row){_bigRow=row;_loadBigRow(row);}
 
 function _buildThumbStrip(){
   const strip=document.getElementById("bigcmp-thumbstrip");
   if(!strip) return;
   const maxRows=Math.max(..._bigRecs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
-  let html="";
-  for(let i=0;i<maxRows;i++){
-    const src=_getImg(_bigRecs[0],i)||_getImg(_bigRecs[1],i)||"";
-    html+=`<div class="bigcmp-thumb" onclick="bigCmpGoRow(${i})"
-      style="width:48px;height:48px;flex-shrink:0;border-radius:7px;overflow:hidden;cursor:pointer;
-      outline:${i===_bigRow?"3px solid #a78bfa":"none"};opacity:${i===_bigRow?"1":"0.55"};transition:all .2s;">
-      ${src?`<img src="${src}" style="width:100%;height:100%;object-fit:cover;" draggable="false"/>`:`<div style="width:100%;height:100%;background:#222;display:flex;align-items:center;justify-content:center;color:#555;font-size:16px;">📷</div>`}
+  strip.innerHTML=Array.from({length:maxRows},(_,i)=>{
+    const src=_bigRecs.map(r=>_getImg(r,i)).find(s=>s)||"";
+    return `<div class="bigcmp-thumb" onclick="bigCmpGoRow(${i})"
+      style="width:46px;height:46px;flex-shrink:0;border-radius:7px;overflow:hidden;cursor:pointer;
+      outline:${i===_bigRow?"3px solid #a78bfa":"none"};opacity:${i===_bigRow?"1":"0.5"};transition:all .15s;">
+      ${src?`<img src="${src}" style="width:100%;height:100%;object-fit:cover;" draggable="false"/>`
+           :`<div style="width:100%;height:100%;background:#222;display:flex;align-items:center;justify-content:center;color:#444;font-size:14px;">📷</div>`}
     </div>`;
-  }
-  strip.innerHTML=html;
+  }).join("");
 }
 
-// ── Slider drag ──
+// ── Slider drag (2-col only) ──
 function _setSliderPos(pct){
   pct=Math.max(3,Math.min(97,pct));
   const left=document.getElementById("bcmp-sl-left");
   const right=document.getElementById("bcmp-sl-right");
   const divider=document.getElementById("bcmp-divider");
-  if(left) left.style.clipPath=`inset(0 ${100-pct}% 0 0)`;
-  if(right) right.style.clipPath=`inset(0 0 0 ${pct}%)`;
-  if(divider) divider.style.left=pct+"%";
+  if(left)  left.style.clipPath  =`inset(0 ${100-pct}% 0 0)`;
+  if(right) right.style.clipPath =`inset(0 0 0 ${pct}%)`;
+  if(divider) divider.style.left =pct+"%";
 }
-
 function _initSliderDrag(){
   const slider=document.getElementById("bigcmp-slider");
-  const divider=document.getElementById("bcmp-divider");
-  if(!slider||!divider) return;
-  // clone to remove old listeners
-  const newDiv=divider.cloneNode(true);
-  divider.parentNode.replaceChild(newDiv,divider);
+  if(!slider) return;
+  // re-init by cloning divider
+  const oldDiv=document.getElementById("bcmp-divider");
+  if(!oldDiv) return;
+  const newDiv=oldDiv.cloneNode(true);
+  oldDiv.parentNode.replaceChild(newDiv,oldDiv);
   const getX=e=>e.touches?e.touches[0].clientX:e.clientX;
-  let dragging=false;
-  newDiv.addEventListener("mousedown",e=>{dragging=true;e.preventDefault();});
-  newDiv.addEventListener("touchstart",()=>{dragging=true;},{passive:true});
-  slider.addEventListener("mousemove",e=>{
-    if(!dragging)return;
-    const r=slider.getBoundingClientRect();
-    _setSliderPos(((getX(e)-r.left)/r.width)*100);
-  });
-  slider.addEventListener("touchmove",e=>{
-    if(!dragging)return;
-    e.preventDefault();
-    const r=slider.getBoundingClientRect();
-    _setSliderPos(((getX(e)-r.left)/r.width)*100);
-  },{passive:false});
-  const stop=()=>dragging=false;
-  slider.addEventListener("mouseup",stop);
-  slider.addEventListener("touchend",stop);
-  slider.addEventListener("mouseleave",stop);
+  let drag=false;
+  newDiv.addEventListener("mousedown",e=>{drag=true;e.preventDefault();});
+  newDiv.addEventListener("touchstart",()=>{drag=true;},{passive:true});
+  slider.addEventListener("mousemove",e=>{if(!drag)return;const r=slider.getBoundingClientRect();_setSliderPos(((getX(e)-r.left)/r.width)*100);});
+  slider.addEventListener("touchmove",e=>{if(!drag)return;e.preventDefault();const r=slider.getBoundingClientRect();_setSliderPos(((getX(e)-r.left)/r.width)*100);},{passive:false});
+  const stop=()=>drag=false;
+  slider.addEventListener("mouseup",stop);slider.addEventListener("touchend",stop);slider.addEventListener("mouseleave",stop);
 }
 
 // keyboard
 document.addEventListener("keydown",e=>{
   const ov=document.getElementById("bigcmp-overlay");
-  if(!ov||ov.style.display==="none")return;
-  if(e.key==="ArrowLeft"||e.key==="ArrowUp")bigCmpNav(-1);
+  if(!ov||ov.style.display==="none") return;
+  if(e.key==="ArrowLeft"||e.key==="ArrowUp")  bigCmpNav(-1);
   if(e.key==="ArrowRight"||e.key==="ArrowDown")bigCmpNav(1);
-  if(e.key==="Escape")closeBigCmp();
-  if(e.key==="s"||e.key==="S")setBigCmpMode(_bigMode==="side"?"split":"side");
+  if(e.key==="Escape") closeBigCmp();
+  if((e.key==="s"||e.key==="S")&&_bigRecs.length===2) setBigCmpMode(_bigMode==="side"?"split":"side");
 });
 
 // ════════════════════════════════════════════════
