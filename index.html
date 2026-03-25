@@ -17,6 +17,8 @@ body{font-family:'DM Sans',sans-serif;background:#F9FAFB;min-height:100vh;}
   --g300:#D1D5DB;--g400:#9CA3AF;--g600:#4B5563;--g800:#1F2937;
   --green:#16A34A;--green-bg:#F0FDF4;
   --blue:#2563EB;--blue-bg:#EFF6FF;--blue-light:#BFDBFE;
+  --purple:#7C3AED;--purple-bg:#F5F3FF;--purple-light:#DDD6FE;
+  --orange:#EA580C;--orange-bg:#FFF7ED;
 }
 button{cursor:pointer;font-family:'DM Sans',sans-serif;}
 input{font-family:'DM Sans',sans-serif;}
@@ -37,7 +39,7 @@ input{font-family:'DM Sans',sans-serif;}
 .logo-s{width:36px;height:36px;background:var(--red);border-radius:8px;display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:22px;}
 .logo-text .l1{font-family:'Bebas Neue',sans-serif;font-size:15px;color:var(--red);letter-spacing:2px;line-height:1;}
 .logo-text .l2{font-size:9px;color:var(--g400);letter-spacing:1px;}
-.container{max-width:520px;margin:0 auto;padding:24px 16px 80px;}
+.container{max-width:520px;margin:0 auto;padding:24px 16px 100px;}
 .card{background:var(--white);border-radius:16px;box-shadow:0 2px 12px rgba(0,0,0,.06);padding:24px;border:1px solid var(--g200);}
 .card+.card{margin-top:14px;}
 .btn{border:none;border-radius:10px;padding:12px 18px;font-size:14px;font-weight:600;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:all .2s;cursor:pointer;}
@@ -48,26 +50,25 @@ input{font-family:'DM Sans',sans-serif;}
 .btn-outline{background:var(--white);border:1.5px solid var(--g200);color:var(--g600);}
 .btn-sm{padding:7px 12px;font-size:12px;border-radius:8px;}
 .btn-full{width:100%;}
-/* Stats: 4 brand cards */
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
-.stat-card{background:var(--white);border-radius:12px;padding:12px 8px;border:1px solid var(--g200);border-top:3px solid var(--g300);}
-.stat-card.fuji{border-top-color:var(--blue);}
-.stat-card.national{border-top-color:#F59E0B;}
-.stat-card.sanden{border-top-color:#1E3A5F;}
-.stat-label{font-size:10px;color:var(--g400);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.stat-val{font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--g800);}
-/* Filter chips */
-.filter-row{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
-.filter-chip{padding:5px 12px;border-radius:20px;font-size:12px;font-weight:600;border:1.5px solid var(--g200);background:var(--white);color:var(--g600);cursor:pointer;transition:all .15s;}
-.filter-chip.active{background:var(--red);border-color:var(--red);color:#fff;}
 .search-wrap{position:relative;margin-bottom:14px;}
 .search-wrap input{width:100%;padding:11px 13px 11px 36px;border:1px solid var(--g200);border-radius:10px;font-size:13px;color:var(--g800);outline:none;background:var(--white);}
 .search-wrap input:focus{border-color:var(--red);}
 .search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);font-size:14px;}
-.rec-card{background:var(--white);border-radius:12px;border:1px solid var(--g200);display:flex;gap:12px;padding:14px;cursor:pointer;margin-bottom:10px;transition:all .2s;}
+
+/* ════ REC CARD ════ */
+.rec-card{background:var(--white);border-radius:12px;border:2px solid var(--g200);display:flex;gap:12px;padding:14px;cursor:pointer;margin-bottom:10px;transition:all .2s;position:relative;}
 .rec-card:hover{box-shadow:0 4px 16px rgba(0,0,0,.08);}
+.compare-mode .rec-card:hover{border-color:var(--purple);box-shadow:0 4px 16px rgba(124,58,237,.15);}
+/* slot colors */
+.rec-card.csel-0{border-color:var(--purple)!important;background:var(--purple-bg)!important;}
+.rec-card.csel-1{border-color:var(--blue)!important;background:var(--blue-bg)!important;}
+.rec-card.csel-2{border-color:var(--orange)!important;background:var(--orange-bg)!important;}
+.csel-badge{position:absolute;top:-9px;right:10px;padding:2px 10px;border-radius:10px;font-size:10px;font-weight:700;color:#fff;display:none;}
+.rec-card.csel-0 .csel-badge{display:block;background:var(--purple);}
+.rec-card.csel-1 .csel-badge{display:block;background:var(--blue);}
+.rec-card.csel-2 .csel-badge{display:block;background:var(--orange);}
 .rec-thumb{width:68px;height:68px;border-radius:10px;overflow:hidden;background:var(--g100);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:26px;}
-.rec-thumb img{width:100%;height:100%;object-fit:cover;transition:opacity .3s;}
+.rec-thumb img{width:100%;height:100%;object-fit:cover;}
 .rec-info{flex:1;min-width:0;}
 .rec-model{font-family:'Bebas Neue',sans-serif;font-size:18px;color:var(--g800);letter-spacing:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .rec-tags{display:flex;gap:5px;margin-top:4px;flex-wrap:wrap;}
@@ -76,7 +77,120 @@ input{font-family:'DM Sans',sans-serif;}
 .tag.blue{background:var(--blue-bg);color:var(--blue);}
 .rec-date{font-size:11px;color:var(--g400);margin-top:5px;}
 .empty{text-align:center;padding:60px 0;color:var(--g400);}
-/* Wizard */
+
+/* ════ FLOATING COMPARE BUTTON ════ */
+.fab-compare{
+  position:fixed;bottom:24px;right:20px;z-index:200;
+  display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+}
+.fab-btn{
+  width:56px;height:56px;border-radius:28px;border:none;
+  background:linear-gradient(135deg,#5B21B6,var(--purple));
+  color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 20px rgba(124,58,237,.45);cursor:pointer;
+  transition:all .25s;position:relative;
+}
+.fab-btn:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(124,58,237,.55);}
+.fab-btn.active{background:linear-gradient(135deg,#374151,#6B7280);}
+.fab-count{
+  position:absolute;top:-5px;right:-5px;
+  width:20px;height:20px;border-radius:10px;
+  background:var(--red);color:#fff;font-size:10px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;
+  border:2px solid #fff;
+}
+/* Compare tray (slots preview above FAB) */
+.fab-tray{
+  display:flex;flex-direction:column;gap:6px;align-items:flex-end;
+  pointer-events:none;opacity:0;transform:translateY(8px);
+  transition:all .25s;
+}
+.fab-tray.show{pointer-events:all;opacity:1;transform:translateY(0);}
+.tray-slot{
+  display:flex;align-items:center;gap:8px;
+  background:rgba(255,255,255,.96);border-radius:12px;
+  padding:7px 12px;font-size:12px;font-weight:600;
+  box-shadow:0 2px 12px rgba(0,0,0,.15);min-width:180px;
+  border-left:3px solid var(--g300);
+}
+.tray-slot.slot-0{border-left-color:var(--purple);}
+.tray-slot.slot-1{border-left-color:var(--blue);}
+.tray-slot.slot-2{border-left-color:var(--orange);}
+.tray-slot .slot-dot{width:8px;height:8px;border-radius:4px;flex-shrink:0;}
+.slot-0 .slot-dot{background:var(--purple);}
+.slot-1 .slot-dot{background:var(--blue);}
+.slot-2 .slot-dot{background:var(--orange);}
+.tray-slot .slot-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--g800);}
+.tray-slot .slot-x{color:var(--g400);font-size:14px;cursor:pointer;padding:0 2px;}
+.tray-slot .slot-x:hover{color:var(--red);}
+.tray-actions{display:flex;gap:6px;align-items:center;}
+.tray-go-btn{
+  padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#5B21B6,var(--purple));color:#fff;
+  box-shadow:0 2px 10px rgba(124,58,237,.4);white-space:nowrap;
+  opacity:.4;pointer-events:none;transition:all .2s;
+}
+.tray-go-btn.ready{opacity:1;pointer-events:all;}
+.tray-cancel-btn{
+  padding:8px 12px;border-radius:20px;font-size:11px;font-weight:600;border:none;cursor:pointer;
+  background:var(--g100);color:var(--g600);
+}
+/* mode selection */
+.mode-selector{
+  display:flex;gap:6px;background:rgba(255,255,255,.96);
+  border-radius:12px;padding:8px;box-shadow:0 2px 12px rgba(0,0,0,.15);
+}
+.mode-btn{padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;
+  background:var(--g100);color:var(--g600);transition:all .15s;}
+.mode-btn.active{background:var(--purple);color:#fff;}
+
+/* ════ COMPARE PAGE ════ */
+#page-compare{background:var(--g50);}
+#page-compare .header{background:linear-gradient(135deg,#4C1D95,var(--purple));border-bottom:none;}
+#page-compare .header .btn-outline{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.2);color:#fff;}
+.cmp-title-txt{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:2px;color:#fff;}
+
+/* Section tabs */
+.cmp-section-bar{
+  background:var(--white);border-bottom:1px solid var(--g200);
+  padding:0 16px;overflow-x:auto;white-space:nowrap;
+  position:sticky;top:57px;z-index:90;
+}
+.cmp-section-bar::-webkit-scrollbar{height:3px;}
+.cmp-section-bar::-webkit-scrollbar-thumb{background:var(--purple);border-radius:2px;}
+.cmp-tab{display:inline-flex;align-items:center;gap:5px;padding:10px 14px;font-size:12px;
+  font-weight:600;color:var(--g400);border-bottom:2px solid transparent;cursor:pointer;transition:all .2s;}
+.cmp-tab:hover{color:var(--purple);}
+.cmp-tab.active{color:var(--purple);border-bottom-color:var(--purple);}
+.cmp-tab .tc{font-size:9px;background:var(--g100);color:var(--g400);padding:1px 5px;border-radius:8px;}
+.cmp-tab.active .tc{background:var(--purple-bg);color:var(--purple);}
+
+/* Col headers */
+.cmp-col-headers{display:flex;gap:6px;padding:10px 16px 0;max-width:900px;margin:0 auto;}
+.cmp-col-head{flex:1;border-radius:10px;padding:8px 12px;}
+.cmp-col-head.h0{background:var(--purple-bg);border:1.5px solid var(--purple-light);}
+.cmp-col-head.h1{background:var(--blue-bg);border:1.5px solid var(--blue-light);}
+.cmp-col-head.h2{background:var(--orange-bg);border:1.5px solid #FED7AA;}
+.cmp-col-title{font-family:'Bebas Neue',sans-serif;font-size:17px;letter-spacing:1px;color:var(--g800);line-height:1;}
+.cmp-col-sub{font-size:10px;color:var(--g400);margin-top:1px;}
+
+/* Photo grid */
+.cmp-body{max-width:900px;margin:0 auto;padding:10px 16px 80px;}
+.cmp-photo-row{display:flex;gap:6px;margin-bottom:6px;}
+.cmp-photo-col{flex:1;display:flex;flex-direction:column;gap:5px;}
+.cmp-img-wrap{position:relative;border-radius:9px;overflow:hidden;background:var(--g100);aspect-ratio:1;cursor:zoom-in;}
+.cmp-img-wrap img{width:100%;height:100%;object-fit:cover;display:block;}
+.h0-border .cmp-img-wrap{border:2px solid var(--purple-light);}
+.h1-border .cmp-img-wrap{border:2px solid var(--blue-light);}
+.h2-border .cmp-img-wrap{border:2px solid #FED7AA;}
+.cmp-img-num{position:absolute;bottom:4px;left:5px;background:rgba(0,0,0,.5);color:#fff;font-size:9px;padding:2px 5px;border-radius:5px;font-weight:600;}
+.cmp-empty-col{aspect-ratio:1;border-radius:9px;border:1.5px dashed var(--g300);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--g400);font-size:11px;}
+.cmp-empty-col span{font-size:24px;}
+.cmp-skeleton{background:linear-gradient(90deg,#e5e7eb 25%,#d1d5db 50%,#e5e7eb 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;}
+.cmp-no-photos{text-align:center;padding:40px 20px;color:var(--g400);}
+.cmp-no-photos .ic{font-size:40px;margin-bottom:8px;}
+
+/* ════ WIZARD ════ */
 .wiz-wrap{min-height:100vh;background:var(--g50);display:flex;flex-direction:column;align-items:center;padding:20px 16px 60px;}
 .wiz-header{width:100%;max-width:500px;margin-bottom:20px;}
 .prog-wrap{width:100%;height:6px;background:var(--g200);border-radius:3px;overflow:hidden;}
@@ -128,43 +242,29 @@ input{font-family:'DM Sans',sans-serif;}
 .up-label.loading{color:var(--blue);font-weight:600;}
 .up-label.done{color:var(--g800);}
 .up-label.error{color:#991B1B;}
-.login-btn{display:flex;align-items:center;gap:5px;padding:7px 13px;background:var(--blue-bg);border:1px solid var(--blue-light);border-radius:20px;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer;border-style:solid;}
-/* Detail */
+.login-btn{display:flex;align-items:center;gap:5px;padding:7px 13px;background:var(--blue-bg);border:1px solid var(--blue-light);border-radius:20px;color:var(--blue);font-size:12px;font-weight:600;cursor:pointer;}
 .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;}
 .detail-card{border-radius:10px;overflow:hidden;border:1px solid var(--g200);cursor:pointer;transition:box-shadow .2s;}
 .detail-card:hover{box-shadow:0 2px 12px rgba(0,0,0,.1);}
 .detail-card.has-photo{border-color:var(--green);}
-.detail-card-thumb{width:100%;aspect-ratio:1;object-fit:cover;display:block;background:var(--g100);}
 .detail-card-preview{position:relative;overflow:hidden;}
 .detail-card-preview img{width:100%;aspect-ratio:1;object-fit:cover;display:block;}
 .detail-card-overlay{position:absolute;inset:0;background:rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;color:#fff;font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:1px;}
 .detail-card-empty{height:80px;background:var(--g50);display:flex;align-items:center;justify-content:center;font-size:28px;}
 .detail-card-label{display:flex;align-items:center;gap:5px;padding:6px 10px;font-size:11px;font-weight:600;color:var(--g600);background:var(--g50);border-top:1px solid var(--g200);line-height:1;}
-/* Photo expand panel */
 .detail-expand{display:none;padding:8px;background:var(--white);border-top:1px solid var(--g200);}
 .detail-expand.open{display:flex;flex-wrap:wrap;gap:4px;}
 .detail-expand img{width:calc(33.33% - 4px);aspect-ratio:1;object-fit:cover;border-radius:6px;cursor:zoom-in;}
-.detail-img-loading{
-  opacity:1;
-  background:linear-gradient(90deg,#e5e7eb 25%,#d1d5db 50%,#e5e7eb 75%);
-  background-size:200% 100%;
-  animation:shimmer 1.2s infinite;
-}
-.detail-img-loaded{
-  opacity:1 !important;
-  background:none !important;
-  animation:none !important;
-  transition:opacity .3s ease;
-}
+.detail-img-loading{opacity:1;background:linear-gradient(90deg,#e5e7eb 25%,#d1d5db 50%,#e5e7eb 75%);background-size:200% 100%;animation:shimmer 1.2s infinite;}
+.detail-img-loaded{opacity:1!important;background:none!important;animation:none!important;}
 @keyframes shimmer{0%{background-position:200% 0;}100%{background-position:-200% 0;}}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5};}
-/* Lightbox */
-.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:9999;display:none;align-items:center;justify-content:center;cursor:zoom-out;}
+.lightbox{position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:none;align-items:center;justify-content:center;cursor:zoom-out;flex-direction:column;gap:10px;}
 .lightbox.open{display:flex;}
-.lightbox img{max-width:92vw;max-height:90vh;object-fit:contain;border-radius:6px;}
+.lightbox img{max-width:92vw;max-height:82vh;object-fit:contain;border-radius:6px;}
 .lb-close{position:absolute;top:18px;right:18px;background:rgba(255,255,255,.12);border:none;color:#fff;font-size:22px;width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-/* Toast */
-.toast-bar{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--g800);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9998;transition:opacity .3s;pointer-events:none;opacity:0;white-space:nowrap;}
+.lb-cap{color:rgba(255,255,255,.55);font-size:11px;letter-spacing:1px;}
+.toast-bar{position:fixed;bottom:100px;left:50%;transform:translateX(-50%);background:var(--g800);color:#fff;padding:10px 20px;border-radius:20px;font-size:13px;font-weight:600;z-index:9998;transition:opacity .3s;pointer-events:none;opacity:0;white-space:nowrap;}
 </style>
 </head>
 <body>
@@ -176,8 +276,8 @@ input{font-family:'DM Sans',sans-serif;}
       <div class="logo-s">S</div>
       <div class="logo-text"><div class="l1">SUN VENDING</div><div class="l2">CAN DATABASE</div></div>
     </div>
-    <div style="display:flex;gap:8px;align-items:center;" class="header-actions">
-      <span id="list-user-badge" onclick="doLogout()" style="display:none;font-size:11px;color:var(--green);background:var(--green-bg);padding:4px 8px;border-radius:20px;border:1px solid #BBF7D0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;cursor:pointer;title:'กดเพื่อออกจากระบบ'"></span>
+    <div class="header-actions">
+      <span id="list-user-badge" onclick="doLogout()" style="display:none;font-size:11px;color:var(--green);background:var(--green-bg);padding:4px 8px;border-radius:20px;border:1px solid #BBF7D0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100px;cursor:pointer;"></span>
       <button onclick="showPage('config')" class="btn btn-outline btn-sm">⚙️ <span class="btn-label-hide">ตั้งค่า</span></button>
       <button id="btn-list-logout" onclick="doLogout()" style="display:none;" class="btn btn-outline btn-sm">🚪</button>
       <button id="btn-sync" onclick="syncFromSharePoint()" style="display:none;" class="btn btn-outline btn-sm">🔄 <span class="btn-label-hide">ซิงค์</span></button>
@@ -186,18 +286,37 @@ input{font-family:'DM Sans',sans-serif;}
     </div>
   </div>
   <div class="container">
-    <!-- hidden ids for JS compat -->
-    <div style="display:none">
-      <span id="stat-total"></span><span id="stat-fuji"></span>
-      <span id="stat-national"></span><span id="stat-sanden"></span>
-      <div id="login-gate"></div>
-    </div>
+    <div style="display:none"><span id="stat-total"></span><span id="stat-fuji"></span><span id="stat-national"></span><span id="stat-sanden"></span><div id="login-gate"></div></div>
     <div class="search-wrap">
       <span class="search-icon">🔍</span>
       <input type="text" id="search-input" placeholder="ค้นหา Brand / Model / Year... (ใช้ * เช่น FE*LHPAP)" oninput="renderList()"/>
     </div>
     <div id="list-container"></div>
   </div>
+</div>
+
+<!-- ════ FLOATING COMPARE BUTTON ════ -->
+<div class="fab-compare" id="fab-compare" style="display:none;">
+  <!-- Tray (shown when active) -->
+  <div class="fab-tray" id="fab-tray">
+    <!-- Mode selector -->
+    <div class="mode-selector" id="mode-selector">
+      <button class="mode-btn active" id="mode-btn-2" onclick="setCompareMode(2)">2 ตู้</button>
+      <button class="mode-btn" id="mode-btn-3" onclick="setCompareMode(3)">3 ตู้</button>
+    </div>
+    <!-- Slots -->
+    <div id="tray-slots"></div>
+    <!-- Actions -->
+    <div class="tray-actions">
+      <button class="tray-cancel-btn" onclick="cancelCompare()">✕ ยกเลิก</button>
+      <button class="tray-go-btn" id="tray-go-btn" onclick="openComparePage()">⚖️ เปรียบเทียบ →</button>
+    </div>
+  </div>
+  <!-- FAB main button -->
+  <button class="fab-btn" id="fab-btn" onclick="toggleFab()">
+    <span id="fab-icon">⚖️</span>
+    <div class="fab-count" id="fab-count" style="display:none;">0</div>
+  </button>
 </div>
 
 <!-- ═══ DETAIL PAGE ═══ -->
@@ -220,6 +339,18 @@ input{font-family:'DM Sans',sans-serif;}
       <div class="detail-grid" id="detail-photos"></div>
     </div>
   </div>
+</div>
+
+<!-- ═══ COMPARE PAGE ═══ -->
+<div id="page-compare" class="page">
+  <div class="header">
+    <button class="btn btn-outline btn-sm" onclick="showPage('list')">← กลับ</button>
+    <span class="cmp-title-txt" id="cmp-page-title">⚖️ เปรียบเทียบตู้</span>
+    <div style="min-width:60px;"></div>
+  </div>
+  <div class="cmp-section-bar" id="cmp-section-bar"></div>
+  <div class="cmp-col-headers" id="cmp-col-headers"></div>
+  <div class="cmp-body" id="cmp-body"></div>
 </div>
 
 <!-- ═══ CONFIG PAGE ═══ -->
@@ -279,25 +410,20 @@ input{font-family:'DM Sans',sans-serif;}
   </div>
 </div>
 
-<!-- ═══ UPLOADING PAGE ═══ -->
+<!-- ═══ UPLOADING / SUCCESS / DELETING ═══ -->
 <div id="page-uploading" class="page">
   <div style="min-height:100vh;background:var(--g50);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;">
     <div style="width:100%;max-width:500px;">
       <div style="text-align:center;margin-bottom:28px;">
         <div id="up-main-icon" style="width:64px;height:64px;border-radius:20px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:34px;">☁️</div>
         <div id="up-title" style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--g800);letter-spacing:2px;">กำลังอัปโหลด...</div>
-        <div style="margin-top:10px;">
-          <div class="prog-wrap"><div class="prog-fill" id="up-prog" style="width:0%;background:linear-gradient(90deg,#1D4ED8,var(--blue));"></div></div>
-          <div id="up-prog-label" style="font-size:12px;color:var(--g400);margin-top:6px;"></div>
-        </div>
+        <div style="margin-top:10px;"><div class="prog-wrap"><div class="prog-fill" id="up-prog" style="width:0%;background:linear-gradient(90deg,#1D4ED8,var(--blue));"></div></div><div id="up-prog-label" style="font-size:12px;color:var(--g400);margin-top:6px;"></div></div>
       </div>
       <div class="card"><div id="up-steps"></div></div>
       <div id="up-error" style="display:none;margin-top:14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px;font-size:13px;color:#991B1B;"></div>
     </div>
   </div>
 </div>
-
-<!-- ═══ SUCCESS PAGE ═══ -->
 <div id="page-success" class="page">
   <div style="min-height:100vh;background:var(--white);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:20px;">
     <div style="width:80px;height:80px;border-radius:24px;background:var(--green-bg);display:flex;align-items:center;justify-content:center;font-size:44px;">✅</div>
@@ -307,25 +433,33 @@ input{font-family:'DM Sans',sans-serif;}
     <button class="btn btn-outline" style="font-size:14px;" onclick="startWizard()">+ บันทึกตู้ถัดไป</button>
   </div>
 </div>
+<div id="page-deleting" class="page">
+  <div style="min-height:100vh;background:var(--g50);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;">
+    <div style="width:100%;max-width:500px;">
+      <div style="text-align:center;margin-bottom:28px;">
+        <div id="del-main-icon" style="width:64px;height:64px;border-radius:20px;background:#FEF2F2;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:34px;">🗑️</div>
+        <div id="del-title" style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--g800);letter-spacing:2px;">กำลังลบ...</div>
+        <div style="margin-top:10px;"><div class="prog-wrap"><div class="prog-fill" id="del-prog" style="width:0%;background:linear-gradient(90deg,#991B1B,var(--red));"></div></div><div id="del-prog-label" style="font-size:12px;color:var(--g400);margin-top:6px;"></div></div>
+      </div>
+      <div class="card"><div id="del-steps"></div></div>
+      <div id="del-error" style="display:none;margin-top:14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px;font-size:13px;color:#991B1B;"></div>
+    </div>
+  </div>
+</div>
 
-<!-- ═══ ADD SECTION MODAL ═══ -->
+<!-- ═══ MODALS ═══ -->
 <div id="add-section-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.2);">
     <div style="font-size:36px;margin-bottom:10px;">➕</div>
     <div style="font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--g800);margin-bottom:6px;">เพิ่ม Section ใหม่</div>
     <div style="font-size:12px;color:var(--g400);margin-bottom:16px;">เช่น กลอนประตู, สายไฟ, ช่องใส่เหรียญ</div>
-    <input id="add-section-input" type="text" placeholder="ชื่อ Section..."
-      style="width:100%;padding:10px 14px;border:2px solid var(--g200);border-radius:8px;font-size:14px;outline:none;text-align:center;"
-      onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"
-      onkeydown="if(event.key==='Enter')confirmAddSection();if(event.key==='Escape')document.getElementById('add-section-modal').style.display='none'"/>
+    <input id="add-section-input" type="text" placeholder="ชื่อ Section..." style="width:100%;padding:10px 14px;border:2px solid var(--g200);border-radius:8px;font-size:14px;outline:none;text-align:center;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'" onkeydown="if(event.key==='Enter')confirmAddSection();if(event.key==='Escape')document.getElementById('add-section-modal').style.display='none'"/>
     <div style="display:flex;gap:10px;margin-top:16px;">
       <button onclick="document.getElementById('add-section-modal').style.display='none'" class="btn btn-outline" style="flex:1;">ยกเลิก</button>
       <button onclick="confirmAddSection()" class="btn btn-red" style="flex:1;">✅ เพิ่ม</button>
     </div>
   </div>
 </div>
-
-<!-- ═══ DELETE MODAL ═══ -->
 <div id="delete-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:16px;padding:28px 24px;max-width:340px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.2);">
     <div style="font-size:40px;margin-bottom:12px;">🗑️</div>
@@ -338,26 +472,6 @@ input{font-family:'DM Sans',sans-serif;}
     </div>
   </div>
 </div>
-
-<!-- ═══ DELETING PAGE ═══ -->
-<div id="page-deleting" class="page">
-  <div style="min-height:100vh;background:var(--g50);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 16px;">
-    <div style="width:100%;max-width:500px;">
-      <div style="text-align:center;margin-bottom:28px;">
-        <div id="del-main-icon" style="width:64px;height:64px;border-radius:20px;background:#FEF2F2;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:34px;">🗑️</div>
-        <div id="del-title" style="font-family:'Bebas Neue',sans-serif;font-size:26px;color:var(--g800);letter-spacing:2px;">กำลังลบ...</div>
-        <div style="margin-top:10px;">
-          <div class="prog-wrap"><div class="prog-fill" id="del-prog" style="width:0%;background:linear-gradient(90deg,#991B1B,var(--red));"></div></div>
-          <div id="del-prog-label" style="font-size:12px;color:var(--g400);margin-top:6px;"></div>
-        </div>
-      </div>
-      <div class="card"><div id="del-steps"></div></div>
-      <div id="del-error" style="display:none;margin-top:14px;background:#FEF2F2;border:1px solid #FECACA;border-radius:12px;padding:14px;font-size:13px;color:#991B1B;"></div>
-    </div>
-  </div>
-</div>
-
-<!-- ═══ CANCEL MODAL ═══ -->
 <div id="cancel-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:999;align-items:center;justify-content:center;">
   <div style="background:#fff;border-radius:16px;padding:28px 24px;max-width:320px;width:90%;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,.2);">
     <div style="font-size:40px;margin-bottom:12px;">⚠️</div>
@@ -369,62 +483,241 @@ input{font-family:'DM Sans',sans-serif;}
     </div>
   </div>
 </div>
-
-<!-- ═══ LIGHTBOX ═══ -->
 <div class="lightbox" id="lightbox" onclick="closeLightbox()">
   <button class="lb-close" onclick="closeLightbox()">✕</button>
   <img id="lightbox-img" src="" alt="" onclick="event.stopPropagation()"/>
+  <div class="lb-cap" id="lb-cap"></div>
 </div>
-
-<!-- ═══ TOAST ═══ -->
 <div class="toast-bar" id="toast-bar"></div>
 
 <script>
 // ════════════════════════════════════════════════
 //  CONFIG
 // ════════════════════════════════════════════════
-let CFG = {
-  clientId  : "bfb978c2-2df7-4598-8b29-63df63f724cc",
-  tenantId  : "34f5f15c-d8ec-4aaa-8240-5b8a5cd8fbb1",
-  spSite    : "sun108.sharepoint.com",
-  spSiteName: "ITRDmanagement",
-  modelPath : "RD/Knowledge/Used Can Database/CDB(Web app)/Model",
-  excelName : "Used_Can_Web_v2.xlsx",
-  excelPath : "RD/Knowledge/Used Can Database/CDB(Web app)",
-  redirectUri: "https://phalaphon-khamthaeng.github.io/Can-database-CDB2.0-/",
-};
-
-// 12 Photo sections (base — ไม่แก้ตรงนี้)
-const PS_BASE = [
-  {key:"nameplate",       label:"Nameplate",              sub:"ป้ายข้อมูลหลักของตู้",         prefix:"Nameplate",      icon:"🏷️"},
-  {key:"other_nameplate", label:"Other Nameplate",         sub:"ป้ายข้อมูลเพิ่มเติม",          prefix:"OtherNameplate", icon:"📋"},
-  {key:"outside",         label:"Outside",                 sub:"ภาพรวมภายนอกตู้",             prefix:"Outside",        icon:"📦"},
-  {key:"button",          label:"Button Panel",            sub:"แผงปุ่มกดควบคุม",             prefix:"ButtonPanel",    icon:"🔘"},
-  {key:"breaker",         label:"Breaker",                 sub:"เบรกเกอร์ / Circuit Breaker", prefix:"Breaker",        icon:"⚡"},
-  {key:"door_side",       label:"Door Side",               sub:"ด้านในประตูตู้",              prefix:"DoorSide",       icon:"🚪"},
-  {key:"master_box",      label:"Master Box & Remote",     sub:"กล่องควบคุมหลักและรีโมต",      prefix:"MasterBox",      icon:"🖲️"},
-  {key:"boards_inside",   label:"Boards Inside Power Box", sub:"บอร์ดภายในกล่องไฟ",           prefix:"BoardsInside",   icon:"🔧"},
-  {key:"inventory_side",  label:"Inventory Side",          sub:"ด้านช่องสินค้า",              prefix:"InventorySide",  icon:"🥤"},
-  {key:"master_board",    label:"Master Board",            sub:"บอร์ดควบคุมหลัก",             prefix:"MasterBoard",    icon:"🖥️"},
-  {key:"compressor",      label:"Compressor",              sub:"คอมเพรสเซอร์ระบบทำความเย็น",   prefix:"Compressor",     icon:"❄️"},
+let CFG={clientId:"bfb978c2-2df7-4598-8b29-63df63f724cc",tenantId:"34f5f15c-d8ec-4aaa-8240-5b8a5cd8fbb1",spSite:"sun108.sharepoint.com",spSiteName:"ITRDmanagement",modelPath:"RD/Knowledge/Used Can Database/CDB(Web app)/Model",excelName:"Used_Can_Web_v2.xlsx",excelPath:"RD/Knowledge/Used Can Database/CDB(Web app)",redirectUri:"https://phalaphon-khamthaeng.github.io/Can-database-CDB2.0-/"};
+const PS_BASE=[
+  {key:"nameplate",label:"Nameplate",sub:"ป้ายข้อมูลหลักของตู้",prefix:"Nameplate",icon:"🏷️"},
+  {key:"other_nameplate",label:"Other Nameplate",sub:"ป้ายข้อมูลเพิ่มเติม",prefix:"OtherNameplate",icon:"📋"},
+  {key:"outside",label:"Outside",sub:"ภาพรวมภายนอกตู้",prefix:"Outside",icon:"📦"},
+  {key:"button",label:"Button Panel",sub:"แผงปุ่มกดควบคุม",prefix:"ButtonPanel",icon:"🔘"},
+  {key:"breaker",label:"Breaker",sub:"เบรกเกอร์ / Circuit Breaker",prefix:"Breaker",icon:"⚡"},
+  {key:"door_side",label:"Door Side",sub:"ด้านในประตูตู้",prefix:"DoorSide",icon:"🚪"},
+  {key:"master_box",label:"Master Box & Remote",sub:"กล่องควบคุมหลักและรีโมต",prefix:"MasterBox",icon:"🖲️"},
+  {key:"boards_inside",label:"Boards Inside Power Box",sub:"บอร์ดภายในกล่องไฟ",prefix:"BoardsInside",icon:"🔧"},
+  {key:"inventory_side",label:"Inventory Side",sub:"ด้านช่องสินค้า",prefix:"InventorySide",icon:"🥤"},
+  {key:"master_board",label:"Master Board",sub:"บอร์ดควบคุมหลัก",prefix:"MasterBoard",icon:"🖥️"},
+  {key:"compressor",label:"Compressor",sub:"คอมเพรสเซอร์ระบบทำความเย็น",prefix:"Compressor",icon:"❄️"},
 ];
-// custom sections เพิ่มได้ระหว่าง wizard
-let PS_CUSTOM = [];
-// PS รวม base + custom (dynamic)
-let PS = [...PS_BASE];
-const getTotal = ()=> 3 + PS.length + 1;
-let TOTAL = getTotal();
-
-let records = [];
-let msalApp = null, accessToken = null, currentUser = null;
-let wizStep = 0;
-let wizData = {brand:"",model:"",year:"",coolant:"",group:"",photos:{}};
-let _filterBrand = "";
-const _imgCache = {};
-let _cachedDriveId = null;
+let PS_CUSTOM=[],PS=[...PS_BASE];
+const getTotal=()=>3+PS.length+1;
+let TOTAL=getTotal(),records=[],msalApp=null,accessToken=null,currentUser=null;
+let wizStep=0,wizData={brand:"",model:"",year:"",coolant:"",group:"",photos:{}};
+let _filterBrand="";
+const _imgCache={};
+let _cachedDriveId=null;
 
 // ════════════════════════════════════════════════
-//  SP IMAGE — fetch via token → blob URL (CORS fix)
+//  COMPARE STATE
+// ════════════════════════════════════════════════
+const SLOT_COLORS=[
+  {label:"🟣 ตู้ที่ 1",cls:"csel-0",hCls:"h0",bCls:"h0-border",color:"var(--purple)"},
+  {label:"🔵 ตู้ที่ 2",cls:"csel-1",hCls:"h1",bCls:"h1-border",color:"var(--blue)"},
+  {label:"🟠 ตู้ที่ 3",cls:"csel-2",hCls:"h2",bCls:"h2-border",color:"var(--orange)"},
+];
+let _fabOpen=false;
+let _compareMax=2;           // 2 or 3
+let _compareSlots=[];        // array of recordIdx (max 3)
+let _cmpActiveSection=null;
+
+function toggleFab(){
+  _fabOpen=!_fabOpen;
+  document.getElementById("fab-tray").classList.toggle("show",_fabOpen);
+  document.getElementById("fab-btn").classList.toggle("active",_fabOpen);
+  document.getElementById("fab-icon").textContent=_fabOpen?"✕":"⚖️";
+  if(_fabOpen) renderTray();
+}
+
+function setCompareMode(n){
+  _compareMax=n;
+  // trim slots if switching from 3→2
+  if(_compareSlots.length>n) _compareSlots=_compareSlots.slice(0,n);
+  document.getElementById("mode-btn-2").classList.toggle("active",n===2);
+  document.getElementById("mode-btn-3").classList.toggle("active",n===3);
+  renderTray();
+  renderList();
+}
+
+function renderTray(){
+  const sl=document.getElementById("tray-slots");
+  let html="";
+  for(let i=0;i<_compareMax;i++){
+    const idx=_compareSlots[i];
+    const c=SLOT_COLORS[i];
+    if(idx!=null){
+      const r=records[idx];
+      html+=`<div class="tray-slot slot-${i}">
+        <div class="slot-dot"></div>
+        <span class="slot-name">${r.model||r.brand||"ตู้ที่ "+(i+1)}</span>
+        <span class="slot-x" onclick="removeFromSlot(${i})">✕</span>
+      </div>`;
+    } else {
+      html+=`<div class="tray-slot slot-${i}" style="opacity:.55;">
+        <div class="slot-dot" style="opacity:.4;"></div>
+        <span class="slot-name" style="color:var(--g400);">${c.label} (กดเลือก)</span>
+      </div>`;
+    }
+  }
+  sl.innerHTML=html;
+  // Update go btn
+  const filled=_compareSlots.filter(s=>s!=null).length;
+  const goBtn=document.getElementById("tray-go-btn");
+  goBtn.classList.toggle("ready",filled>=2);
+  goBtn.textContent=`⚖️ เทียบ ${filled} ตู้ →`;
+  // Update FAB count badge
+  const badge=document.getElementById("fab-count");
+  if(filled>0){badge.style.display="flex";badge.textContent=filled;}
+  else badge.style.display="none";
+}
+
+function cancelCompare(){
+  _compareSlots=[];
+  _fabOpen=false;
+  document.getElementById("fab-tray").classList.remove("show");
+  document.getElementById("fab-btn").classList.remove("active");
+  document.getElementById("fab-icon").textContent="⚖️";
+  document.getElementById("fab-count").style.display="none";
+  renderList();
+  showToast("ยกเลิกการเปรียบเทียบแล้ว");
+}
+
+function removeFromSlot(i){
+  _compareSlots[i]=null;
+  // compact
+  _compareSlots=_compareSlots.filter(s=>s!=null);
+  renderTray();
+  renderList();
+}
+
+function selectForCompare(idx){
+  // already selected → remove
+  const existing=_compareSlots.indexOf(idx);
+  if(existing>=0){ removeFromSlot(existing); return; }
+  if(_compareSlots.filter(s=>s!=null).length>=_compareMax){
+    showToast(`⚠️ เลือกได้สูงสุด ${_compareMax} ตู้`);
+    return;
+  }
+  _compareSlots.push(idx);
+  renderTray();
+  renderList();
+  showToast(SLOT_COLORS[_compareSlots.length-1].label+" เลือกแล้ว");
+}
+
+// ════════════════════════════════════════════════
+//  COMPARE PAGE
+// ════════════════════════════════════════════════
+async function openComparePage(){
+  const filledIdx=_compareSlots.filter(s=>s!=null);
+  if(filledIdx.length<2){showToast("⚠️ เลือกอย่างน้อย 2 ตู้ก่อน");return;}
+  const recs=filledIdx.map(i=>records[i]);
+  // populate SP photos if needed
+  if(accessToken){
+    await Promise.all(recs.map(r=>{
+      if(r.fromSP&&!PS_BASE.some(p=>(r.photos?.[p.key]||[]).length>0)) return populateSpPhotos(r);
+      return Promise.resolve();
+    }));
+  }
+  // sections that have any photo across all records
+  const sectionsAny=PS_BASE.filter(p=>recs.some(r=>(r.photos?.[p.key]||[]).length>0));
+  _cmpActiveSection=sectionsAny.length?sectionsAny[0].key:PS_BASE[0].key;
+
+  document.getElementById("cmp-page-title").textContent=`⚖️ เปรียบเทียบ ${filledIdx.length} ตู้`;
+  showPage("compare");
+  renderCmpHeaders(recs,filledIdx);
+  renderCmpTabs(recs);
+  renderCmpBody(recs,filledIdx);
+  if(accessToken) setTimeout(()=>loadCmpImages(),400);
+  // Close FAB tray
+  _fabOpen=false;
+  document.getElementById("fab-tray").classList.remove("show");
+  document.getElementById("fab-btn").classList.remove("active");
+  document.getElementById("fab-icon").textContent="⚖️";
+}
+
+function renderCmpHeaders(recs,filledIdx){
+  document.getElementById("cmp-col-headers").innerHTML=recs.map((r,i)=>`
+    <div class="cmp-col-head ${SLOT_COLORS[i].hCls}">
+      <div style="font-size:10px;font-weight:700;color:${SLOT_COLORS[i].color};margin-bottom:3px;">${SLOT_COLORS[i].label}</div>
+      <div class="cmp-col-title">${r.model||"ไม่ระบุ"}</div>
+      <div class="cmp-col-sub">${[r.brand,r.year].filter(Boolean).join(" · ")||"—"}</div>
+    </div>`).join("");
+}
+
+function renderCmpTabs(recs){
+  document.getElementById("cmp-section-bar").innerHTML=PS_BASE.map(p=>{
+    const total=recs.reduce((a,r)=>a+(r.photos?.[p.key]||[]).length,0);
+    return `<div class="cmp-tab ${p.key===_cmpActiveSection?"active":""}" onclick="switchCmpSection('${p.key}')">
+      ${p.icon} ${p.label}<span class="tc">${total}</span>
+    </div>`;
+  }).join("");
+}
+
+function switchCmpSection(key){
+  _cmpActiveSection=key;
+  const filledIdx=_compareSlots.filter(s=>s!=null);
+  const recs=filledIdx.map(i=>records[i]);
+  renderCmpTabs(recs);
+  renderCmpBody(recs,filledIdx);
+  if(accessToken) setTimeout(()=>loadCmpImages(),200);
+}
+
+function renderCmpBody(recs,filledIdx){
+  const body=document.getElementById("cmp-body");
+  const p=PS_BASE.find(s=>s.key===_cmpActiveSection)||{icon:"📷",label:_cmpActiveSection};
+  const allEmpty=recs.every(r=>!(r.photos?.[_cmpActiveSection]||[]).length);
+
+  if(allEmpty){
+    body.innerHTML=`<div class="cmp-no-photos"><div class="ic">${p.icon}</div>ทุกตู้ไม่มีรูปใน Section "${p.label}"</div>`;
+    return;
+  }
+
+  const maxPhotos=Math.max(...recs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
+  const cols=recs.map((r,i)=>{
+    const photos=r.photos?.[_cmpActiveSection]||[];
+    const folder=r.spFolderName||sanitizeSP(r.folderName||"");
+    const bCls=SLOT_COLORS[i].bCls;
+    if(!photos.length) return `<div class="cmp-photo-col ${bCls}"><div class="cmp-empty-col"><span>${p.icon}</span>ไม่มีรูป</div></div>`;
+    return `<div class="cmp-photo-col ${bCls}">${photos.map((ph,j)=>{
+      const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
+      const ca=sp?(_imgCache[sp]||""):"";
+      return `<div class="cmp-img-wrap" onclick="openLbCmp(this,'${ph.savedName||ph.name||""}',${i})">
+        <img id="ci-${i}-${j}" src="${ca}" class="${ca?"detail-img-loaded":"detail-img-loading cmp-skeleton"}"
+          ${sp?`data-sp-path="${sp}"`:""}
+          onerror="this.style.opacity='.1'"/>
+        <span class="cmp-img-num">${j+1}</span>
+      </div>`;
+    }).join("")}</div>`;
+  }).join("");
+
+  body.innerHTML=`<div style="display:flex;gap:6px;padding-top:8px;">${cols}</div>`;
+}
+
+async function loadCmpImages(){
+  const imgs=document.querySelectorAll("#cmp-body img[data-sp-path]");
+  for(let i=0;i<imgs.length;i+=4)
+    await Promise.all(Array.from(imgs).slice(i,i+4).map(img=>img.src.startsWith("blob:")?Promise.resolve():loadSpImg(img,img.dataset.spPath)));
+}
+
+function openLbCmp(el,name,slot){
+  const img=el.querySelector("img");if(!img||!img.src) return;
+  const filledIdx=_compareSlots.filter(s=>s!=null);
+  const r=records[filledIdx[slot]];
+  document.getElementById("lightbox-img").src=img.src;
+  document.getElementById("lb-cap").textContent=`${SLOT_COLORS[slot].label} · ${r.model||""} · ${name}`;
+  document.getElementById("lightbox").classList.add("open");
+}
+
+// ════════════════════════════════════════════════
+//  SP IMAGE
 // ════════════════════════════════════════════════
 async function getSpDriveId(){
   if(_cachedDriveId) return _cachedDriveId;
@@ -432,34 +725,23 @@ async function getSpDriveId(){
   const s=await(await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H})).json();
   const d=(await(await fetch(`https://graph.microsoft.com/v1.0/sites/${s.id}/drives`,{headers:H})).json()).value?.find(d=>d.name==="Documents");
   if(!d) throw new Error("ไม่พบ Drive");
-  _cachedDriveId=d.id; return d.id;
+  _cachedDriveId=d.id;return d.id;
 }
-
-async function loadSpImg(imgEl, filePath){
+async function loadSpImg(imgEl,filePath){
   if(!accessToken||!filePath||!imgEl) return;
-  if(_imgCache[filePath]){
-    imgEl.src=_imgCache[filePath];
-    imgEl.classList.replace("detail-img-loading","detail-img-loaded");
-    return;
-  }
+  if(_imgCache[filePath]){imgEl.src=_imgCache[filePath];imgEl.classList.remove("cmp-skeleton");imgEl.classList.replace("detail-img-loading","detail-img-loaded");return;}
   try{
     const did=await getSpDriveId();
-    const r=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(filePath)}:/content`,
-      {headers:{Authorization:"Bearer "+accessToken}});
+    const r=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(filePath)}:/content`,{headers:{Authorization:"Bearer "+accessToken}});
     if(!r.ok) return;
     const url=URL.createObjectURL(await r.blob());
-    _imgCache[filePath]=url;
-    imgEl.src=url;
-    imgEl.classList.replace("detail-img-loading","detail-img-loaded");
-    imgEl.style.background="none";
-    imgEl.style.animation="none";
+    _imgCache[filePath]=url;imgEl.src=url;imgEl.classList.remove("cmp-skeleton");
+    imgEl.classList.replace("detail-img-loading","detail-img-loaded");imgEl.style.background="none";imgEl.style.animation="none";
   }catch(e){console.warn("loadSpImg:",filePath,e);}
 }
-
 async function listSpFolder(folderPath){
   const did=await getSpDriveId();
-  const r=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(folderPath)}:/children?$top=200`,
-    {headers:{Authorization:"Bearer "+accessToken}});
+  const r=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(folderPath)}:/children?$top=200`,{headers:{Authorization:"Bearer "+accessToken}});
   if(!r.ok) throw new Error("ไม่พบโฟลเดอร์");
   return(await r.json()).value||[];
 }
@@ -468,39 +750,24 @@ async function listSpFolder(folderPath){
 //  INIT
 // ════════════════════════════════════════════════
 (function init(){
-  const sc=localStorage.getItem("sp_config");
-  if(sc) try{CFG={...CFG,...JSON.parse(sc)};}catch{}
-  // บังคับค่า path กลับเป็น default เสมอ
+  const sc=localStorage.getItem("sp_config");if(sc)try{CFG={...CFG,...JSON.parse(sc)};}catch{}
   CFG.modelPath="RD/Knowledge/Used Can Database/CDB(Web app)/Model";
   CFG.excelPath="RD/Knowledge/Used Can Database/CDB(Web app)";
   CFG.excelName="Used_Can_Web_v2.xlsx";
   const sr=localStorage.getItem("cabinet_records");
-  if(sr) try{
-    records=JSON.parse(sr).map(r=>({
-      ...r,
-      photos:Object.fromEntries(PS.map(p=>[p.key,(r.photos?.[p.key]||[]).map(ph=>({savedName:ph.savedName||"",name:ph.name||"",preview:""}))])),
-    }));
-  }catch{}
-  // Populate config form
-  document.getElementById("cfg-client").value    = CFG.clientId;
-  document.getElementById("cfg-tenant").value    = CFG.tenantId;
-  document.getElementById("cfg-site").value      = CFG.spSite;
-  document.getElementById("cfg-site-name").value = CFG.spSiteName;
-  document.getElementById("cfg-model-path").value= CFG.modelPath;
-  document.getElementById("cfg-excel-name").value= CFG.excelName;
+  if(sr)try{records=JSON.parse(sr).map(r=>({...r,photos:Object.fromEntries(PS.map(p=>[p.key,(r.photos?.[p.key]||[]).map(ph=>({savedName:ph.savedName||"",name:ph.name||"",preview:""}))]))}));}catch{}
+  document.getElementById("cfg-client").value=CFG.clientId;
+  document.getElementById("cfg-tenant").value=CFG.tenantId;
+  document.getElementById("cfg-site").value=CFG.spSite;
+  document.getElementById("cfg-site-name").value=CFG.spSiteName;
+  document.getElementById("cfg-model-path").value=CFG.modelPath;
+  document.getElementById("cfg-excel-name").value=CFG.excelName;
   renderList();
-  // Try silent login from session
   try{
-    const app=new msal.PublicClientApplication({
-      auth:{clientId:CFG.clientId,authority:"https://login.microsoftonline.com/"+CFG.tenantId,redirectUri:CFG.redirectUri},
-      cache:{cacheLocation:"sessionStorage"}});
+    const app=new msal.PublicClientApplication({auth:{clientId:CFG.clientId,authority:"https://login.microsoftonline.com/"+CFG.tenantId,redirectUri:CFG.redirectUri},cache:{cacheLocation:"sessionStorage"}});
     const accs=app.getAllAccounts();
-    if(accs.length){
-      msalApp=app;
-      app.acquireTokenSilent({scopes:["Files.ReadWrite.All","Sites.ReadWrite.All"],account:accs[0]})
-        .then(r=>{accessToken=r.accessToken;currentUser=accs[0].name||accs[0].username;_cachedDriveId=null;updateUserUI();syncFromSharePoint();})
-        .catch(()=>updateUserUI());
-    }else{updateUserUI();}
+    if(accs.length){msalApp=app;app.acquireTokenSilent({scopes:["Files.ReadWrite.All","Sites.ReadWrite.All"],account:accs[0]}).then(r=>{accessToken=r.accessToken;currentUser=accs[0].name||accs[0].username;_cachedDriveId=null;updateUserUI();syncFromSharePoint();}).catch(()=>updateUserUI());}
+    else updateUserUI();
   }catch(e){updateUserUI();}
 })();
 
@@ -510,138 +777,80 @@ async function listSpFolder(folderPath){
 function showPage(n){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById("page-"+n).classList.add("active");
+  // Show FAB only on list page
+  document.getElementById("fab-compare").style.display=(n==="list")?"flex":"none";
   if(n==="list") renderList();
 }
+
 // ════════════════════════════════════════════════
 //  CONFIG
 // ════════════════════════════════════════════════
-function clearData(){
-  if(!confirm("⚠️ ล้างรายการตู้ทั้งหมดใน Browser นี้?")) return;
-  localStorage.removeItem("cabinet_records"); records=[]; renderList();
-  alert("✅ ล้างข้อมูลเรียบร้อย"); showPage("list");
-}
-function saveConfig(){
-  CFG.clientId   =document.getElementById("cfg-client").value.trim();
-  CFG.tenantId   =document.getElementById("cfg-tenant").value.trim();
-  CFG.spSite     =document.getElementById("cfg-site").value.trim();
-  CFG.spSiteName =document.getElementById("cfg-site-name").value.trim();
-  CFG.modelPath  =document.getElementById("cfg-model-path").value.trim();
-  CFG.excelName  =document.getElementById("cfg-excel-name").value.trim();
-  CFG.excelPath  =CFG.modelPath.split("/").slice(0,-1).join("/");
-  localStorage.setItem("sp_config",JSON.stringify(CFG));
-  msalApp=null;_cachedDriveId=null;
-  alert("✅ บันทึกสำเร็จ"); showPage("list");
-}
+function clearData(){if(!confirm("⚠️ ล้างรายการตู้ทั้งหมดใน Browser นี้?"))return;localStorage.removeItem("cabinet_records");records=[];renderList();alert("✅ ล้างข้อมูลเรียบร้อย");showPage("list");}
+function saveConfig(){CFG.clientId=document.getElementById("cfg-client").value.trim();CFG.tenantId=document.getElementById("cfg-tenant").value.trim();CFG.spSite=document.getElementById("cfg-site").value.trim();CFG.spSiteName=document.getElementById("cfg-site-name").value.trim();CFG.modelPath=document.getElementById("cfg-model-path").value.trim();CFG.excelName=document.getElementById("cfg-excel-name").value.trim();CFG.excelPath=CFG.modelPath.split("/").slice(0,-1).join("/");localStorage.setItem("sp_config",JSON.stringify(CFG));msalApp=null;_cachedDriveId=null;alert("✅ บันทึกสำเร็จ");showPage("list");}
 
 // ════════════════════════════════════════════════
 //  AUTH
 // ════════════════════════════════════════════════
-function getMsal(){
-  if(!msalApp) msalApp=new msal.PublicClientApplication({
-    auth:{clientId:CFG.clientId,authority:"https://login.microsoftonline.com/"+CFG.tenantId,redirectUri:CFG.redirectUri},
-    cache:{cacheLocation:"sessionStorage"},
-  });
-  return msalApp;
-}
-async function doLogin(fromWiz=false){
-  try{
-    const r=await getMsal().loginPopup({scopes:["Files.ReadWrite.All","Sites.ReadWrite.All"]});
-    accessToken=r.accessToken; currentUser=r.account.name||r.account.username;
-    _cachedDriveId=null; updateUserUI();
-    if(!fromWiz) syncFromSharePoint();
-    return true;
-  }catch(e){alert("❌ Login ไม่สำเร็จ: "+e.message);return false;}
-}
-async function ensureToken(){if(accessToken) return true; return doLogin();}
+function getMsal(){if(!msalApp)msalApp=new msal.PublicClientApplication({auth:{clientId:CFG.clientId,authority:"https://login.microsoftonline.com/"+CFG.tenantId,redirectUri:CFG.redirectUri},cache:{cacheLocation:"sessionStorage"}});return msalApp;}
+async function doLogin(fromWiz=false){try{const r=await getMsal().loginPopup({scopes:["Files.ReadWrite.All","Sites.ReadWrite.All"]});accessToken=r.accessToken;currentUser=r.account.name||r.account.username;_cachedDriveId=null;updateUserUI();if(!fromWiz)syncFromSharePoint();return true;}catch(e){alert("❌ Login ไม่สำเร็จ: "+e.message);return false;}}
+async function ensureToken(){if(accessToken)return true;return doLogin();}
 function doLogout(){accessToken=null;currentUser=null;msalApp=null;_cachedDriveId=null;updateUserUI();}
 function updateUserUI(){
   const loggedIn=!!currentUser;
   const s=(id,txt)=>{const el=document.getElementById(id);if(el){el.style.display=txt?"inline-flex":"none";if(txt)el.textContent=txt;}};
   const sd=(id,v,m="flex")=>{const el=document.getElementById(id);if(el)el.style.display=v?m:"none";};
-  if(loggedIn){
-    s("list-user-badge","☁️ "+currentUser); sd("btn-list-logout",false); sd("btn-sync",true); sd("btn-list-login",false); sd("login-gate",false);
-    s("wiz-user-badge","☁️ "+currentUser); sd("btn-wiz-login",false);
-  }else{
-    s("list-user-badge",""); sd("btn-list-logout",false); sd("btn-sync",false); sd("btn-list-login",true,"flex"); sd("login-gate",true,"flex");
-    s("wiz-user-badge",""); sd("btn-wiz-login",true,"flex");
-  }
+  if(loggedIn){s("list-user-badge","☁️ "+currentUser);sd("btn-sync",true);sd("btn-list-login",false);s("wiz-user-badge","☁️ "+currentUser);sd("btn-wiz-login",false);}
+  else{s("list-user-badge","");sd("btn-sync",false);sd("btn-list-login",true,"flex");s("wiz-user-badge","");sd("btn-wiz-login",true,"flex");}
 }
 
 // ════════════════════════════════════════════════
-//  SYNC FROM SHAREPOINT
+//  SYNC
 // ════════════════════════════════════════════════
 async function syncFromSharePoint(){
-  if(!accessToken) return;
-  const btn=document.getElementById("btn-sync");
-  if(btn){btn.innerHTML="⏳ ซิงค์...";btn.disabled=true;}
+  if(!accessToken)return;
+  const btn=document.getElementById("btn-sync");if(btn){btn.innerHTML="⏳ ซิงค์...";btn.disabled=true;}
   try{
     const H={Authorization:"Bearer "+accessToken};
-    const siteRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});
-    if(!siteRes.ok) throw new Error("ไม่พบ Site");
+    const siteRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});if(!siteRes.ok)throw new Error("ไม่พบ Site");
     const siteId=(await siteRes.json()).id;
     const drvRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,{headers:H});
-    const drv=(await drvRes.json()).value?.find(d=>d.name==="Documents");
-    if(!drv) throw new Error("ไม่พบ Drive");
+    const drv=(await drvRes.json()).value?.find(d=>d.name==="Documents");if(!drv)throw new Error("ไม่พบ Drive");
     _cachedDriveId=drv.id;
     const exPath=`${CFG.excelPath}/${CFG.excelName}`;
-    const exRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${drv.id}/root:/${encPath(exPath)}:/content`,{headers:H});
-    if(!exRes.ok) throw new Error("ไม่พบ Excel");
-    const wb2=new ExcelJS.Workbook();
-    await wb2.xlsx.load(await exRes.arrayBuffer());
+    const exRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${drv.id}/root:/${encPath(exPath)}:/content`,{headers:H});if(!exRes.ok)throw new Error("ไม่พบ Excel");
+    const wb2=new ExcelJS.Workbook();await wb2.xlsx.load(await exRes.arrayBuffer());
     const spRecs=[];
     wb2.eachSheet(ws=>{
-      if(ws.name==="Index") return;
-      const brand=String(ws.getCell(2,2).value||""),model=String(ws.getCell(3,2).value||"");
-      if(!model&&!brand) return;
+      if(ws.name==="Index")return;
+      const brand=String(ws.getCell(2,2).value||""),model=String(ws.getCell(3,2).value||"");if(!model&&!brand)return;
       const year=String(ws.getCell(4,2).value||""),coolant=String(ws.getCell(5,2).value||""),group=String(ws.getCell(6,2).value||"");
       const folderName=[model,brand,year].filter(v=>v&&v!=="—"&&v!=="-").join("_");
-      spRecs.push({id:"sp_"+ws.name,brand,model,year,coolant,group,uploaded:true,folderName,
-        photos:Object.fromEntries(PS.map(p=>[p.key,[]])),date:"SharePoint",fromSP:true});
+      spRecs.push({id:"sp_"+ws.name,brand,model,year,coolant,group,uploaded:true,folderName,photos:Object.fromEntries(PS.map(p=>[p.key,[]])),date:"SharePoint",fromSP:true});
     });
     records=[...spRecs,...records.filter(r=>!r.fromSP&&!spRecs.find(s=>s.folderName===r.folderName))];
     try{localStorage.setItem("cabinet_records",JSON.stringify(records));}catch{}
     renderList();
     if(btn){btn.innerHTML=`🔄 ซิงค์ (${spRecs.length})`;btn.disabled=false;}
-  }catch(e){
-    if(btn){btn.innerHTML="🔄 ซิงค์";btn.disabled=false;}
-    console.error(e);
-  }
+  }catch(e){if(btn){btn.innerHTML="🔄 ซิงค์";btn.disabled=false;}console.error(e);}
 }
 
 // ════════════════════════════════════════════════
 //  LIST
 // ════════════════════════════════════════════════
-function setFilter(el,brand){
-  _filterBrand=brand;
-  document.querySelectorAll(".filter-chip").forEach(c=>c.classList.remove("active"));
-  el.classList.add("active");
-  renderList();
-}
-function matchSearch(text, query){
-  if(!query) return true;
-  // รองรับ * เป็น wildcard เช่น FE*LHPAP, *36*, ***
-  if(query.includes("*")){
-    const pattern=query.replace(/[.+?^${}()|[\]\\]/g,"\\$&").replace(/\*/g,".*");
-    return new RegExp(pattern,"i").test(text);
-  }
+function matchSearch(text,query){
+  if(!query)return true;
+  if(query.includes("*")){const pattern=query.replace(/[.+?^${}()|[\]\\]/g,"\\$&").replace(/\*/g,".*");return new RegExp(pattern,"i").test(text);}
   return text.toLowerCase().includes(query.toLowerCase());
 }
 function renderList(){
   const q=(document.getElementById("search-input")?.value||"").toLowerCase();
-  const filtered=records.filter(r=>{
-    const searchText=[r.brand,r.model,r.year].join(" ");
-    const matchBrand=!_filterBrand||r.brand===_filterBrand;
-    return matchSearch(searchText,q)&&matchBrand;
-  });
-  document.getElementById("stat-total").textContent   =records.length;
-  document.getElementById("stat-fuji").textContent    =records.filter(r=>r.brand==="Fuji").length;
+  const filtered=records.filter(r=>{const searchText=[r.brand,r.model,r.year].join(" ");const matchBrand=!_filterBrand||r.brand===_filterBrand;return matchSearch(searchText,q)&&matchBrand;});
+  document.getElementById("stat-total").textContent=records.length;
+  document.getElementById("stat-fuji").textContent=records.filter(r=>r.brand==="Fuji").length;
   document.getElementById("stat-national").textContent=records.filter(r=>r.brand==="National & Panasonic"||r.brand==="National"||r.brand==="Panasonic").length;
-  document.getElementById("stat-sanden").textContent  =records.filter(r=>r.brand==="Sanden").length;
+  document.getElementById("stat-sanden").textContent=records.filter(r=>r.brand==="Sanden").length;
   const c=document.getElementById("list-container");
-  if(!filtered.length){
-    c.innerHTML=`<div class="empty"><div style="font-size:48px;margin-bottom:10px;">📂</div><p>${q||_filterBrand?"ไม่พบข้อมูลที่ค้นหา":"ยังไม่มีข้อมูลตู้"}</p></div>`;
-    return;
-  }
+  if(!filtered.length){c.innerHTML=`<div class="empty"><div style="font-size:48px;margin-bottom:10px;">📂</div><p>${q||_filterBrand?"ไม่พบข้อมูลที่ค้นหา":"ยังไม่มีข้อมูลตู้"}</p></div>`;return;}
   c.innerHTML=filtered.map(r=>{
     const ri=records.indexOf(r);
     const fp=PS.find(p=>r.photos?.[p.key]?.length>0);
@@ -650,29 +859,21 @@ function renderList(){
     const cached=spPath?(_imgCache[spPath]||""):"";
     const cnt=PS.reduce((a,p)=>a+(r.photos?.[p.key]?.length||0),0);
     const sects=PS.filter(p=>r.photos?.[p.key]?.length>0).length;
-    return `<div class="rec-card" onclick="showDetail(${ri})">
-      <div class="rec-thumb">
-        ${spPath?`<img id="lt-${ri}" src="${cached}" class="detail-img-${cached?"loaded":"loading"}" data-sp-path="${spPath}" onerror="this.parentElement.innerHTML='📦'" style="width:100%;height:100%;object-fit:cover;"/>`:"📦"}
-      </div>
+    const slotIdx=_compareSlots.indexOf(ri);
+    const selCls=slotIdx>=0?`csel-${slotIdx}`:"";
+    const badgeTxt=slotIdx>=0?SLOT_COLORS[slotIdx].label:"";
+    const isFabOpen=_fabOpen;
+    return `<div class="rec-card ${selCls}" onclick="${isFabOpen?`selectForCompare(${ri})`:`showDetail(${ri})`}">
+      <div class="csel-badge">${badgeTxt}</div>
+      <div class="rec-thumb">${spPath?`<img src="${cached}" class="detail-img-${cached?"loaded":"loading"}" data-sp-path="${spPath}" onerror="this.parentElement.innerHTML='📦'" style="width:100%;height:100%;object-fit:cover;"/>`:"📦"}</div>
       <div class="rec-info">
         <div class="rec-model">${r.model||"ไม่ระบุ Model"}</div>
-        <div class="rec-tags">
-          ${r.brand?`<span class="tag">${r.brand}</span>`:""}
-          ${r.year?`<span class="tag">${r.year}</span>`:""}
-          <span class="tag ${cnt>0?"green":""}">📷 ${cnt} (${sects}/${PS.length})</span>
-          ${r.uploaded?`<span class="tag blue">☁️ SP</span>`:""}
-        </div>
+        <div class="rec-tags">${r.brand?`<span class="tag">${r.brand}</span>`:""}${r.year?`<span class="tag">${r.year}</span>`:""}<span class="tag ${cnt>0?"green":""}">📷 ${cnt} (${sects}/${PS.length})</span>${r.uploaded?`<span class="tag blue">☁️ SP</span>`:""}</div>
         <div class="rec-date">${r.date||""}</div>
       </div>
-      <span style="align-self:center;color:var(--g300);font-size:20px;">›</span>
+      <span style="align-self:center;color:var(--g300);font-size:20px;">${isFabOpen?(slotIdx>=0?"✅":"☐"):"›"}</span>
     </div>`;
   }).join("");
-  // ไม่โหลด thumbnail อัตโนมัติ — ประหยัด bandwidth รอให้กดเข้า detail แทน
-}
-async function lazyLoadListThumbs(){
-  const imgs=document.querySelectorAll("img[data-sp-path].detail-img-loading");
-  for(let i=0;i<imgs.length;i+=3)
-    await Promise.all(Array.from(imgs).slice(i,i+3).map(img=>loadSpImg(img,img.dataset.spPath)));
 }
 
 // ════════════════════════════════════════════════
@@ -681,983 +882,104 @@ async function lazyLoadListThumbs(){
 async function showDetail(idx){
   const r=records[idx];
   document.getElementById("detail-title").textContent=r.model||"ไม่ระบุ";
-  document.getElementById("detail-info").innerHTML=`
-    ${[["Brand",r.brand],["Model",r.model],["Year",r.year],["Coolant",r.coolant],["Group",r.group],["บันทึกวันที่",r.date]]
-      .filter(([,v])=>v).map(([k,v])=>`<div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v}</span></div>`).join("")}
-    ${r.uploaded?`<div style="margin-top:10px;padding:8px 12px;background:var(--blue-bg);border-radius:8px;font-size:12px;color:var(--blue);font-weight:600;">☁️ อัปโหลดใน SharePoint แล้ว · 📁 ${r.folderName||""}</div>`:""}`;
-  // ถ้า fromSP และ photos ว่าง → ดึงรายการจาก SP folder
-  if(r.fromSP&&accessToken&&!PS.some(p=>(r.photos?.[p.key]||[]).length>0)) await populateSpPhotos(r);
+  document.getElementById("detail-info").innerHTML=`${[["Brand",r.brand],["Model",r.model],["Year",r.year],["Coolant",r.coolant],["Group",r.group],["บันทึกวันที่",r.date]].filter(([,v])=>v).map(([k,v])=>`<div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v}</span></div>`).join("")}${r.uploaded?`<div style="margin-top:10px;padding:8px 12px;background:var(--blue-bg);border-radius:8px;font-size:12px;color:var(--blue);font-weight:600;">☁️ อัปโหลดใน SharePoint แล้ว · 📁 ${r.folderName||""}</div>`:""}`;
+  if(r.fromSP&&accessToken&&!PS.some(p=>(r.photos?.[p.key]||[]).length>0))await populateSpPhotos(r);
   document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);
-  const btnLoad=document.getElementById("btn-detail-load");
-  const status=document.getElementById("detail-load-status");
-  btnLoad.dataset.idx=idx;
-  document.getElementById("btn-detail-delete").dataset.idx=idx;
+  const btnLoad=document.getElementById("btn-detail-load"),status=document.getElementById("detail-load-status");
+  btnLoad.dataset.idx=idx;document.getElementById("btn-detail-delete").dataset.idx=idx;
   if(accessToken){
-    btnLoad.style.display="none";
-    status.textContent="⏳ กำลังโหลดรูป...";
-    // ถ้า fromSP และ photos ว่าง → populate ก่อนแล้วค่อย render+load
-    if(r.fromSP && !PS.some(p=>(r.photos?.[p.key]||[]).length>0)){
-      populateSpPhotos(r).then(()=>{
-        document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);
-        const hasAny=PS.some(p=>(r.photos?.[p.key]||[]).length>0);
-        if(hasAny){
-          status.textContent="⏳ กำลังโหลดรูป...";
-          _autoLoadDetailImages();
-        } else {
-          btnLoad.style.display="flex";
-          btnLoad.innerHTML="🔄 ลองโหลดอีกครั้ง";
-          status.textContent="⚠️ ไม่พบรูปใน SharePoint";
-        }
-      });
-    } else {
-      _autoLoadDetailImages();
-    }
-  } else {
-    btnLoad.style.display="flex";
-    btnLoad.innerHTML="🖼️ โหลดรูป";
-    status.textContent="🔐 Login เพื่อดูรูป";
-  }
+    btnLoad.style.display="none";status.textContent="⏳ กำลังโหลดรูป...";
+    if(r.fromSP&&!PS.some(p=>(r.photos?.[p.key]||[]).length>0)){
+      populateSpPhotos(r).then(()=>{document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);const hasAny=PS.some(p=>(r.photos?.[p.key]||[]).length>0);if(hasAny){status.textContent="⏳ กำลังโหลดรูป...";_autoLoadDetailImages();}else{btnLoad.style.display="flex";btnLoad.innerHTML="🔄 ลองโหลดอีกครั้ง";status.textContent="⚠️ ไม่พบรูปใน SharePoint";}});
+    }else _autoLoadDetailImages();
+  }else{btnLoad.style.display="flex";btnLoad.innerHTML="🖼️ โหลดรูป";status.textContent="🔐 Login เพื่อดูรูป";}
   showPage("detail");
 }
 async function populateSpPhotos(r){
   try{
-    const safeFolderName=sanitizeSP(r.folderName||"");
-    // อัปเดต folderName ใน record ให้ตรงกับ SP จริง
-    if(safeFolderName!==r.folderName) r.spFolderName=safeFolderName;
+    const safeFolderName=sanitizeSP(r.folderName||"");if(safeFolderName!==r.folderName)r.spFolderName=safeFolderName;
     const files=await listSpFolder(`${CFG.modelPath}/${safeFolderName}`);
-    PS_BASE.forEach(p=>{
-      const m=files.filter(f=>f.name&&f.name.includes(p.prefix));
-      if(m.length) r.photos[p.key]=m.map(f=>({savedName:f.name,name:f.name,preview:""}));
-    });
+    PS_BASE.forEach(p=>{const m=files.filter(f=>f.name&&f.name.includes(p.prefix));if(m.length)r.photos[p.key]=m.map(f=>({savedName:f.name,name:f.name,preview:""}));});
     const knownPrefixes=PS_BASE.map(p=>p.prefix);
-    const unknownFiles=files.filter(f=>{
-      if(!f.name) return false;
-      return !knownPrefixes.some(px=>f.name.includes(px));
-    });
+    const unknownFiles=files.filter(f=>f.name&&!knownPrefixes.some(px=>f.name.includes(px)));
     const customGroups={};
-    unknownFiles.forEach(f=>{
-      const parts=f.name.replace(/\.[^.]+$/,"").split("_");
-      const folderParts=safeFolderName.split("_").length;
-      const prefix=parts.slice(folderParts,parts.length-1).join("_");
-      if(!prefix) return;
-      if(!customGroups[prefix]) customGroups[prefix]=[];
-      customGroups[prefix].push(f);
-    });
-    if(!r.customSections) r.customSections=[];
-    Object.entries(customGroups).forEach(([prefix,grpFiles])=>{
-      const key="custom_"+prefix.toLowerCase()+"_detected";
-      if(!r.customSections.find(c=>c.prefix===prefix))
-        r.customSections.push({key,label:prefix,sub:"รูปภาพ "+prefix,prefix,icon:"📷"});
-      const sect=r.customSections.find(c=>c.prefix===prefix);
-      if(sect) r.photos[sect.key]=grpFiles.map(f=>({savedName:f.name,name:f.name,preview:""}));
-    });
-    if(!PS_BASE.some(p=>(r.photos[p.key]||[]).length>0)&&!r.customSections?.length&&files.length)
-      r.photos["nameplate"]=files.map(f=>({savedName:f.name,name:f.name,preview:""}));
-    try{
-      const cached=JSON.parse(localStorage.getItem("cabinet_records")||"[]");
-      const ci=cached.findIndex(c=>c.folderName===r.folderName);
-      if(ci>=0){
-        cached[ci].spFolderName=safeFolderName;
-        cached[ci].photos=Object.fromEntries(PS_BASE.map(p=>[p.key,(r.photos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))]));
-        cached[ci].customSections=r.customSections;
-        localStorage.setItem("cabinet_records",JSON.stringify(cached));
-      }
-    }catch{}
+    unknownFiles.forEach(f=>{const parts=f.name.replace(/\.[^.]+$/,"").split("_");const folderParts=safeFolderName.split("_").length;const prefix=parts.slice(folderParts,parts.length-1).join("_");if(!prefix)return;if(!customGroups[prefix])customGroups[prefix]=[];customGroups[prefix].push(f);});
+    if(!r.customSections)r.customSections=[];
+    Object.entries(customGroups).forEach(([prefix,grpFiles])=>{const key="custom_"+prefix.toLowerCase()+"_detected";if(!r.customSections.find(c=>c.prefix===prefix))r.customSections.push({key,label:prefix,sub:"รูปภาพ "+prefix,prefix,icon:"📷"});const sect=r.customSections.find(c=>c.prefix===prefix);if(sect)r.photos[sect.key]=grpFiles.map(f=>({savedName:f.name,name:f.name,preview:""}));});
+    if(!PS_BASE.some(p=>(r.photos[p.key]||[]).length>0)&&!r.customSections?.length&&files.length)r.photos["nameplate"]=files.map(f=>({savedName:f.name,name:f.name,preview:""}));
+    try{const cached=JSON.parse(localStorage.getItem("cabinet_records")||"[]");const ci=cached.findIndex(c=>c.folderName===r.folderName);if(ci>=0){cached[ci].spFolderName=safeFolderName;cached[ci].photos=Object.fromEntries(PS_BASE.map(p=>[p.key,(r.photos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))]));cached[ci].customSections=r.customSections;localStorage.setItem("cabinet_records",JSON.stringify(cached));}}catch{}
   }catch(e){console.warn("populateSpPhotos:",e.message);}
 }
-async function triggerLoadImages(){
-  if(!await ensureToken()) return;
-  const btnLoad=document.getElementById("btn-detail-load");
-  const idx=parseInt(btnLoad.dataset.idx||"0");
-  const r=records[idx];
-  btnLoad.style.display="none";
-  const status=document.getElementById("detail-load-status");
-  status.textContent="⏳ กำลังดึงรายการรูปจาก SharePoint...";
-  // re-populate photos จาก SP ใหม่
-  if(r.fromSP) await populateSpPhotos(r);
-  document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);
-  status.textContent="⏳ กำลังโหลดรูป...";
-  await _autoLoadDetailImages();
-}
-async function _autoLoadDetailImages(){
-  const imgs=document.querySelectorAll("#detail-photos img[data-sp-path]");
-  if(!imgs.length){document.getElementById("detail-load-status").textContent="";return;}
-  let loaded=0;const total=imgs.length;
-  const status=document.getElementById("detail-load-status");
-  for(let i=0;i<imgs.length;i+=4){
-    await Promise.all(Array.from(imgs).slice(i,i+4).map(async img=>{
-      if(img.classList.contains("detail-img-loaded")&&img.src.startsWith("blob:")) return;
-      await loadSpImg(img,img.dataset.spPath);
-      status.textContent=`⏳ ${++loaded}/${total} รูป`;
-    }));
-  }
-  status.textContent=`✅ โหลดครบ ${total} รูป`;
-  setTimeout(()=>status.textContent="",3000);
-}
-
-// ════════════════════════════════════════════════
-//  RENDER DETAIL PHOTOS (tap-to-expand design)
-// ════════════════════════════════════════════════
+async function triggerLoadImages(){if(!await ensureToken())return;const btnLoad=document.getElementById("btn-detail-load");const idx=parseInt(btnLoad.dataset.idx||"0");const r=records[idx];btnLoad.style.display="none";const status=document.getElementById("detail-load-status");status.textContent="⏳ กำลังดึงรายการรูปจาก SharePoint...";if(r.fromSP)await populateSpPhotos(r);document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);status.textContent="⏳ กำลังโหลดรูป...";await _autoLoadDetailImages();}
+async function _autoLoadDetailImages(){const imgs=document.querySelectorAll("#detail-photos img[data-sp-path]");if(!imgs.length){document.getElementById("detail-load-status").textContent="";return;}let loaded=0;const total=imgs.length;const status=document.getElementById("detail-load-status");for(let i=0;i<imgs.length;i+=4){await Promise.all(Array.from(imgs).slice(i,i+4).map(async img=>{if(img.classList.contains("detail-img-loaded")&&img.src.startsWith("blob:"))return;await loadSpImg(img,img.dataset.spPath);status.textContent=`⏳ ${++loaded}/${total} รูป`;}));}status.textContent=`✅ โหลดครบ ${total} รูป`;setTimeout(()=>status.textContent="",3000);}
 function renderDetailPhotosHTML(r){
-  const customSects=(r.customSections||[]);
-  // ถ้า record เก่ามี "other" ให้แสดงด้วย แม้จะไม่อยู่ใน PS_BASE แล้ว
-  const otherSection={key:"other",label:"Other",sub:"รูปภาพอื่นๆ เพิ่มเติม",prefix:"Other",icon:"📌"};
-  const hasOther=(r.photos?.["other"]||[]).length>0;
-  const allPS=[...PS_BASE,...(hasOther?[otherSection]:[]),...customSects];
-  return allPS.map(p=>{
-    const photos=r.photos?.[p.key]||[];
-    if(!photos.length) return `
-      <div class="detail-card">
-        <div class="detail-card-empty">${p.icon}</div>
-        <div class="detail-card-label">${p.icon} ${p.label}</div>
-      </div>`;
-    const folder=r.spFolderName||sanitizeSP(r.folderName||"");
-    const firstSp=photos[0]?.savedName?`${CFG.modelPath}/${folder}/${photos[0].savedName}`:"";
-    const firstCa=firstSp?(_imgCache[firstSp]||""):"";
-    const expandImgs=photos.map((ph,i)=>{
-      const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
-      const ca=sp?(_imgCache[sp]||""):"";
-      return `<img id="di-${p.key}-${i}" src="${ca}" class="detail-img-${ca?"loaded":"loading"}"
-        ${sp?`data-sp-path="${sp}"`:""}
-        onclick="event.stopPropagation();openLightbox(this)"
-        onerror="this.style.opacity='0.1'"/>`;
-    }).join("");
-    return `<div class="detail-card has-photo" onclick="toggleExpand('${p.key}')">
-      <div class="detail-card-preview">
-        <img id="dthumb-${p.key}" src="${firstCa}"
-          class="detail-img-${firstCa?"loaded":"loading"}"
-          ${firstSp?`data-sp-path="${firstSp}"`:""}
-          style="width:100%;aspect-ratio:1;object-fit:cover;display:block;"
-          onerror="this.style.opacity='0.1'"/>
-        <div class="detail-card-overlay">📷 ${photos.length} รูป</div>
-      </div>
-      <div class="detail-card-label">${p.icon} ${p.label} <span class="count-badge">${photos.length}</span></div>
-      <div class="detail-expand" id="expand-${p.key}">${expandImgs}</div>
-    </div>`;
-  }).join("");
+  const customSects=(r.customSections||[]);const otherSection={key:"other",label:"Other",sub:"รูปภาพอื่นๆ เพิ่มเติม",prefix:"Other",icon:"📌"};const hasOther=(r.photos?.["other"]||[]).length>0;const allPS=[...PS_BASE,...(hasOther?[otherSection]:[]),...customSects];
+  return allPS.map(p=>{const photos=r.photos?.[p.key]||[];if(!photos.length)return `<div class="detail-card"><div class="detail-card-empty">${p.icon}</div><div class="detail-card-label">${p.icon} ${p.label}</div></div>`;const folder=r.spFolderName||sanitizeSP(r.folderName||"");const firstSp=photos[0]?.savedName?`${CFG.modelPath}/${folder}/${photos[0].savedName}`:"";const firstCa=firstSp?(_imgCache[firstSp]||""):"";const expandImgs=photos.map((ph,i)=>{const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";const ca=sp?(_imgCache[sp]||""):"";return `<img id="di-${p.key}-${i}" src="${ca}" class="detail-img-${ca?"loaded":"loading"}" ${sp?`data-sp-path="${sp}"`:""} onclick="event.stopPropagation();openLightbox(this)" onerror="this.style.opacity='0.1'"/>`;}).join("");return `<div class="detail-card has-photo" onclick="toggleExpand('${p.key}')"><div class="detail-card-preview"><img id="dthumb-${p.key}" src="${firstCa}" class="detail-img-${firstCa?"loaded":"loading"}" ${firstSp?`data-sp-path="${firstSp}"`:""} style="width:100%;aspect-ratio:1;object-fit:cover;display:block;" onerror="this.style.opacity='0.1'"/><div class="detail-card-overlay">📷 ${photos.length} รูป</div></div><div class="detail-card-label">${p.icon} ${p.label} <span class="count-badge">${photos.length}</span></div><div class="detail-expand" id="expand-${p.key}">${expandImgs}</div></div>`;}).join("");
 }
-function toggleExpand(key){
-  const el=document.getElementById("expand-"+key);
-  if(!el) return;
-  const isOpen=el.classList.toggle("open");
-  // โหลดรูปใน expand เมื่อเปิดครั้งแรก
-  if(isOpen&&accessToken){
-    el.querySelectorAll("img[data-sp-path]").forEach(img=>{
-      if(!img.src.startsWith("blob:")) loadSpImg(img,img.dataset.spPath);
-    });
-  }
-}
-
-// ════════════════════════════════════════════════
-//  LIGHTBOX
-// ════════════════════════════════════════════════
-function openLightbox(imgEl){document.getElementById("lightbox-img").src=imgEl.src;document.getElementById("lightbox").classList.add("open");}
+function toggleExpand(key){const el=document.getElementById("expand-"+key);if(!el)return;const isOpen=el.classList.toggle("open");if(isOpen&&accessToken)el.querySelectorAll("img[data-sp-path]").forEach(img=>{if(!img.src.startsWith("blob:"))loadSpImg(img,img.dataset.spPath);});}
+function openLightbox(imgEl){document.getElementById("lightbox-img").src=imgEl.src;document.getElementById("lb-cap").textContent="";document.getElementById("lightbox").classList.add("open");}
 function closeLightbox(){document.getElementById("lightbox").classList.remove("open");}
 document.addEventListener("keydown",e=>{if(e.key==="Escape")closeLightbox();});
 
 // ════════════════════════════════════════════════
-//  WIZARD
+//  WIZARD (full — unchanged from original)
 // ════════════════════════════════════════════════
-function startWizard(){
-  PS_CUSTOM=[];
-  PS=[...PS_BASE];
-  TOTAL=getTotal();
-  wizStep=0; wizData={brand:"",model:"",year:"",coolant:"",group:"",photos:{}};
-  PS.forEach(p=>wizData.photos[p.key]=[]);
-  showPage("wizard"); renderWiz(); updateUserUI();
-}
+function startWizard(){PS_CUSTOM=[];PS=[...PS_BASE];TOTAL=getTotal();wizStep=0;wizData={brand:"",model:"",year:"",coolant:"",group:"",photos:{}};PS.forEach(p=>wizData.photos[p.key]=[]);showPage("wizard");renderWiz();updateUserUI();}
 function cancelWizard(){document.getElementById("cancel-modal").style.display="flex";}
-function confirmCancel(){
-  document.getElementById("cancel-modal").style.display="none";
-  wizStep=0;wizData={brand:"",model:"",year:"",coolant:"",group:"",photos:{}};
-  PS.forEach(p=>wizData.photos[p.key]=[]);showPage("list");
-}
-function renderWiz(){
-  TOTAL=getTotal();
-  const s=wizStep;
-  document.getElementById("wiz-prog").style.width=Math.round((s/(TOTAL-1))*100)+"%";
-  document.getElementById("wiz-step-num").textContent=(s+1)+" / "+TOTAL;
-  let dots="";
-  for(let i=0;i<TOTAL;i++) dots+=`<div class="dot ${i<3?"wide":""} ${i<s?"done":i===s?"active":"inactive"}"></div>`;
-  document.getElementById("wiz-dots").innerHTML=dots;
-  document.getElementById("wiz-btn-back").style.display=s>0?"flex":"none";
-  document.getElementById("wiz-btn-skip").style.display=(s>=3&&s<TOTAL-1)?"block":"none";
-  const isSummary=s===TOTAL-1;
-  const nb=document.getElementById("wiz-btn-next");
-  nb.className=isSummary?"btn btn-blue":"btn btn-red"; nb.style.flex="2";
-  nb.innerHTML=isSummary?"☁️ อัปโหลด SharePoint + บันทึก Excel":"ถัดไป →";
-  const c=document.getElementById("wiz-content");
-  if(s===0)         c.innerHTML=textStepHtml("Brand","เช่น Fuji, National, Sanden","🏭","wiz-brand",wizData.brand);
-  else if(s===1)    c.innerHTML=textStepHtml("Model","เช่น FE-KA36-LHPAP","🔢","wiz-model",wizData.model);
-  else if(s===2)    c.innerHTML=textStepHtml("Year","เช่น 2012, 2015, 2018","📅","wiz-year",wizData.year);
-  else if(s<TOTAL-1){const pi=s-3;c.innerHTML=photoStepHtml(PS[pi]);bindDropZone(PS[pi].key);}
-  else              c.innerHTML=summaryHtml();
-  if(s>=3&&s<TOTAL-1){
-    document.getElementById("wiz-tracker").innerHTML=PS.map((p,i)=>{
-      const state=i+3<s?"done":i+3===s?"active":"upcoming";
-      const cnt=wizData.photos[p.key]?.length||0;
-      const targetStep=i+3;
-      const isCustom=PS_CUSTOM.find(c=>c.key===p.key);
-      return `<div class="tracker-item ${state}" style="cursor:pointer;position:relative;">
-        <span onclick="wizGoTo(${targetStep})">${p.icon} ${p.label}${cnt>0?` <span class="count-badge">${cnt}</span>`:""}</span>
-        ${isCustom?`<span onclick="removeCustomSection('${p.key}')" style="margin-left:4px;color:#991B1B;font-weight:700;font-size:11px;cursor:pointer;" title="ลบ section นี้">✕</span>`:""}
-      </div>`;
-    }).join("")+`<div class="tracker-item upcoming" onclick="promptAddSection()" style="cursor:pointer;border-style:dashed;color:var(--blue);border-color:var(--blue);">➕ เพิ่ม Section</div>`;
-  }else document.getElementById("wiz-tracker").innerHTML="";
-}
-function textStepHtml(label,hint,icon,id,val){
-  const isBrand=id==="wiz-brand", isYear=id==="wiz-year";
-  const extraFields="";
-  return `<div style="width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;">
-    <div class="step-icon">${icon}</div>
-    <div class="step-title">${label}</div>
-    <div class="step-sub">${hint}</div>
-    ${isBrand?`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0;">
-      <button onclick="setBrand('National & Panasonic')" class="btn btn-sm" style="background:#FDE68A;color:#78350F;border:2px solid #F59E0B;">🟡 National & Panasonic</button>
-      <button onclick="setBrand('Fuji')" class="btn btn-sm" style="background:#BFDBFE;color:#1E3A5F;border:2px solid #3B82F6;">🔵 Fuji</button>
-      <button onclick="setBrand('Sanden')" class="btn btn-sm" style="background:#1E3A5F;color:#fff;border:2px solid #1E3A5F;">🔷 Sanden</button>
-    </div>`:""}
-    <div style="width:100%;max-width:360px;margin-top:${isBrand?4:0}px;">
-      <input id="${id}" type="${isYear?"number":"text"}" value="${isYear?(val||"2012"):val}"
-        placeholder="${isBrand?"หรือพิมพ์เอง...":isYear?"เช่น 2012":"พิมพ์ "+label+"..."}"
-        autocomplete="off" ${isYear?`min="1980" max="2035"`:""}
-        style="width:100%;padding:13px 18px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;text-align:center;"
-        onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'" placeholder="${isBrand?"หรือพิมพ์เอง...":isYear?"เช่น 2012":"พิมพ์ "+label+"..."}"/>
-    </div>${extraFields}
-  </div>`;
-}
-function photoStepHtml(ps){
-  const photos=wizData.photos[ps.key]||[];
-  const isOther=ps.key==="other";
-  return `<div class="photo-section" style="width:100%;max-width:460px;">
-    <div class="step-icon">${ps.icon}</div>
-    <div class="step-title">${ps.label}</div>
-    <div class="step-sub">${ps.sub}<br><span style="color:var(--blue);font-size:12px;">📌 หลายรูปได้ · 📋 Ctrl+V paste</span></div>
-    <div class="photo-grid" id="photo-grid-${ps.key}">
-      ${photos.map((ph,i)=>`<div style="display:flex;flex-direction:column;gap:4px;">
-        <div class="photo-thumb">
-          <img src="${ph.preview}"/>
-          <button class="del-btn" onclick="removePhoto('${ps.key}',${i})">✕</button>
-          <span class="img-num">รูปที่ ${i+1}</span>
-        </div>
-        ${isOther?`<input type="text" value="${ph.caption||""}"
-          placeholder="ระบุชื่อ (ไม่บังคับ)"
-          oninput="wizData.photos['${ps.key}'][${i}].caption=this.value"
-          style="width:100%;padding:5px 8px;font-size:11px;border:1.5px solid var(--g200);border-radius:6px;outline:none;color:var(--g800);"
-          onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"
-          onkeydown="event.stopPropagation()"/>`:``}
-      </div>`).join("")}
-      <div class="add-photo-btn" id="drop-${ps.key}" onclick="triggerFileInput('${ps.key}')">
-        <span>📷</span><p>เพิ่มรูป<br/>${photos.length===0?"(คลิกหรือลาก)":"(เพิ่มอีก)"}</p>
-      </div>
-    </div>
-    <input type="file" id="file-input-${ps.key}" accept="image/*" multiple style="display:none" onchange="handleFiles(event,'${ps.key}')"/>
-    <input type="file" id="file-camera-${ps.key}" accept="image/*" capture="environment" style="display:none" onchange="handleFiles(event,'${ps.key}')"/>
-    <div style="display:flex;gap:8px;justify-content:center;margin-top:10px;">
-      <button class="btn btn-red btn-sm" onclick="triggerFileInput('${ps.key}')">📁 เลือกไฟล์</button>
-      <button class="btn btn-outline btn-sm" onclick="document.getElementById('file-camera-${ps.key}').click()">📷 ถ่ายรูป</button>
-    </div></div>`;
-}
-function bindDropZone(key){
-  const z=document.getElementById("drop-"+key);if(!z) return;
-  z.addEventListener("dragover",e=>{e.preventDefault();z.classList.add("drag");});
-  z.addEventListener("dragleave",()=>z.classList.remove("drag"));
-  z.addEventListener("drop",e=>{e.preventDefault();z.classList.remove("drag");addFiles(key,Array.from(e.dataTransfer.files));});
-}
+function confirmCancel(){document.getElementById("cancel-modal").style.display="none";wizStep=0;wizData={brand:"",model:"",year:"",coolant:"",group:"",photos:{}};PS.forEach(p=>wizData.photos[p.key]=[]);showPage("list");}
+function renderWiz(){TOTAL=getTotal();const s=wizStep;document.getElementById("wiz-prog").style.width=Math.round((s/(TOTAL-1))*100)+"%";document.getElementById("wiz-step-num").textContent=(s+1)+" / "+TOTAL;let dots="";for(let i=0;i<TOTAL;i++)dots+=`<div class="dot ${i<3?"wide":""} ${i<s?"done":i===s?"active":"inactive"}"></div>`;document.getElementById("wiz-dots").innerHTML=dots;document.getElementById("wiz-btn-back").style.display=s>0?"flex":"none";document.getElementById("wiz-btn-skip").style.display=(s>=3&&s<TOTAL-1)?"block":"none";const isSummary=s===TOTAL-1;const nb=document.getElementById("wiz-btn-next");nb.className=isSummary?"btn btn-blue":"btn btn-red";nb.style.flex="2";nb.innerHTML=isSummary?"☁️ อัปโหลด SharePoint + บันทึก Excel":"ถัดไป →";const c=document.getElementById("wiz-content");if(s===0)c.innerHTML=textStepHtml("Brand","เช่น Fuji, National, Sanden","🏭","wiz-brand",wizData.brand);else if(s===1)c.innerHTML=textStepHtml("Model","เช่น FE-KA36-LHPAP","🔢","wiz-model",wizData.model);else if(s===2)c.innerHTML=textStepHtml("Year","เช่น 2012, 2015, 2018","📅","wiz-year",wizData.year);else if(s<TOTAL-1){const pi=s-3;c.innerHTML=photoStepHtml(PS[pi]);bindDropZone(PS[pi].key);}else c.innerHTML=summaryHtml();if(s>=3&&s<TOTAL-1){document.getElementById("wiz-tracker").innerHTML=PS.map((p,i)=>{const state=i+3<s?"done":i+3===s?"active":"upcoming";const cnt=wizData.photos[p.key]?.length||0;const targetStep=i+3;const isCustom=PS_CUSTOM.find(c=>c.key===p.key);return `<div class="tracker-item ${state}" style="cursor:pointer;position:relative;"><span onclick="wizGoTo(${targetStep})">${p.icon} ${p.label}${cnt>0?` <span class="count-badge">${cnt}</span>`:""}</span>${isCustom?`<span onclick="removeCustomSection('${p.key}')" style="margin-left:4px;color:#991B1B;font-weight:700;font-size:11px;cursor:pointer;">✕</span>`:""}</div>`;}).join("")+`<div class="tracker-item upcoming" onclick="promptAddSection()" style="cursor:pointer;border-style:dashed;color:var(--blue);border-color:var(--blue);">➕ เพิ่ม Section</div>`;}else document.getElementById("wiz-tracker").innerHTML="";}
+function textStepHtml(label,hint,icon,id,val){const isBrand=id==="wiz-brand",isYear=id==="wiz-year";return `<div style="width:100%;text-align:center;display:flex;flex-direction:column;align-items:center;"><div class="step-icon">${icon}</div><div class="step-title">${label}</div><div class="step-sub">${hint}</div>${isBrand?`<div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:12px 0;"><button onclick="setBrand('National & Panasonic')" class="btn btn-sm" style="background:#FDE68A;color:#78350F;border:2px solid #F59E0B;">🟡 National & Panasonic</button><button onclick="setBrand('Fuji')" class="btn btn-sm" style="background:#BFDBFE;color:#1E3A5F;border:2px solid #3B82F6;">🔵 Fuji</button><button onclick="setBrand('Sanden')" class="btn btn-sm" style="background:#1E3A5F;color:#fff;border:2px solid #1E3A5F;">🔷 Sanden</button></div>`:""}<div style="width:100%;max-width:360px;margin-top:${isBrand?4:0}px;"><input id="${id}" type="${isYear?"number":"text"}" value="${isYear?(val||"2012"):val}" placeholder="${isBrand?"หรือพิมพ์เอง...":isYear?"เช่น 2012":"พิมพ์ "+label+"..."}" autocomplete="off" ${isYear?`min="1980" max="2035"`:""} style="width:100%;padding:13px 18px;border:2px solid var(--g200);border-radius:10px;font-size:17px;color:var(--g800);outline:none;text-align:center;" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'"/></div></div>`;}
+function photoStepHtml(ps){const photos=wizData.photos[ps.key]||[];const isOther=ps.key==="other";return `<div class="photo-section" style="width:100%;max-width:460px;"><div class="step-icon">${ps.icon}</div><div class="step-title">${ps.label}</div><div class="step-sub">${ps.sub}<br><span style="color:var(--blue);font-size:12px;">📌 หลายรูปได้ · 📋 Ctrl+V paste</span></div><div class="photo-grid" id="photo-grid-${ps.key}">${photos.map((ph,i)=>`<div style="display:flex;flex-direction:column;gap:4px;"><div class="photo-thumb"><img src="${ph.preview}"/><button class="del-btn" onclick="removePhoto('${ps.key}',${i})">✕</button><span class="img-num">รูปที่ ${i+1}</span></div>${isOther?`<input type="text" value="${ph.caption||""}" placeholder="ระบุชื่อ (ไม่บังคับ)" oninput="wizData.photos['${ps.key}'][${i}].caption=this.value" style="width:100%;padding:5px 8px;font-size:11px;border:1.5px solid var(--g200);border-radius:6px;outline:none;color:var(--g800);" onfocus="this.style.borderColor='var(--red)'" onblur="this.style.borderColor='var(--g200)'" onkeydown="event.stopPropagation()"/>`:``}</div>`).join("")}<div class="add-photo-btn" id="drop-${ps.key}" onclick="triggerFileInput('${ps.key}')"><span>📷</span><p>เพิ่มรูป<br/>${photos.length===0?"(คลิกหรือลาก)":"(เพิ่มอีก)"}</p></div></div><input type="file" id="file-input-${ps.key}" accept="image/*" multiple style="display:none" onchange="handleFiles(event,'${ps.key}')"/><input type="file" id="file-camera-${ps.key}" accept="image/*" capture="environment" style="display:none" onchange="handleFiles(event,'${ps.key}')"/><div style="display:flex;gap:8px;justify-content:center;margin-top:10px;"><button class="btn btn-red btn-sm" onclick="triggerFileInput('${ps.key}')">📁 เลือกไฟล์</button><button class="btn btn-outline btn-sm" onclick="document.getElementById('file-camera-${ps.key}').click()">📷 ถ่ายรูป</button></div></div>`;}
+function bindDropZone(key){const z=document.getElementById("drop-"+key);if(!z)return;z.addEventListener("dragover",e=>{e.preventDefault();z.classList.add("drag");});z.addEventListener("dragleave",()=>z.classList.remove("drag"));z.addEventListener("drop",e=>{e.preventDefault();z.classList.remove("drag");addFiles(key,Array.from(e.dataTransfer.files));});}
 function triggerFileInput(k){document.getElementById("file-input-"+k)?.click();}
 function handleFiles(e,k){addFiles(k,Array.from(e.target.files));e.target.value="";}
-function addFiles(key,files){
-  files.filter(f=>f.type.startsWith("image/")).forEach(f=>{
-    const preview=URL.createObjectURL(f);
-    const entry={file:f,preview,dataUrl:null,thumbData:null,name:f.name};
-    wizData.photos[key].push(entry);
-
-    // อ่านไฟล์เป็น dataUrl แล้วสร้าง thumbnail 300x300 เก็บไว้เลย
-    const rd=new FileReader();
-    rd.onloadend=()=>{
-      entry.dataUrl=rd.result;
-      // สร้าง thumbnail
-      const img=new Image();
-      img.onload=()=>{
-        try{
-          const tc=document.createElement("canvas");
-          tc.width=300; tc.height=300;
-          tc.getContext("2d").drawImage(img,0,0,300,300);
-          entry.thumbData=tc.toDataURL("image/jpeg",0.7);
-        }catch(e){
-          entry.thumbData=entry.dataUrl; // fallback
-        }
-      };
-      img.src=entry.dataUrl;
-    };
-    rd.readAsDataURL(f);
-    renderWiz();
-  });
-}
+function addFiles(key,files){files.filter(f=>f.type.startsWith("image/")).forEach(f=>{const preview=URL.createObjectURL(f);const entry={file:f,preview,dataUrl:null,thumbData:null,name:f.name};wizData.photos[key].push(entry);const rd=new FileReader();rd.onloadend=()=>{entry.dataUrl=rd.result;const img=new Image();img.onload=()=>{try{const tc=document.createElement("canvas");tc.width=300;tc.height=300;tc.getContext("2d").drawImage(img,0,0,300,300);entry.thumbData=tc.toDataURL("image/jpeg",0.7);}catch(e){entry.thumbData=entry.dataUrl;}};img.src=entry.dataUrl;};rd.readAsDataURL(f);renderWiz();});}
 function removePhoto(key,idx){wizData.photos[key].splice(idx,1);renderWiz();}
-// Paste
-document.addEventListener("paste",e=>{
-  if(wizStep<3||wizStep>=TOTAL-1) return;
-  const key=PS[wizStep-3].key;
-  Array.from(e.clipboardData?.items||[]).filter(it=>it.type.startsWith("image/")).forEach(it=>{
-    const file=it.getAsFile();if(!file) return;
-    const preview=URL.createObjectURL(file);
-    wizData.photos[key].push({file,preview,dataUrl:null,name:`paste_${Date.now()}.png`});
-    const rd=new FileReader();rd.onloadend=()=>{const i=wizData.photos[key].findIndex(p=>p.preview===preview);if(i>=0)wizData.photos[key][i].dataUrl=rd.result;};
-    rd.readAsDataURL(file);renderWiz();showToast("📋 วางรูปจาก Clipboard แล้ว!");
-  });
-});
-document.addEventListener("keydown",e=>{
-  if(e.key!=="Enter"||!document.getElementById("page-wizard").classList.contains("active")) return;
-  if(document.activeElement?.tagName==="BUTTON") return;
-  wizNext();
-});
-function showToast(msg){
-  const t=document.getElementById("toast-bar");
-  t.textContent=msg;t.style.opacity="1";
-  clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity="0",2500);
-}
-function summaryHtml(){
-  const fn=getFolderName();
-  const tp=PS.reduce((a,p)=>a+(wizData.photos[p.key]?.length||0),0);
-  return `<div style="width:100%;">
-    <div style="text-align:center;margin-bottom:16px;">
-      <div style="width:60px;height:60px;border-radius:18px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:32px;">☁️</div>
-      <div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--blue);letter-spacing:2px;">พร้อมอัปโหลด!</div>
-    </div>
-    <div style="background:var(--white);border-radius:12px;padding:12px;border:1px solid var(--g200);margin-bottom:10px;">
-      ${[["Brand",wizData.brand],["Model",wizData.model],["Year",wizData.year],["Coolant",wizData.coolant],["Group",wizData.group]]
-        .map(([k,v])=>`<div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v||"—"}</span></div>`).join("")}
-    </div>
-    <div style="background:var(--blue-bg);border-radius:10px;padding:10px 14px;border:1px solid var(--blue-light);margin-bottom:10px;font-size:12px;color:var(--blue);line-height:1.8;">
-      📁 <strong>${fn}/</strong> · 📷 ${tp} รูป · 📊 <strong>${CFG.excelName}</strong>
-    </div>
-    <div class="photo-mini-grid">
-      ${PS.map(p=>{const ph=wizData.photos[p.key]||[];
-        return `<div class="photo-mini ${ph.length>0?"has":""}">
-          ${ph.length>0?`<img class="photo-mini-img" src="${ph[0].preview}"/>`:`<div class="photo-mini-empty">${p.icon}</div>`}
-          <p>${ph.length>0?"✓ ":""}${p.label}${ph.length>1?` (${ph.length})`:""}</p>
-        </div>`;}).join("")}
-    </div></div>`;
-}
-function getFolderName(){
-  const fn=[wizData.model,wizData.brand,wizData.year].filter(v=>v&&v!=="—"&&v!=="-").join("_");
-  return sanitizeSP(fn)||"Cabinet_"+Date.now();
-}
+document.addEventListener("paste",e=>{if(wizStep<3||wizStep>=TOTAL-1)return;const key=PS[wizStep-3].key;Array.from(e.clipboardData?.items||[]).filter(it=>it.type.startsWith("image/")).forEach(it=>{const file=it.getAsFile();if(!file)return;const preview=URL.createObjectURL(file);wizData.photos[key].push({file,preview,dataUrl:null,name:`paste_${Date.now()}.png`});const rd=new FileReader();rd.onloadend=()=>{const i=wizData.photos[key].findIndex(p=>p.preview===preview);if(i>=0)wizData.photos[key][i].dataUrl=rd.result;};rd.readAsDataURL(file);renderWiz();showToast("📋 วางรูปจาก Clipboard แล้ว!");});});
+document.addEventListener("keydown",e=>{if(e.key!=="Enter"||!document.getElementById("page-wizard").classList.contains("active"))return;if(document.activeElement?.tagName==="BUTTON")return;wizNext();});
+function showToast(msg){const t=document.getElementById("toast-bar");t.textContent=msg;t.style.opacity="1";clearTimeout(t._t);t._t=setTimeout(()=>t.style.opacity="0",2500);}
+function summaryHtml(){const fn=getFolderName();const tp=PS.reduce((a,p)=>a+(wizData.photos[p.key]?.length||0),0);return `<div style="width:100%;"><div style="text-align:center;margin-bottom:16px;"><div style="width:60px;height:60px;border-radius:18px;background:var(--blue-bg);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;font-size:32px;">☁️</div><div style="font-family:'Bebas Neue',sans-serif;font-size:24px;color:var(--blue);letter-spacing:2px;">พร้อมอัปโหลด!</div></div><div style="background:var(--white);border-radius:12px;padding:12px;border:1px solid var(--g200);margin-bottom:10px;">${[["Brand",wizData.brand],["Model",wizData.model],["Year",wizData.year],["Coolant",wizData.coolant],["Group",wizData.group]].map(([k,v])=>`<div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v||"—"}</span></div>`).join("")}</div><div style="background:var(--blue-bg);border-radius:10px;padding:10px 14px;border:1px solid var(--blue-light);margin-bottom:10px;font-size:12px;color:var(--blue);line-height:1.8;">📁 <strong>${fn}/</strong> · 📷 ${tp} รูป · 📊 <strong>${CFG.excelName}</strong></div><div class="photo-mini-grid">${PS.map(p=>{const ph=wizData.photos[p.key]||[];return `<div class="photo-mini ${ph.length>0?"has":""}">${ph.length>0?`<img class="photo-mini-img" src="${ph[0].preview}"/>`:`<div class="photo-mini-empty">${p.icon}</div>`}<p>${ph.length>0?"✓ ":""}${p.label}${ph.length>1?` (${ph.length})`:""}</p></div>`;}).join("")}</div></div>`;}
+function getFolderName(){const fn=[wizData.model,wizData.brand,wizData.year].filter(v=>v&&v!=="—"&&v!=="-").join("_");return sanitizeSP(fn)||"Cabinet_"+Date.now();}
 function setBrand(n){wizData.brand=n;const el=document.getElementById("wiz-brand");if(el)el.value=n;}
-function promptAddSection(){
-  document.getElementById("add-section-modal").style.display="flex";
-  document.getElementById("add-section-input").value="";
-  setTimeout(()=>document.getElementById("add-section-input").focus(),100);
-}
-function confirmAddSection(){
-  const name=document.getElementById("add-section-input").value.trim();
-  document.getElementById("add-section-modal").style.display="none";
-  if(!name) return;
-  const label=name;
-  const key="custom_"+label.replace(/\s+/g,"_").toLowerCase()+"_"+Date.now();
-  const prefix=label.replace(/\s+/g,"");
-  const newSection={key,label,sub:"รูปภาพ "+label,prefix,icon:"📷",custom:true};
-  PS_CUSTOM.push(newSection);
-  PS=[...PS_BASE,...PS_CUSTOM];
-  TOTAL=getTotal();
-  wizData.photos[key]=[];
-  showToast("✅ เพิ่ม Section: "+label);
-  renderWiz();
-}
-function removeCustomSection(key){
-  PS_CUSTOM=PS_CUSTOM.filter(c=>c.key!==key);
-  PS=[...PS_BASE,...PS_CUSTOM];
-  TOTAL=getTotal();
-  delete wizData.photos[key];
-  if(wizStep>=PS.length+3) wizStep=PS.length+2;
-  showToast("🗑️ ลบ Section แล้ว");
-  renderWiz();
-}
-
+function promptAddSection(){document.getElementById("add-section-modal").style.display="flex";document.getElementById("add-section-input").value="";setTimeout(()=>document.getElementById("add-section-input").focus(),100);}
+function confirmAddSection(){const name=document.getElementById("add-section-input").value.trim();document.getElementById("add-section-modal").style.display="none";if(!name)return;const key="custom_"+name.replace(/\s+/g,"_").toLowerCase()+"_"+Date.now();const prefix=name.replace(/\s+/g,"");PS_CUSTOM.push({key,label:name,sub:"รูปภาพ "+name,prefix,icon:"📷",custom:true});PS=[...PS_BASE,...PS_CUSTOM];TOTAL=getTotal();wizData.photos[key]=[];showToast("✅ เพิ่ม Section: "+name);renderWiz();}
+function removeCustomSection(key){PS_CUSTOM=PS_CUSTOM.filter(c=>c.key!==key);PS=[...PS_BASE,...PS_CUSTOM];TOTAL=getTotal();delete wizData.photos[key];if(wizStep>=PS.length+3)wizStep=PS.length+2;showToast("🗑️ ลบ Section แล้ว");renderWiz();}
 function wizBack(){if(wizStep>0){wizStep--;renderWiz();}}
-function wizGoTo(step){
-  // บันทึกค่าปัจจุบันก่อนเปลี่ยน step
-  if(wizStep===0) wizData.brand=document.getElementById("wiz-brand")?.value||wizData.brand;
-  if(wizStep===1) wizData.model=document.getElementById("wiz-model")?.value||wizData.model;
-  if(wizStep===2) wizData.year=document.getElementById("wiz-year")?.value||wizData.year;
-  wizStep=step; renderWiz();
-}
-async function wizNext(){
-  if(wizStep===0) wizData.brand  =document.getElementById("wiz-brand")?.value||wizData.brand;
-  if(wizStep===1){
-    wizData.model=document.getElementById("wiz-model")?.value||wizData.model;
-    // ตรวจสอบชื่อซ้ำกับที่มีอยู่ใน records
-    const fn=[wizData.model,wizData.brand,wizData.year].filter(v=>v&&v!=="—"&&v!=="-").join("_");
-    const dup=records.find(r=>r.folderName===fn);
-    if(dup){
-      const ok=confirm(`⚠️ พบข้อมูลซ้ำ!\n\n"${fn}"\n\nมีอยู่แล้วใน SharePoint\nต้องการดำเนินการต่อไหม? (จะทับข้อมูลเดิม)`);
-      if(!ok) return;
-    }
-  }
-  if(wizStep===2){
-    wizData.year   =document.getElementById("wiz-year")?.value||wizData.year;
-    wizData.coolant=document.getElementById("wiz-coolant")?.value||wizData.coolant;
-    wizData.group  =document.getElementById("wiz-group")?.value||wizData.group;
-  }
-  // ตรวจสอบ caption ของ Other section
-  if(wizStep>=3&&wizStep<TOTAL-1){
-    const p=PS[wizStep-3];
-    if(p.key==="other"){
-      const photos=wizData.photos["other"]||[];
-      const missing=photos.findIndex(ph=>!(ph.caption||"").trim());
-      if(missing>=0){
-        showToast(`⚠️ กรุณาระบุชื่อรูปที่ ${missing+1} ก่อน`);
-        const input=document.querySelector(`#photo-grid-other input[type=text]:nth-of-type(${missing+1})`);
-        if(input) input.focus();
-        return;
-      }
-    }
-  }
-  if(wizStep===TOTAL-1){await doUpload();return;}
-  wizStep++;renderWiz();
-}
+function wizGoTo(step){if(wizStep===0)wizData.brand=document.getElementById("wiz-brand")?.value||wizData.brand;if(wizStep===1)wizData.model=document.getElementById("wiz-model")?.value||wizData.model;if(wizStep===2)wizData.year=document.getElementById("wiz-year")?.value||wizData.year;wizStep=step;renderWiz();}
+async function wizNext(){if(wizStep===0)wizData.brand=document.getElementById("wiz-brand")?.value||wizData.brand;if(wizStep===1){wizData.model=document.getElementById("wiz-model")?.value||wizData.model;const fn=[wizData.model,wizData.brand,wizData.year].filter(v=>v&&v!=="—"&&v!=="-").join("_");const dup=records.find(r=>r.folderName===fn);if(dup){const ok=confirm(`⚠️ พบข้อมูลซ้ำ!\n\n"${fn}"\n\nมีอยู่แล้วใน SharePoint\nต้องการดำเนินการต่อไหม? (จะทับข้อมูลเดิม)`);if(!ok)return;}}if(wizStep===2){wizData.year=document.getElementById("wiz-year")?.value||wizData.year;wizData.coolant=document.getElementById("wiz-coolant")?.value||wizData.coolant;wizData.group=document.getElementById("wiz-group")?.value||wizData.group;}if(wizStep>=3&&wizStep<TOTAL-1){const p=PS[wizStep-3];if(p.key==="other"){const photos=wizData.photos["other"]||[];const missing=photos.findIndex(ph=>!(ph.caption||"").trim());if(missing>=0){showToast(`⚠️ กรุณาระบุชื่อรูปที่ ${missing+1} ก่อน`);return;}}}if(wizStep===TOTAL-1){await doUpload();return;}wizStep++;renderWiz();}
 
 // ════════════════════════════════════════════════
 //  UPLOAD
 // ════════════════════════════════════════════════
-async function doUpload(){
-  // Step 1: ensure dataUrl ready ทุกรูป
-  await Promise.all(
-    PS.flatMap(p=>wizData.photos[p.key]||[]).filter(ph=>!ph.dataUrl&&ph.file)
-      .map(ph=>new Promise(res=>{const r=new FileReader();r.onloadend=()=>{ph.dataUrl=r.result;res();};r.readAsDataURL(ph.file);}))
-  );
+async function doUpload(){await Promise.all(PS.flatMap(p=>wizData.photos[p.key]||[]).filter(ph=>!ph.dataUrl&&ph.file).map(ph=>new Promise(res=>{const r=new FileReader();r.onloadend=()=>{ph.dataUrl=r.result;res();};r.readAsDataURL(ph.file);})));const sectionComposites={};for(const p of PS){const photos=wizData.photos[p.key]||[];if(!photos.length)continue;const thumbs=[];for(const ph of photos){if(!ph.dataUrl)continue;const thumb=await new Promise(res=>{const img=new Image();img.onload=()=>{const H=600,W=Math.round(H*(img.width/img.height));const tc=document.createElement("canvas");tc.width=W;tc.height=H;const tctx=tc.getContext("2d");tctx.fillStyle="#fff";tctx.fillRect(0,0,W,H);tctx.drawImage(img,0,0,W,H);res({data:tc.toDataURL("image/jpeg",0.9),name:ph.savedName||ph.name,w:W,h:H});};img.onerror=()=>res(null);img.src=ph.dataUrl;});if(thumb)thumbs.push(thumb);}if(!thumbs.length)continue;const PAD=6;const totalW=thumbs.reduce((a,t)=>a+(t.w||400),0)+(thumbs.length-1)*PAD;const maxH=Math.max(...thumbs.map(t=>t.h||400));const cv=document.createElement("canvas");cv.width=totalW;cv.height=maxH;const ctx=cv.getContext("2d");ctx.fillStyle="#fff";ctx.fillRect(0,0,cv.width,cv.height);let xOff=0;for(let i=0;i<thumbs.length;i++){await new Promise(res=>{const img=new Image();img.onload=()=>{ctx.drawImage(img,xOff,0,thumbs[i].w||400,thumbs[i].h||400);xOff+=(thumbs[i].w||400)+PAD;res();};img.onerror=res;img.src=thumbs[i].data;});}sectionComposites[p.key]=cv.toDataURL("image/jpeg",0.85).split(",")[1];}if(!await ensureToken())return;showPage("uploading");document.getElementById("up-error").style.display="none";document.getElementById("up-main-icon").textContent="☁️";document.getElementById("up-title").textContent="กำลังอัปโหลด...";document.getElementById("up-title").style.color="var(--g800)";const folderName=getFolderName();const allPhotos=PS.flatMap(p=>(wizData.photos[p.key]||[]).map((ph,i)=>({...ph,step:p,idx:i})));const steps=[{label:"🔐 เชื่อมต่อ SharePoint"},{label:"📁 สร้างโฟลเดอร์: "+folderName},...allPhotos.map(ph=>({label:`${ph.step.icon} ${ph.step.label} #${ph.idx+1}${ph.caption?` — ${ph.caption}`:""}: ${getRenamedFile(folderName,ph.step.prefix,ph.idx,ph.name,ph.caption||"")}`})),{label:"📊 อ่านไฟล์ Excel"},{label:"📝 เพิ่ม Sheet: "+wizData.model},{label:"🔧 แก้ไข Drawing Anchors"},{label:"💾 บันทึก Excel กลับ SharePoint"}];let done=0;const renderSteps=()=>{document.getElementById("up-prog").style.width=Math.round((done/steps.length)*100)+"%";document.getElementById("up-prog-label").textContent=done+" / "+steps.length+" ขั้นตอน";document.getElementById("up-steps").innerHTML=steps.map(s=>`<div class="up-step"><div class="up-icon ${s.status||"pending"}">${s.status==="done"?"✅":s.status==="loading"?"⏳":s.status==="error"?"❌":"⬜"}</div><span class="up-label ${s.status||"pending"}">${s.label}</span></div>`).join("");};const setS=(i,st)=>{steps[i].status=st;if(st==="done")done++;renderSteps();};steps.forEach((_,i)=>steps[i].status="pending");renderSteps();let driveId;try{const H={Authorization:"Bearer "+accessToken};setS(0,"loading");const siteRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});if(!siteRes.ok)throw new Error("ไม่พบ Site");const siteId=(await siteRes.json()).id;const drvRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,{headers:H});const drv=(await drvRes.json()).value?.find(d=>d.name==="Documents");if(!drv)throw new Error("ไม่พบ Drive");driveId=drv.id;_cachedDriveId=driveId;setS(0,"done");setS(1,"loading");await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(CFG.modelPath)}:/children`,{method:"POST",headers:{...H,"Content-Type":"application/json"},body:JSON.stringify({name:folderName,folder:{},["@microsoft.graph.conflictBehavior"]:"replace"})});setS(1,"done");const savedPhotos=Object.fromEntries(PS.map(p=>[p.key,[]]));for(let i=0;i<allPhotos.length;i++){const ph=allPhotos[i];setS(i+2,"loading");const newName=getRenamedFile(folderName,ph.step.prefix,ph.idx,ph.name,ph.caption||"");const upPath=`${CFG.modelPath}/${folderName}/${newName}`;const upRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(upPath)}:/content`,{method:"PUT",headers:{...H,"Content-Type":ph.file.type||"image/jpeg"},body:ph.file});if(!upRes.ok)throw new Error(`อัปโหลด ${newName} ไม่ได้`);savedPhotos[ph.step.key].push({file:ph.file,preview:ph.preview,dataUrl:ph.dataUrl,savedName:newName,name:ph.name});_imgCache[upPath]=ph.preview;setS(i+2,"done");}const exIdx=2+allPhotos.length;setS(exIdx,"loading");const wb=new ExcelJS.Workbook();const exPath=`${CFG.excelPath}/${CFG.excelName}`;try{const exRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,{headers:H});if(exRes.ok)await wb.xlsx.load(await exRes.arrayBuffer());}catch{}setS(exIdx,"done");setS(exIdx+1,"loading");await buildSheetExcelJS(wb,folderName,wizData.brand,wizData.model,wizData.year,savedPhotos,wizData.coolant,wizData.group,sectionComposites);buildIndexSheet(wb);setS(exIdx+1,"done");setS(exIdx+2,"loading");let excelBuf=await wb.xlsx.writeBuffer();excelBuf=await fixDrawingAnchors(excelBuf);setS(exIdx+2,"done");setS(exIdx+3,"loading");let exUp;let lastErr="";for(let attempt=1;attempt<=3;attempt++){exUp=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,{method:"PUT",headers:{...H,"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},body:new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})});if(exUp.ok)break;lastErr=exUp.status;if(exUp.status===423){document.getElementById("up-prog-label").textContent=`⏳ ไฟล์ถูกล็อก กำลัง retry (${attempt}/3)...`;await new Promise(r=>setTimeout(r,3000));}else break;}if(!exUp.ok){if(lastErr===423)throw new Error("ไฟล์ Excel เปิดอยู่ใน SharePoint — กรุณาปิดไฟล์ก่อนแล้วลองใหม่");throw new Error("อัปโหลด Excel ไม่ได้ ("+lastErr+")");}setS(exIdx+3,"done");const photosStorage=Object.fromEntries(PS.map(p=>[p.key,(savedPhotos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))]));const newRec={id:Date.now(),brand:wizData.brand,model:wizData.model,year:wizData.year,coolant:wizData.coolant,group:wizData.group,uploaded:true,folderName,photos:photosStorage,customSections:PS_CUSTOM.map(p=>({key:p.key,label:p.label,sub:p.sub,prefix:p.prefix,icon:p.icon})),date:new Date().toLocaleDateString("th-TH",{year:"numeric",month:"short",day:"numeric"})};records.unshift({...newRec,photos:savedPhotos});try{localStorage.setItem("cabinet_records",JSON.stringify([newRec,...records.slice(1)]));}catch{try{localStorage.setItem("cabinet_records",JSON.stringify(records.map(r=>({...r,photos:Object.fromEntries(PS.map(p=>[p.key,[]]))}))));} catch{}}document.getElementById("up-main-icon").textContent="✅";document.getElementById("up-title").textContent="บันทึกสำเร็จ!";document.getElementById("up-title").style.color="var(--green)";const tp=PS.reduce((a,p)=>a+(savedPhotos[p.key]?.length||0),0);document.getElementById("success-detail").innerHTML=`📁 <strong>${folderName}</strong><br>📷 <strong>${tp} รูป</strong><br>📊 Sheet <strong>"${(wizData.model||"Cabinet").substring(0,31)}"</strong>`;setTimeout(()=>showPage("success"),800);}catch(e){try{if(accessToken&&folderName&&driveId){const H2={Authorization:"Bearer "+accessToken};const folderPath=`${CFG.modelPath}/${folderName}`;const itemRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(folderPath)}`,{headers:H2});if(itemRes.ok){const item=await itemRes.json();await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/items/${item.id}`,{method:"DELETE",headers:H2});}}}catch(cleanupErr){console.warn("Cleanup failed:",cleanupErr);}const el=document.getElementById("up-error");el.style.display="block";el.innerHTML=`<strong>❌ Error:</strong> ${e.message}<br><small style="color:var(--g400);">🧹 ลบข้อมูลที่อัปโหลดไปแล้วเรียบร้อย</small><br><br><div style="display:flex;gap:8px;flex-wrap:wrap;"><button class="btn btn-red btn-sm" onclick="retryUpload()">🔄 ส่งใหม่อีกครั้ง</button><button class="btn btn-outline btn-sm" onclick="resetAndBack()">← กลับแก้ไข</button><button class="btn btn-outline btn-sm" onclick="showPage('list')">🏠 หน้าหลัก</button></div>`;document.getElementById("up-title").textContent="เกิดข้อผิดพลาด";document.getElementById("up-title").style.color="var(--red)";}}
 
-  // Step 2: สร้าง composite thumbnail แต่ละ section
-  const sectionComposites={};
-  for(const p of PS){
-    const photos=wizData.photos[p.key]||[];
-    if(!photos.length) continue;
-
-    // ย่อแต่ละรูปเป็น thumbnail 400x400
-    const thumbs=[];
-    for(const ph of photos){
-      if(!ph.dataUrl) continue;
-      const thumb=await new Promise(res=>{
-        const img=new Image();
-        img.onload=()=>{
-          const H=600; // สูงคงที่ทุกรูป
-          const W=Math.round(H*(img.width/img.height)); // กว้างตามสัดส่วนจริง
-          const tc=document.createElement("canvas");
-          tc.width=W; tc.height=H;
-          const tctx=tc.getContext("2d");
-          tctx.fillStyle="#fff";
-          tctx.fillRect(0,0,W,H);
-          tctx.drawImage(img,0,0,W,H);
-          res({data:tc.toDataURL("image/jpeg",0.9), name:ph.savedName||ph.name, w:W, h:H});
-        };
-        img.onerror=()=>res(null);
-        img.src=ph.dataUrl;
-      });
-      if(thumb) thumbs.push(thumb);
-    }
-    if(!thumbs.length) continue;
-
-    // วางรูปแนวนอน ต่อกันซ้าย→ขวา เต็มสัดส่วนจริง
-    const PAD=6;
-    const totalW=thumbs.reduce((a,t)=>a+(t.w||400),0)+(thumbs.length-1)*PAD;
-    const maxH=Math.max(...thumbs.map(t=>t.h||400));
-    const cv=document.createElement("canvas");
-    cv.width=totalW; cv.height=maxH;
-    const ctx=cv.getContext("2d");
-    ctx.fillStyle="#fff";
-    ctx.fillRect(0,0,cv.width,cv.height);
-    let xOff=0;
-    for(let i=0;i<thumbs.length;i++){
-      await new Promise(res=>{
-        const img=new Image();
-        img.onload=()=>{ctx.drawImage(img,xOff,0,thumbs[i].w||400,thumbs[i].h||400);xOff+=(thumbs[i].w||400)+PAD;res();};
-        img.onerror=res;
-        img.src=thumbs[i].data;
-      });
-    }
-    sectionComposites[p.key]=cv.toDataURL("image/jpeg",0.85).split(",")[1];
-  }
-
-  if(!await ensureToken()) return;
-  showPage("uploading");
-  document.getElementById("up-error").style.display="none";
-  document.getElementById("up-main-icon").textContent="☁️";
-  document.getElementById("up-title").textContent="กำลังอัปโหลด...";
-  document.getElementById("up-title").style.color="var(--g800)";
-
-  const folderName=getFolderName();
-  const allPhotos=PS.flatMap(p=>(wizData.photos[p.key]||[]).map((ph,i)=>({...ph,step:p,idx:i})));
-  const steps=[
-    {label:"🔐 เชื่อมต่อ SharePoint"},
-    {label:"📁 สร้างโฟลเดอร์: "+folderName},
-    ...allPhotos.map(ph=>({label:`${ph.step.icon} ${ph.step.label} #${ph.idx+1}${ph.caption?` — ${ph.caption}`:""}: ${getRenamedFile(folderName,ph.step.prefix,ph.idx,ph.name,ph.caption||"")}`})),
-    {label:"📊 อ่านไฟล์ Excel"},
-    {label:"📝 เพิ่ม Sheet: "+wizData.model},
-    {label:"🔧 แก้ไข Drawing Anchors"},
-    {label:"💾 บันทึก Excel กลับ SharePoint"},
-  ];
-  let done=0;
-  const renderSteps=()=>{
-    document.getElementById("up-prog").style.width=Math.round((done/steps.length)*100)+"%";
-    document.getElementById("up-prog-label").textContent=done+" / "+steps.length+" ขั้นตอน";
-    document.getElementById("up-steps").innerHTML=steps.map(s=>`
-      <div class="up-step"><div class="up-icon ${s.status||"pending"}">${s.status==="done"?"✅":s.status==="loading"?"⏳":s.status==="error"?"❌":"⬜"}</div>
-        <span class="up-label ${s.status||"pending"}">${s.label}</span></div>`).join("");
-  };
-  const setS=(i,st)=>{steps[i].status=st;if(st==="done")done++;renderSteps();};
-  steps.forEach((_,i)=>steps[i].status="pending"); renderSteps();
-  try{
-    const H={Authorization:"Bearer "+accessToken};
-    // Step 0 — connect
-    setS(0,"loading");
-    const siteRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${CFG.spSite}:/sites/${CFG.spSiteName}`,{headers:H});
-    if(!siteRes.ok) throw new Error("ไม่พบ Site");
-    const siteId=(await siteRes.json()).id;
-    const drvRes=await fetch(`https://graph.microsoft.com/v1.0/sites/${siteId}/drives`,{headers:H});
-    const drv=(await drvRes.json()).value?.find(d=>d.name==="Documents");
-    if(!drv) throw new Error("ไม่พบ Drive");
-    const driveId=drv.id; _cachedDriveId=driveId;
-    setS(0,"done");
-    // Step 1 — folder (replace ถ้ามีอยู่แล้ว ไม่สร้างใหม่เป็น (1))
-    setS(1,"loading");
-    await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(CFG.modelPath)}:/children`,
-      {method:"POST",headers:{...H,"Content-Type":"application/json"},
-       body:JSON.stringify({name:folderName,folder:{},["@microsoft.graph.conflictBehavior"]:"replace"})});
-    setS(1,"done");
-    // Upload photos
-    const savedPhotos=Object.fromEntries(PS.map(p=>[p.key,[]]));
-    for(let i=0;i<allPhotos.length;i++){
-      const ph=allPhotos[i]; setS(i+2,"loading");
-      const newName=getRenamedFile(folderName,ph.step.prefix,ph.idx,ph.name,ph.caption||"");
-      const upPath=`${CFG.modelPath}/${folderName}/${newName}`;
-      const upRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(upPath)}:/content`,
-        {method:"PUT",headers:{...H,"Content-Type":ph.file.type||"image/jpeg"},body:ph.file});
-      if(!upRes.ok) throw new Error(`อัปโหลด ${newName} ไม่ได้`);
-      savedPhotos[ph.step.key].push({file:ph.file,preview:ph.preview,dataUrl:ph.dataUrl,savedName:newName,name:ph.name});
-      _imgCache[upPath]=ph.preview;
-      setS(i+2,"done");
-    }
-    // Excel
-    const exIdx=2+allPhotos.length;
-    setS(exIdx,"loading");
-    const wb=new ExcelJS.Workbook();
-    const exPath=`${CFG.excelPath}/${CFG.excelName}`;
-    try{const exRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,{headers:H});if(exRes.ok)await wb.xlsx.load(await exRes.arrayBuffer());}catch{}
-    setS(exIdx,"done");
-    setS(exIdx+1,"loading");
-    await buildSheetExcelJS(wb,folderName,wizData.brand,wizData.model,wizData.year,savedPhotos,wizData.coolant,wizData.group,sectionComposites);
-    buildIndexSheet(wb);
-    setS(exIdx+1,"done");
-
-    // ═══ FIX: แก้ Drawing Anchors ก่อน upload ═══
-    setS(exIdx+2,"loading");
-    let excelBuf=await wb.xlsx.writeBuffer();
-    excelBuf=await fixDrawingAnchors(excelBuf);
-    setS(exIdx+2,"done");
-
-    // Upload Excel
-    setS(exIdx+3,"loading");
-    let exUp; let lastErr="";
-    for(let attempt=1;attempt<=3;attempt++){
-      exUp=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(exPath)}:/content`,
-        {method:"PUT",headers:{...H,"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
-         body:new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})});
-      if(exUp.ok) break;
-      lastErr=exUp.status;
-      if(exUp.status===423){
-        document.getElementById("up-prog-label").textContent=`⏳ ไฟล์ถูกล็อก กำลัง retry (${attempt}/3)...`;
-        await new Promise(r=>setTimeout(r,3000));
-      } else break;
-    }
-    if(!exUp.ok){
-      if(lastErr===423) throw new Error("ไฟล์ Excel เปิดอยู่ใน SharePoint — กรุณาปิดไฟล์ก่อนแล้วลองใหม่");
-      throw new Error("อัปโหลด Excel ไม่ได้ ("+lastErr+")");
-    }
-    setS(exIdx+3,"done");
-
-    // Save record
-    const photosStorage=Object.fromEntries(PS.map(p=>[p.key,(savedPhotos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))  ]));
-    const newRec={id:Date.now(),brand:wizData.brand,model:wizData.model,year:wizData.year,coolant:wizData.coolant,group:wizData.group,
-      uploaded:true,folderName,photos:photosStorage,
-      customSections:PS_CUSTOM.map(p=>({key:p.key,label:p.label,sub:p.sub,prefix:p.prefix,icon:p.icon})),
-      date:new Date().toLocaleDateString("th-TH",{year:"numeric",month:"short",day:"numeric"})};
-    records.unshift({...newRec,photos:savedPhotos});
-    try{localStorage.setItem("cabinet_records",JSON.stringify([newRec,...records.slice(1)]));}
-    catch{try{localStorage.setItem("cabinet_records",JSON.stringify(records.map(r=>({...r,photos:Object.fromEntries(PS.map(p=>[p.key,[]]))}))));} catch{}}
-    document.getElementById("up-main-icon").textContent="✅";
-    document.getElementById("up-title").textContent="บันทึกสำเร็จ!";
-    document.getElementById("up-title").style.color="var(--green)";
-    const tp=PS.reduce((a,p)=>a+(savedPhotos[p.key]?.length||0),0);
-    document.getElementById("success-detail").innerHTML=`📁 <strong>${folderName}</strong><br>📷 <strong>${tp} รูป</strong><br>📊 Sheet <strong>"${(wizData.model||"Cabinet").substring(0,31)}"</strong>`;
-    setTimeout(()=>showPage("success"),800);
-  }catch(e){
-    // ═══ AUTO CLEANUP: ลบโฟลเดอร์ที่สร้างไปแล้วถ้า upload ไม่สำเร็จ ═══
-    try{
-      if(accessToken && folderName){
-        const H2={Authorization:"Bearer "+accessToken};
-        const folderPath=`${CFG.modelPath}/${folderName}`;
-        const itemRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/root:/${encPath(folderPath)}`,{headers:H2});
-        if(itemRes.ok){
-          const item=await itemRes.json();
-          await fetch(`https://graph.microsoft.com/v1.0/drives/${driveId}/items/${item.id}`,{method:"DELETE",headers:H2});
-          console.log("🧹 Cleanup: ลบโฟลเดอร์ที่ upload ไม่สำเร็จแล้ว:",folderName);
-        }
-      }
-    }catch(cleanupErr){console.warn("Cleanup failed:",cleanupErr);}
-
-    const el=document.getElementById("up-error");
-    el.style.display="block";
-    el.innerHTML=`<strong>❌ Error:</strong> ${e.message}<br><small style="color:var(--g400);">🧹 ลบข้อมูลที่อัปโหลดไปแล้วเรียบร้อย</small><br><br>
-      <div style="display:flex;gap:8px;flex-wrap:wrap;">
-        <button class="btn btn-red btn-sm" onclick="retryUpload()">🔄 ส่งใหม่อีกครั้ง</button>
-        <button class="btn btn-outline btn-sm" onclick="resetAndBack()">← กลับแก้ไข</button>
-        <button class="btn btn-outline btn-sm" onclick="showPage('list')">🏠 หน้าหลัก</button>
-      </div>`;
-    document.getElementById("up-title").textContent="เกิดข้อผิดพลาด";
-    document.getElementById("up-title").style.color="var(--red)";
-  }
-}
 // ════════════════════════════════════════════════
 //  DELETE
 // ════════════════════════════════════════════════
-let _deleteIdx = -1;
-function confirmDelete(){
-  const btnDel=document.getElementById("btn-detail-delete");
-  _deleteIdx=parseInt(btnDel.dataset.idx||"0");
-  const r=records[_deleteIdx];
-  document.getElementById("delete-modal-name").textContent=`📁 ${r.folderName||r.model||"ไม่ระบุ"}`;
-  document.getElementById("delete-modal").style.display="flex";
-}
-async function doDelete(){
-  document.getElementById("delete-modal").style.display="none";
-  if(!await ensureToken()) return;
-  const r=records[_deleteIdx];
-  showPage("deleting");
-  document.getElementById("del-error").style.display="none";
-  document.getElementById("del-main-icon").textContent="🗑️";
-  document.getElementById("del-title").textContent="กำลังลบ...";
-  document.getElementById("del-title").style.color="var(--g800)";
+let _deleteIdx=-1;
+function confirmDelete(){const btnDel=document.getElementById("btn-detail-delete");_deleteIdx=parseInt(btnDel.dataset.idx||"0");const r=records[_deleteIdx];document.getElementById("delete-modal-name").textContent=`📁 ${r.folderName||r.model||"ไม่ระบุ"}`;document.getElementById("delete-modal").style.display="flex";}
+async function doDelete(){document.getElementById("delete-modal").style.display="none";if(!await ensureToken())return;const r=records[_deleteIdx];showPage("deleting");document.getElementById("del-error").style.display="none";document.getElementById("del-main-icon").textContent="🗑️";document.getElementById("del-title").textContent="กำลังลบ...";document.getElementById("del-title").style.color="var(--g800)";const steps=[{label:"🔐 เชื่อมต่อ SharePoint"},{label:`📁 ลบโฟลเดอร์: ${r.folderName}`},{label:`📊 อ่านไฟล์ Excel`},{label:`🗂️ ลบ Sheet: ${r.model||r.folderName}`},{label:"💾 บันทึก Excel กลับ SharePoint"},{label:"🧹 ลบข้อมูลใน Browser"}];let done=0;const renderSteps=()=>{document.getElementById("del-prog").style.width=Math.round((done/steps.length)*100)+"%";document.getElementById("del-prog-label").textContent=done+" / "+steps.length+" ขั้นตอน";document.getElementById("del-steps").innerHTML=steps.map(s=>`<div class="up-step"><div class="up-icon ${s.status||"pending"}">${s.status==="done"?"✅":s.status==="loading"?"⏳":s.status==="error"?"❌":"⬜"}</div><span class="up-label ${s.status||"pending"}">${s.label}</span></div>`).join("");};const setS=(i,st)=>{steps[i].status=st;if(st==="done")done++;renderSteps();};steps.forEach((_,i)=>steps[i].status="pending");renderSteps();try{const H={Authorization:"Bearer "+accessToken};setS(0,"loading");const did=await getSpDriveId();setS(0,"done");setS(1,"loading");if(r.folderName){const folderPath=`${CFG.modelPath}/${r.folderName}`;const itemRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(folderPath)}`,{headers:H});if(itemRes.ok){const item=await itemRes.json();await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/items/${item.id}`,{method:"DELETE",headers:H});}}setS(1,"done");setS(2,"loading");const wb=new ExcelJS.Workbook();const exPath=`${CFG.excelPath}/${CFG.excelName}`;const exRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(exPath)}:/content`,{headers:H});if(exRes.ok)await wb.xlsx.load(await exRes.arrayBuffer());setS(2,"done");setS(3,"loading");const sn=(r.model||"Cabinet").substring(0,31).replace(/[\\/?*[\]:]/g,"_");const ws=wb.getWorksheet(sn);if(ws)wb.removeWorksheet(ws.id);buildIndexSheet(wb);setS(3,"done");setS(4,"loading");let excelBuf=await wb.xlsx.writeBuffer();excelBuf=await fixDrawingAnchors(excelBuf);const exUp=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(exPath)}:/content`,{method:"PUT",headers:{...H,"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},body:new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})});if(!exUp.ok)throw new Error("อัปโหลด Excel ไม่ได้ ("+exUp.status+")");setS(4,"done");setS(5,"loading");records.splice(_deleteIdx,1);try{localStorage.setItem("cabinet_records",JSON.stringify(records.map(rec=>({...rec,photos:Object.fromEntries(PS.map(p=>[p.key,(rec.photos?.[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))]))}))));}catch{}setS(5,"done");document.getElementById("del-main-icon").textContent="✅";document.getElementById("del-title").textContent="ลบสำเร็จ!";document.getElementById("del-title").style.color="var(--green)";setTimeout(()=>showPage("list"),1000);}catch(e){const el=document.getElementById("del-error");el.style.display="block";el.innerHTML=`<strong>❌ Error:</strong> ${e.message}<br><br><button class="btn btn-outline btn-sm" onclick="showPage('list')">← กลับหน้าหลัก</button>`;document.getElementById("del-title").textContent="เกิดข้อผิดพลาด";document.getElementById("del-title").style.color="var(--red)";}}
 
-  const steps=[
-    {label:"🔐 เชื่อมต่อ SharePoint"},
-    {label:`📁 ลบโฟลเดอร์: ${r.folderName}`},
-    {label:`📊 อ่านไฟล์ Excel`},
-    {label:`🗂️ ลบ Sheet: ${r.model||r.folderName}`},
-    {label:"💾 บันทึก Excel กลับ SharePoint"},
-    {label:"🧹 ลบข้อมูลใน Browser"},
-  ];
-  let done=0;
-  const renderSteps=()=>{
-    document.getElementById("del-prog").style.width=Math.round((done/steps.length)*100)+"%";
-    document.getElementById("del-prog-label").textContent=done+" / "+steps.length+" ขั้นตอน";
-    document.getElementById("del-steps").innerHTML=steps.map(s=>`
-      <div class="up-step"><div class="up-icon ${s.status||"pending"}">${s.status==="done"?"✅":s.status==="loading"?"⏳":s.status==="error"?"❌":"⬜"}</div>
-        <span class="up-label ${s.status||"pending"}">${s.label}</span></div>`).join("");
-  };
-  const setS=(i,st)=>{steps[i].status=st;if(st==="done")done++;renderSteps();};
-  steps.forEach((_,i)=>steps[i].status="pending"); renderSteps();
-
-  try{
-    const H={Authorization:"Bearer "+accessToken};
-    // Step 0 — connect
-    setS(0,"loading");
-    const did=await getSpDriveId();
-    setS(0,"done");
-
-    // Step 1 — ลบโฟลเดอร์
-    setS(1,"loading");
-    if(r.folderName){
-      const folderPath=`${CFG.modelPath}/${r.folderName}`;
-      const itemRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(folderPath)}`,{headers:H});
-      if(itemRes.ok){
-        const item=await itemRes.json();
-        await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/items/${item.id}`,{method:"DELETE",headers:H});
-      }
-    }
-    setS(1,"done");
-
-    // Step 2 — อ่าน Excel
-    setS(2,"loading");
-    const wb=new ExcelJS.Workbook();
-    const exPath=`${CFG.excelPath}/${CFG.excelName}`;
-    const exRes=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(exPath)}:/content`,{headers:H});
-    if(exRes.ok) await wb.xlsx.load(await exRes.arrayBuffer());
-    setS(2,"done");
-
-    // Step 3 — ลบ Sheet
-    setS(3,"loading");
-    const sn=(r.model||"Cabinet").substring(0,31).replace(/[\\/?*[\]:]/g,"_");
-    const ws=wb.getWorksheet(sn);
-    if(ws) wb.removeWorksheet(ws.id);
-    buildIndexSheet(wb);
-    setS(3,"done");
-
-    // Step 4 — บันทึก Excel
-    setS(4,"loading");
-    let excelBuf=await wb.xlsx.writeBuffer();
-    excelBuf=await fixDrawingAnchors(excelBuf);
-    const exUp=await fetch(`https://graph.microsoft.com/v1.0/drives/${did}/root:/${encPath(exPath)}:/content`,
-      {method:"PUT",headers:{...H,"Content-Type":"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"},
-       body:new Blob([excelBuf],{type:"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"})});
-    if(!exUp.ok) throw new Error("อัปโหลด Excel ไม่ได้ ("+exUp.status+")");
-    setS(4,"done");
-
-    // Step 5 — ลบ local
-    setS(5,"loading");
-    records.splice(_deleteIdx,1);
-    try{localStorage.setItem("cabinet_records",JSON.stringify(records.map(rec=>({...rec,photos:Object.fromEntries(PS.map(p=>[p.key,(rec.photos?.[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))]))}))));}catch{}
-    setS(5,"done");
-
-    document.getElementById("del-main-icon").textContent="✅";
-    document.getElementById("del-title").textContent="ลบสำเร็จ!";
-    document.getElementById("del-title").style.color="var(--green)";
-    setTimeout(()=>showPage("list"),1000);
-
-  }catch(e){
-    const el=document.getElementById("del-error");
-    el.style.display="block";
-    el.innerHTML=`<strong>❌ Error:</strong> ${e.message}<br><br><button class="btn btn-outline btn-sm" onclick="showPage('list')">← กลับหน้าหลัก</button>`;
-    document.getElementById("del-title").textContent="เกิดข้อผิดพลาด";
-    document.getElementById("del-title").style.color="var(--red)";
-  }
-}
-
-function retryUpload(){
-  // ส่งใหม่โดยใช้ wizData เดิม ไม่ต้องกรอกใหม่
-  document.getElementById("up-error").style.display="none";
-  document.getElementById("up-prog").style.width="0%";
-  document.getElementById("up-prog-label").textContent="";
-  document.getElementById("up-steps").innerHTML="";
-  document.getElementById("up-main-icon").textContent="☁️";
-  document.getElementById("up-title").textContent="กำลังอัปโหลด...";
-  document.getElementById("up-title").style.color="var(--g800)";
-  doUpload();
-}
-
-function resetAndBack(){
-  // reset upload page state ให้ครบก่อนกลับ wizard
-  document.getElementById("up-error").style.display="none";
-  document.getElementById("up-prog").style.width="0%";
-  document.getElementById("up-prog-label").textContent="";
-  document.getElementById("up-steps").innerHTML="";
-  document.getElementById("up-main-icon").textContent="☁️";
-  document.getElementById("up-title").textContent="กำลังอัปโหลด...";
-  document.getElementById("up-title").style.color="var(--g800)";
-  // กลับไป wizard step สุดท้าย (summary)
-  wizStep=TOTAL-1;
-  showPage("wizard");
-  renderWiz();
-}
-
-// แทน * ด้วย x และลบอักขระต้องห้ามอื่นๆ ใน SharePoint
-function sanitizeSP(s){
-  return (s||"").replace(/\*/g,"x").replace(/[":<>?/\\|#%{}~&[\]]/g,"").replace(/\s+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"").trim();
-}
-function getRenamedFile(fn,prefix,idx,originalName,caption=""){
-  const ext=(originalName||"img.jpg").split(".").pop()||"jpg";
-  const safeFn=sanitizeSP(fn);
-  if(caption&&caption.trim()){
-    const safeCap=sanitizeSP(caption.trim()).replace(/\s+/g,"_");
-    return `${safeFn}_${prefix}_${idx+1}_${safeCap}.${ext}`;
-  }
-  return `${safeFn}_${prefix}_${idx+1}.${ext}`;
-}
+function retryUpload(){document.getElementById("up-error").style.display="none";document.getElementById("up-prog").style.width="0%";document.getElementById("up-prog-label").textContent="";document.getElementById("up-steps").innerHTML="";document.getElementById("up-main-icon").textContent="☁️";document.getElementById("up-title").textContent="กำลังอัปโหลด...";document.getElementById("up-title").style.color="var(--g800)";doUpload();}
+function resetAndBack(){document.getElementById("up-error").style.display="none";document.getElementById("up-prog").style.width="0%";document.getElementById("up-prog-label").textContent="";document.getElementById("up-steps").innerHTML="";document.getElementById("up-main-icon").textContent="☁️";document.getElementById("up-title").textContent="กำลังอัปโหลด...";document.getElementById("up-title").style.color="var(--g800)";wizStep=TOTAL-1;showPage("wizard");renderWiz();}
+function sanitizeSP(s){return(s||"").replace(/\*/g,"x").replace(/[":<>?/\\|#%{}~&[\]]/g,"").replace(/\s+/g,"_").replace(/_+/g,"_").replace(/^_|_$/g,"").trim();}
+function getRenamedFile(fn,prefix,idx,originalName,caption=""){const ext=(originalName||"img.jpg").split(".").pop()||"jpg";const safeFn=sanitizeSP(fn);if(caption&&caption.trim()){const safeCap=sanitizeSP(caption.trim()).replace(/\s+/g,"_");return `${safeFn}_${prefix}_${idx+1}_${safeCap}.${ext}`;}return `${safeFn}_${prefix}_${idx+1}.${ext}`;}
 function encPath(p){return p.split("/").map(encodeURIComponent).join("/");}
 
 // ════════════════════════════════════════════════
 //  INDEX SHEET
 // ════════════════════════════════════════════════
-function buildIndexSheet(wb){
-  const IDX="Index";const ex=wb.getWorksheet(IDX);if(ex)wb.removeWorksheet(ex.id);
-  const ws=wb.addWorksheet(IDX,{properties:{tabColor:{argb:"FF374151"}}});
-  const T={style:"thin",color:{argb:"FFD1D5DB"}},B={top:T,left:T,bottom:T,right:T};
-  const COLS=["No.","Brand","Model","Year","Coolant","Group","RD","PD","OP","Invalid","Sheet"];
-  const WIDTHS=[6,12,28,8,10,8,6,6,6,8,32];
-  WIDTHS.forEach((w,i)=>ws.getColumn(i+1).width=w);
-  ws.getRow(1).height=28;
-  COLS.forEach((h,i)=>{const c=ws.getCell(1,i+1);c.value=h;c.font={bold:true,size:12,color:{argb:"FFFFFFFF"}};
-    c.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FF1F2937"}};c.alignment={vertical:"middle",horizontal:"center"};c.border=B;});
-  let no=1;
-  wb.eachSheet(sheet=>{
-    if(sheet.name===IDX) return;
-    const brand=String(sheet.getCell(2,2).value||""),model=String(sheet.getCell(3,2).value||"");
-    if(!model&&!brand) return;
-    const year=String(sheet.getCell(4,2).value||""),coolant=String(sheet.getCell(5,2).value||""),group=String(sheet.getCell(6,2).value||"");
-    const row=no+1; ws.getRow(row).height=20;
-    const fill=b=>{const bl=(b||"").toLowerCase();
-      if(bl.includes("national")||bl.includes("panasonic")) return "FFFEF9C3";
-      if(bl.includes("fuji")) return "FFE0F2FE"; if(bl.includes("sanden")) return "FFEFF6FF"; return "FFFFFFFF";};
-    const rf=fill(brand);
-    [no,brand,model,year,coolant,group,"","","",""].forEach((v,i)=>{
-      const c=ws.getCell(row,i+1);c.value=v;c.font={size:11,color:{argb:"FF1F2937"}};
-      c.fill={type:"pattern",pattern:"solid",fgColor:{argb:i===0?"FFF3F4F6":rf}};
-      c.alignment={vertical:"middle",horizontal:i===0||i>=3?"center":"left",indent:i===1||i===2?1:0};c.border=B;});
-    const lc=ws.getCell(row,11);
-    lc.value={formula:`HYPERLINK("#'${sheet.name.replace(/'/g,"''")}\'!A1",">> ${sheet.name}")`};
-    lc.font={size:11,color:{argb:"FF2563EB"},underline:true};lc.fill={type:"pattern",pattern:"solid",fgColor:{argb:rf}};
-    lc.alignment={vertical:"middle"};lc.border=B;no++;
-  });
-}
-
-// ════════════════════════════════════════════════
-//  รวมรูปหลายรูปเป็น 1 composite
-// ════════════════════════════════════════════════
-function loadImage(src){
-  return new Promise((resolve)=>{
-    if(!src){resolve(null);return;}
-    const img=new Image();
-    img.onload=()=>resolve(img);
-    img.onerror=()=>resolve(null);
-    img.src=src;
-  });
-}
-
-async function makeComposite(photos){
-  if(!photos.length) return null;
-  const W=300,H=300,PAD=4;
-  const cv=document.createElement("canvas");
-  cv.width=photos.length*W+(photos.length-1)*PAD;
-  cv.height=H;
-  const ctx=cv.getContext("2d");
-  ctx.fillStyle="#fff";
-  ctx.fillRect(0,0,cv.width,cv.height);
-
-  for(let i=0;i<photos.length;i++){
-    const ph=photos[i];
-    const src=ph.thumbUrl||ph.dataUrl||null;
-    if(!src) continue;
-    const img=await loadImage(src);
-    if(img&&img.width) ctx.drawImage(img,i*(W+PAD),0,W,H);
-  }
-  return cv.toDataURL("image/jpeg",0.82).split(",")[1];
-}
+function buildIndexSheet(wb){const IDX="Index";const ex=wb.getWorksheet(IDX);if(ex)wb.removeWorksheet(ex.id);const ws=wb.addWorksheet(IDX,{properties:{tabColor:{argb:"FF374151"}}});const T={style:"thin",color:{argb:"FFD1D5DB"}},B={top:T,left:T,bottom:T,right:T};const COLS=["No.","Brand","Model","Year","Coolant","Group","RD","PD","OP","Invalid","Sheet"];const WIDTHS=[6,12,28,8,10,8,6,6,6,8,32];WIDTHS.forEach((w,i)=>ws.getColumn(i+1).width=w);ws.getRow(1).height=28;COLS.forEach((h,i)=>{const c=ws.getCell(1,i+1);c.value=h;c.font={bold:true,size:12,color:{argb:"FFFFFFFF"}};c.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FF1F2937"}};c.alignment={vertical:"middle",horizontal:"center"};c.border=B;});let no=1;wb.eachSheet(sheet=>{if(sheet.name===IDX)return;const brand=String(sheet.getCell(2,2).value||""),model=String(sheet.getCell(3,2).value||"");if(!model&&!brand)return;const year=String(sheet.getCell(4,2).value||""),coolant=String(sheet.getCell(5,2).value||""),group=String(sheet.getCell(6,2).value||"");const row=no+1;ws.getRow(row).height=20;const fill=b=>{const bl=(b||"").toLowerCase();if(bl.includes("national")||bl.includes("panasonic"))return "FFFEF9C3";if(bl.includes("fuji"))return "FFE0F2FE";if(bl.includes("sanden"))return "FFEFF6FF";return "FFFFFFFF";};const rf=fill(brand);[no,brand,model,year,coolant,group,"","","",""].forEach((v,i)=>{const c=ws.getCell(row,i+1);c.value=v;c.font={size:11,color:{argb:"FF1F2937"}};c.fill={type:"pattern",pattern:"solid",fgColor:{argb:i===0?"FFF3F4F6":rf}};c.alignment={vertical:"middle",horizontal:i===0||i>=3?"center":"left",indent:i===1||i===2?1:0};c.border=B;});const lc=ws.getCell(row,11);lc.value={formula:`HYPERLINK("#'${sheet.name.replace(/'/g,"''")}\'!A1",">> ${sheet.name}")`};lc.font={size:11,color:{argb:"FF2563EB"},underline:true};lc.fill={type:"pattern",pattern:"solid",fgColor:{argb:rf}};lc.alignment={vertical:"middle"};lc.border=B;no++;});}
 
 // ════════════════════════════════════════════════
 //  BUILD EXCEL SHEET
 // ════════════════════════════════════════════════
-async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant="",group="",sectionComposites={}){
-  const sn=(model||"Cabinet").substring(0,31).replace(/[\\/?*[\]:]/g,"_");
-  const ex=wb.getWorksheet(sn);if(ex)wb.removeWorksheet(ex.id);
-  const ws=wb.addWorksheet(sn);
-
-  for(let c=1;c<=20;c++) ws.getColumn(c).width=42;
-  const tabColor=b=>{const bl=(b||"").toLowerCase();
-    if(bl.includes("fuji"))    return "FF93C5FD";
-    if(bl.includes("national")||bl.includes("panasonic")) return "FFFDE68A";
-    if(bl.includes("sanden"))  return "FF1E3A5F"; return null;};
-  const tab=tabColor(brand);if(tab)ws.properties.tabColor={argb:tab};
-  const T={style:"thin",color:{argb:"FFD1D5DB"}},B={top:T,left:T,bottom:T,right:T},AC="FFD72B2B";
-  let r=1;
-
-  // Title
-  ws.getRow(r).height=36;
-  const ti=ws.getCell(r,1);
-  ti.value=`${brand?brand.toUpperCase()+" — ":""}${model||"CABINET"} ${year?`(${year})`:""}`;
-  ti.font={bold:true,size:16,color:{argb:"FF1F2937"}};ti.alignment={vertical:"middle"};
-  ti.border={bottom:{style:"medium",color:{argb:AC}}};r++;
-
-  for(const [lb,vl] of [["Brand",brand],["Model",model],["Year",year]]){
-    ws.getRow(r).height=22;
-    const lc=ws.getCell(r,1);lc.value=lb;lc.font={bold:true,size:11,color:{argb:"FF6B7280"}};
-    lc.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF9FAFB"}};lc.alignment={vertical:"middle",indent:1};lc.border=B;
-    const vc=ws.getCell(r,2);vc.value=vl||"—";vc.font={bold:true,size:11,color:{argb:"FF111827"}};vc.alignment={vertical:"middle",indent:1};vc.border=B;r++;
-  }
-  ws.getRow(r).height=14; r++;
-
-  const IMG_ROWS=22;
-
-  for(const p of PS){
-    const photos=savedPhotos[p.key]||[];
-
-    // Section header
-    ws.getRow(r).height=26;
-    const sc=ws.getCell(r,1);
-    sc.value=`${p.icon}  ${p.label}`;sc.font={bold:true,size:12,color:{argb:"FF1F2937"}};
-    sc.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF3F4F6"}};sc.alignment={vertical:"middle",indent:2};
-    sc.border={left:{style:"medium",color:{argb:AC}},top:T,bottom:T,right:T};r++;
-
-    if(!photos.length){
-      ws.getRow(r).height=30;
-      ws.getCell(r,1).value="(ไม่มีรูป)";ws.getCell(r,1).font={italic:true,size:10,color:{argb:"FF9CA3AF"}};r++;
-    } else {
-      const composite=sectionComposites[p.key];
-      const validPhotos=photos.filter(ph=>(ph.dataUrl&&ph.dataUrl.includes("base64,"))||ph.preview);
-      if(composite&&validPhotos.length){
-        try{
-          // คำนวณ br จากสัดส่วนจริงของ composite image
-          // col width ≈ 300px, row height ≈ 19px
-          const COL_PX=300, ROW_PX=19;
-          const totalCols=validPhotos.length;
-          const compImg=await new Promise(res=>{
-            const img=new Image();
-            img.onload=()=>res(img);
-            img.onerror=()=>res(null);
-            img.src="data:image/jpeg;base64,"+composite;
-          });
-          let imgH=IMG_ROWS;
-          if(compImg){
-            const totalW=totalCols*COL_PX;
-            imgH=Math.max(8,Math.min(Math.round(totalW*(compImg.height/compImg.width)/ROW_PX),80));
-          }
-          for(let rr=r;rr<r+imgH;rr++) ws.getRow(rr).height=14;
-          const imgId=wb.addImage({base64:composite,extension:"jpeg"});
-          ws.addImage(imgId,{tl:{col:0,row:r-1},br:{col:totalCols,row:r-1+imgH}});
-          r+=imgH;
-        }catch(e){console.warn("addImage error:",e);}
-      }
-      // ชื่อไฟล์ + caption (สำหรับ Other section)
-      ws.getRow(r).height=12;
-      photos.forEach((ph,i)=>{
-        const fc=ws.getCell(r,i+1);
-        const caption=p.key==="other"&&ph.caption?` — ${ph.caption}`:"";
-        fc.value=`${i+1}. ${ph.savedName||ph.name||""}${caption}`;
-        fc.font={size:8,color:{argb:"FF6B7280"}};fc.alignment={wrapText:true,vertical:"top"};
-      });
-      r++;
-    }
-    ws.getRow(r++).height=6;
-  }
-}
+async function buildSheetExcelJS(wb,folderName,brand,model,year,savedPhotos,coolant="",group="",sectionComposites={}){const sn=(model||"Cabinet").substring(0,31).replace(/[\\/?*[\]:]/g,"_");const ex=wb.getWorksheet(sn);if(ex)wb.removeWorksheet(ex.id);const ws=wb.addWorksheet(sn);for(let c=1;c<=20;c++)ws.getColumn(c).width=42;const tabColor=b=>{const bl=(b||"").toLowerCase();if(bl.includes("fuji"))return "FF93C5FD";if(bl.includes("national")||bl.includes("panasonic"))return "FFFDE68A";if(bl.includes("sanden"))return "FF1E3A5F";return null;};const tab=tabColor(brand);if(tab)ws.properties.tabColor={argb:tab};const T={style:"thin",color:{argb:"FFD1D5DB"}},B={top:T,left:T,bottom:T,right:T},AC="FFD72B2B";let r=1;ws.getRow(r).height=36;const ti=ws.getCell(r,1);ti.value=`${brand?brand.toUpperCase()+" — ":""}${model||"CABINET"} ${year?`(${year})`:""}`;ti.font={bold:true,size:16,color:{argb:"FF1F2937"}};ti.alignment={vertical:"middle"};ti.border={bottom:{style:"medium",color:{argb:AC}}};r++;for(const [lb,vl] of [["Brand",brand],["Model",model],["Year",year]]){ws.getRow(r).height=22;const lc=ws.getCell(r,1);lc.value=lb;lc.font={bold:true,size:11,color:{argb:"FF6B7280"}};lc.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF9FAFB"}};lc.alignment={vertical:"middle",indent:1};lc.border=B;const vc=ws.getCell(r,2);vc.value=vl||"—";vc.font={bold:true,size:11,color:{argb:"FF111827"}};vc.alignment={vertical:"middle",indent:1};vc.border=B;r++;}ws.getRow(r).height=14;r++;const IMG_ROWS=22;for(const p of PS){const photos=savedPhotos[p.key]||[];ws.getRow(r).height=26;const sc=ws.getCell(r,1);sc.value=`${p.icon}  ${p.label}`;sc.font={bold:true,size:12,color:{argb:"FF1F2937"}};sc.fill={type:"pattern",pattern:"solid",fgColor:{argb:"FFF3F4F6"}};sc.alignment={vertical:"middle",indent:2};sc.border={left:{style:"medium",color:{argb:AC}},top:T,bottom:T,right:T};r++;if(!photos.length){ws.getRow(r).height=30;ws.getCell(r,1).value="(ไม่มีรูป)";ws.getCell(r,1).font={italic:true,size:10,color:{argb:"FF9CA3AF"}};r++;}else{const composite=sectionComposites[p.key];const validPhotos=photos.filter(ph=>(ph.dataUrl&&ph.dataUrl.includes("base64,"))||ph.preview);if(composite&&validPhotos.length){try{const COL_PX=300,ROW_PX=19;const totalCols=validPhotos.length;const compImg=await new Promise(res=>{const img=new Image();img.onload=()=>res(img);img.onerror=()=>res(null);img.src="data:image/jpeg;base64,"+composite;});let imgH=IMG_ROWS;if(compImg){const totalW=totalCols*COL_PX;imgH=Math.max(8,Math.min(Math.round(totalW*(compImg.height/compImg.width)/ROW_PX),80));}for(let rr=r;rr<r+imgH;rr++)ws.getRow(rr).height=14;const imgId=wb.addImage({base64:composite,extension:"jpeg"});ws.addImage(imgId,{tl:{col:0,row:r-1},br:{col:totalCols,row:r-1+imgH}});r+=imgH;}catch(e){console.warn("addImage error:",e);}}ws.getRow(r).height=12;photos.forEach((ph,i)=>{const fc=ws.getCell(r,i+1);const caption=p.key==="other"&&ph.caption?` — ${ph.caption}`:"";fc.value=`${i+1}. ${ph.savedName||ph.name||""}${caption}`;fc.font={size:8,color:{argb:"FF6B7280"}};fc.alignment={wrapText:true,vertical:"top"};});r++;}ws.getRow(r++).height=6;}}
 
 // ════════════════════════════════════════════════
 //  FIX DRAWING ANCHORS
-//  แปลง oneCellAnchor → twoCellAnchor เพื่อให้รูป
-//  ติดใน Excel desktop app (open in app)
 // ════════════════════════════════════════════════
-async function fixDrawingAnchors(buf){
-  try{
-    const zip=await JSZip.loadAsync(buf);
-    const dfiles=Object.keys(zip.files).filter(n=>n.startsWith("xl/drawings/")&&n.endsWith(".xml"));
-    for(const dfn of dfiles){
-      let xml=await zip.files[dfn].async("string");
-      if(!xml.includes("oneCellAnchor")) continue;
-
-      // แปลง oneCellAnchor + from + ext → twoCellAnchor + from + to
-      xml=xml.replace(
-        /<xdr:oneCellAnchor>(<xdr:from>[\s\S]*?<\/xdr:from>)<xdr:ext[^>]*\/>/g,
-        (_,fromBlock)=>{
-          const col=parseInt(fromBlock.match(/<xdr:col>(\d+)<\/xdr:col>/)?.[1]||"0");
-          const row=parseInt(fromBlock.match(/<xdr:row>(\d+)<\/xdr:row>/)?.[1]||"0");
-          const to=`<xdr:to>`+
-            `<xdr:col>${col+1}</xdr:col><xdr:colOff>0</xdr:colOff>`+
-            `<xdr:row>${row+14}</xdr:row><xdr:rowOff>0</xdr:rowOff>`+
-            `</xdr:to>`;
-          return `<xdr:twoCellAnchor editAs="oneCell">${fromBlock}${to}`;
-        }
-      );
-      // แทนที่ closing tag
-      xml=xml.replace(/<\/xdr:oneCellAnchor>/g,"</xdr:twoCellAnchor>");
-
-      zip.file(dfn,xml);
-    }
-    return await zip.generateAsync({type:"arraybuffer"});
-  }catch(e){
-    console.warn("fixDrawingAnchors error:",e);
-    return buf;
-  }
-}
-
+async function fixDrawingAnchors(buf){try{const zip=await JSZip.loadAsync(buf);const dfiles=Object.keys(zip.files).filter(n=>n.startsWith("xl/drawings/")&&n.endsWith(".xml"));for(const dfn of dfiles){let xml=await zip.files[dfn].async("string");if(!xml.includes("oneCellAnchor"))continue;xml=xml.replace(/<xdr:oneCellAnchor>(<xdr:from>[\s\S]*?<\/xdr:from>)<xdr:ext[^>]*\/>/g,(_,fromBlock)=>{const col=parseInt(fromBlock.match(/<xdr:col>(\d+)<\/xdr:col>/)?.[1]||"0");const row=parseInt(fromBlock.match(/<xdr:row>(\d+)<\/xdr:row>/)?.[1]||"0");const to=`<xdr:to><xdr:col>${col+1}</xdr:col><xdr:colOff>0</xdr:colOff><xdr:row>${row+14}</xdr:row><xdr:rowOff>0</xdr:rowOff></xdr:to>`;return `<xdr:twoCellAnchor editAs="oneCell">${fromBlock}${to}`;});xml=xml.replace(/<\/xdr:oneCellAnchor>/g,"</xdr:twoCellAnchor>");zip.file(dfn,xml);}return await zip.generateAsync({type:"arraybuffer"});}catch(e){console.warn("fixDrawingAnchors error:",e);return buf;}}
 </script>
 </body>
 </html>
