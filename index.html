@@ -149,6 +149,92 @@ input{font-family:'DM Sans',sans-serif;}
 .cmp-swap-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1.5px solid var(--purple-light);background:var(--purple-bg);color:var(--purple);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .2s;}
 .cmp-swap-btn:hover{background:var(--purple);color:#fff;}
 
+/* ── DRAG REORDER ── */
+.cmp-row-drag{transition:opacity .2s,transform .2s;}
+.cmp-row-drag.dragging{opacity:.45;transform:scale(.97);}
+.cmp-row-drag.drag-over{outline:2px dashed var(--purple);border-radius:10px;outline-offset:2px;}
+.drag-handle{cursor:grab;color:var(--g300);font-size:14px;user-select:none;padding:0 4px;display:flex;align-items:center;}
+.drag-handle:hover{color:var(--purple);}
+.drag-handle:active{cursor:grabbing;}
+
+/* ── SPLIT VIEW OVERLAY ── */
+.split-overlay{
+  position:fixed;inset:0;background:#000;z-index:9999;
+  display:none;flex-direction:column;
+  overflow:hidden;
+}
+.split-overlay.open{display:flex;}
+.split-topbar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;background:rgba(0,0,0,.7);flex-shrink:0;gap:8px;
+  border-bottom:1px solid rgba(255,255,255,.1);
+}
+.split-label{font-size:11px;font-weight:700;letter-spacing:1px;color:rgba(255,255,255,.7);}
+.split-label.sl{color:var(--purple-light);}
+.split-label.sr{color:var(--blue-light);}
+.split-topbar-center{font-size:11px;color:rgba(255,255,255,.4);text-align:center;flex:1;}
+.split-close{background:rgba(255,255,255,.12);border:none;color:#fff;font-size:16px;width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+
+/* the main split viewport */
+.split-viewport{
+  flex:1;position:relative;overflow:hidden;touch-action:none;
+}
+.split-img-left,.split-img-right{
+  position:absolute;inset:0;
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;
+}
+.split-img-left img,.split-img-right img{
+  width:100%;height:100%;object-fit:contain;
+  user-select:none;pointer-events:none;
+  -webkit-user-drag:none;
+}
+/* clip left side */
+.split-img-left{clip-path:inset(0 50% 0 0);}
+/* clip right side */
+.split-img-right{clip-path:inset(0 0 0 50%);}
+
+/* divider line */
+.split-divider{
+  position:absolute;top:0;bottom:0;width:3px;
+  background:rgba(255,255,255,.9);
+  transform:translateX(-50%);
+  cursor:ew-resize;
+  z-index:10;
+  box-shadow:0 0 8px rgba(0,0,0,.6);
+  left:50%;
+}
+.split-handle{
+  position:absolute;top:50%;left:50%;
+  transform:translate(-50%,-50%);
+  width:36px;height:36px;border-radius:50%;
+  background:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.4);
+  cursor:ew-resize;user-select:none;
+}
+/* badge overlays */
+.split-badge-left,.split-badge-right{
+  position:absolute;top:12px;font-size:10px;font-weight:700;
+  padding:3px 10px;border-radius:20px;pointer-events:none;z-index:5;
+}
+.split-badge-left{left:12px;background:rgba(124,58,237,.85);color:#fff;}
+.split-badge-right{right:12px;background:rgba(37,99,235,.85);color:#fff;}
+
+/* nav arrows */
+.split-nav{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:8px 16px;background:rgba(0,0,0,.6);flex-shrink:0;gap:12px;
+}
+.split-nav-btn{
+  background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);
+  color:#fff;font-size:12px;font-weight:700;padding:6px 16px;border-radius:20px;
+  cursor:pointer;transition:all .2s;flex:1;text-align:center;
+}
+.split-nav-btn:hover{background:rgba(255,255,255,.2);}
+.split-nav-btn:disabled{opacity:.3;cursor:default;}
+.split-photo-counter{color:rgba(255,255,255,.5);font-size:11px;min-width:60px;text-align:center;}
+
 /* ════ COMPARE PAGE ════ */
 #page-compare{background:var(--g50);}
 #page-compare .header{background:linear-gradient(135deg,#4C1D95,var(--purple));border-bottom:none;}
@@ -171,7 +257,7 @@ input{font-family:'DM Sans',sans-serif;}
 .cmp-tab.active .tc{background:var(--purple-bg);color:var(--purple);}
 
 /* Col headers */
-.cmp-col-headers{display:flex;gap:6px;padding:10px 16px 0;max-width:900px;margin:0 auto;}
+.cmp-col-headers{padding:10px 16px 0;max-width:900px;margin:0 auto;}
 .cmp-col-head{flex:1;border-radius:10px;padding:8px 12px;}
 .cmp-col-head.h0{background:var(--purple-bg);border:1.5px solid var(--purple-light);}
 .cmp-col-head.h1{background:var(--blue-bg);border:1.5px solid var(--blue-light);}
@@ -496,6 +582,28 @@ input{font-family:'DM Sans',sans-serif;}
 </div>
 <div class="toast-bar" id="toast-bar"></div>
 
+<!-- ═══ SPLIT VIEW OVERLAY ═══ -->
+<div class="split-overlay" id="split-overlay">
+  <div class="split-topbar">
+    <span class="split-label sl" id="split-label-l">🟣 ตู้ที่ 1</span>
+    <div class="split-topbar-center">ลากแนวกลางเพื่อเปรียบเทียบ</div>
+    <span class="split-label sr" id="split-label-r">🔵 ตู้ที่ 2</span>
+    <button class="split-close" onclick="closeSplit()">✕</button>
+  </div>
+  <div class="split-viewport" id="split-viewport">
+    <div class="split-img-left" id="split-left"><img id="split-img-l" src="" alt="" draggable="false"/></div>
+    <div class="split-img-right" id="split-right"><img id="split-img-r" src="" alt="" draggable="false"/></div>
+    <div class="split-badge-left" id="split-badge-l">🟣 ตู้ที่ 1</div>
+    <div class="split-badge-right" id="split-badge-r">🔵 ตู้ที่ 2</div>
+    <div class="split-divider" id="split-divider"><div class="split-handle">⇄</div></div>
+  </div>
+  <div class="split-nav">
+    <button class="split-nav-btn" id="split-prev" onclick="splitNav(-1)">← ก่อนหน้า</button>
+    <span class="split-photo-counter" id="split-counter">1 / 1</span>
+    <button class="split-nav-btn" id="split-next" onclick="splitNav(1)">ถัดไป →</button>
+  </div>
+</div>
+
 <script>
 // ════════════════════════════════════════════════
 //  CONFIG
@@ -694,12 +802,16 @@ async function openComparePage(){
 }
 
 function renderCmpHeaders(recs,filledIdx){
-  document.getElementById("cmp-col-headers").innerHTML=recs.map((r,i)=>`
-    <div class="cmp-col-head ${SLOT_COLORS[i].hCls}">
+  // spacer for row-number column
+  const spacer=`<div style="width:20px;flex-shrink:0;"></div>`;
+  const cards=recs.map((r,i)=>`
+    <div class="cmp-col-head ${SLOT_COLORS[i].hCls}" style="flex:1;">
       <div style="font-size:10px;font-weight:700;color:${SLOT_COLORS[i].color};margin-bottom:3px;">${SLOT_COLORS[i].label}</div>
       <div class="cmp-col-title">${r.model||"ไม่ระบุ"}</div>
       <div class="cmp-col-sub">${[r.brand,r.year].filter(Boolean).join(" · ")||"—"}</div>
     </div>`).join("");
+  document.getElementById("cmp-col-headers").innerHTML=`
+    <div style="display:flex;gap:6px;align-items:stretch;width:100%;">${spacer}${cards}</div>`;
 }
 
 function renderCmpTabs(recs){
@@ -721,6 +833,9 @@ function switchCmpSection(key){
   if(accessToken) setTimeout(()=>loadCmpImages(),200);
 }
 
+// ─── drag state ───
+let _dragRow=null;
+
 function renderCmpBody(recs,filledIdx){
   const body=document.getElementById("cmp-body");
   const p=PS_BASE.find(s=>s.key===_cmpActiveSection)||{icon:"📷",label:_cmpActiveSection};
@@ -731,25 +846,111 @@ function renderCmpBody(recs,filledIdx){
     return;
   }
 
-  const maxPhotos=Math.max(...recs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
-  const cols=recs.map((r,i)=>{
-    const photos=r.photos?.[_cmpActiveSection]||[];
-    const folder=r.spFolderName||sanitizeSP(r.folderName||"");
-    const bCls=SLOT_COLORS[i].bCls;
-    if(!photos.length) return `<div class="cmp-photo-col ${bCls}"><div class="cmp-empty-col"><span>${p.icon}</span>ไม่มีรูป</div></div>`;
-    return `<div class="cmp-photo-col ${bCls}">${photos.map((ph,j)=>{
+  const maxRows=Math.max(...recs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
+
+  let rowsHtml="";
+  for(let row=0;row<maxRows;row++){
+    const cells=recs.map((r,i)=>{
+      const photos=r.photos?.[_cmpActiveSection]||[];
+      const ph=photos[row];
+      const folder=r.spFolderName||sanitizeSP(r.folderName||"");
+      const borderColor=["var(--purple-light)","var(--blue-light)","#FED7AA"][i];
+      if(!ph){
+        return `<div style="flex:1;aspect-ratio:1;border-radius:10px;border:1.5px dashed var(--g300);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--g400);font-size:11px;background:var(--g50);">
+          <span style="font-size:22px;">${p.icon}</span>ไม่มีรูป
+        </div>`;
+      }
       const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
       const ca=sp?(_imgCache[sp]||""):"";
-      return `<div class="cmp-img-wrap" onclick="openLbCmp(this,'${ph.savedName||ph.name||""}',${i})">
-        <img id="ci-${i}-${j}" src="${ca}" class="${ca?"detail-img-loaded":"detail-img-loading cmp-skeleton"}"
+      // ถ้ามี 2 ตู้ แสดง hint สำหรับ split view
+      const splitHint=recs.length===2&&i===0?`<span style="position:absolute;top:5px;right:5px;background:rgba(124,58,237,.8);color:#fff;font-size:9px;padding:2px 7px;border-radius:8px;">⇄ กดเปิดเทียบ</span>`:"";
+      return `<div style="flex:1;position:relative;border-radius:10px;overflow:hidden;background:var(--g100);aspect-ratio:1;border:2px solid ${borderColor};">
+        <img id="ci-${i}-${row}" src="${ca}"
+          class="${ca?"detail-img-loaded":"detail-img-loading cmp-skeleton"}"
           ${sp?`data-sp-path="${sp}"`:""}
-          onerror="this.style.opacity='.1'"/>
-        <span class="cmp-img-num">${j+1}</span>
+          style="width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;"
+          onclick="handleCmpImgClick(${row},${i})"
+          onerror="this.style.opacity='.15'"/>
+        ${splitHint}
+        <span style="position:absolute;bottom:5px;left:6px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;padding:2px 6px;border-radius:5px;font-weight:600;">${row+1}/${photos.length}</span>
       </div>`;
-    }).join("")}</div>`;
-  }).join("");
+    }).join("");
 
-  body.innerHTML=`<div style="display:flex;gap:6px;padding-top:8px;">${cols}</div>`;
+    rowsHtml+=`
+      <div class="cmp-row-drag" draggable="true" data-row="${row}"
+        style="display:flex;gap:6px;margin-bottom:8px;align-items:stretch;"
+        ondragstart="rowDragStart(event,${row})"
+        ondragover="rowDragOver(event)"
+        ondragleave="rowDragLeave(event)"
+        ondrop="rowDrop(event,${row})"
+        ondragend="rowDragEnd(event)">
+        <div class="drag-handle" title="ลากเพื่อย้ายแถว">⠿</div>
+        ${cells}
+      </div>`;
+  }
+
+  body.innerHTML=`<div style="padding-top:8px;">${rowsHtml}</div>`;
+  // re-load images after re-render
+  if(accessToken) loadCmpImages();
+}
+
+// ─── click: single col → lightbox, 2-col row col0 → split view ───
+function handleCmpImgClick(row,colIdx){
+  const filledIdx=_compareSlots.filter(s=>s!=null);
+  const recs=filledIdx.map(i=>records[i]);
+  if(recs.length===2){
+    // open split view for this row
+    openSplitView(row,recs);
+  } else {
+    // 3-col → lightbox
+    const r=recs[colIdx];
+    const photos=r.photos?.[_cmpActiveSection]||[];
+    const ph=photos[row];if(!ph)return;
+    const folder=r.spFolderName||sanitizeSP(r.folderName||"");
+    const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
+    const ca=sp?(_imgCache[sp]||""):"";
+    document.getElementById("lightbox-img").src=ca||ph.preview||"";
+    document.getElementById("lb-cap").textContent=`${SLOT_COLORS[colIdx].label} · ${r.model||""} · ${ph.savedName||ph.name||""}`;
+    document.getElementById("lightbox").classList.add("open");
+  }
+}
+
+// ─── drag rows to reorder ───
+let _dragStartRow=null;
+function rowDragStart(e,row){
+  _dragStartRow=row;
+  e.currentTarget.classList.add("dragging");
+  e.dataTransfer.effectAllowed="move";
+}
+function rowDragOver(e){
+  e.preventDefault();
+  e.dataTransfer.dropEffect="move";
+  e.currentTarget.classList.add("drag-over");
+}
+function rowDragLeave(e){
+  e.currentTarget.classList.remove("drag-over");
+}
+function rowDrop(e,targetRow){
+  e.preventDefault();
+  e.currentTarget.classList.remove("drag-over");
+  if(_dragStartRow===null||_dragStartRow===targetRow)return;
+  // swap the photos in each rec at these rows
+  const filledIdx=_compareSlots.filter(s=>s!=null);
+  const recs=filledIdx.map(i=>records[i]);
+  recs.forEach(r=>{
+    const photos=r.photos?.[_cmpActiveSection]||[];
+    const tmp=photos[_dragStartRow];
+    photos[_dragStartRow]=photos[targetRow];
+    photos[targetRow]=tmp;
+  });
+  _dragStartRow=null;
+  renderCmpBody(recs,filledIdx);
+  renderCmpTabs(recs);
+}
+function rowDragEnd(e){
+  e.currentTarget.classList.remove("dragging");
+  e.currentTarget.classList.remove("drag-over");
+  _dragStartRow=null;
 }
 
 async function loadCmpImages(){
@@ -766,6 +967,109 @@ function openLbCmp(el,name,slot){
   document.getElementById("lb-cap").textContent=`${SLOT_COLORS[slot].label} · ${r.model||""} · ${name}`;
   document.getElementById("lightbox").classList.add("open");
 }
+
+// ════════════════════════════════════════════════
+//  SPLIT VIEW (before/after slider)
+// ════════════════════════════════════════════════
+let _splitCurrentRow=0;
+
+function openSplitView(row,recs){
+  _splitCurrentRow=row;
+  _splitRecs=recs;
+  loadSplitRow(row,recs);
+  document.getElementById("split-overlay").classList.add("open");
+  initSplitDrag();
+}
+
+let _splitRecs=[];
+
+function loadSplitRow(row,recs){
+  const maxRows=Math.max(...recs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
+  // Update counter & nav
+  document.getElementById("split-counter").textContent=`แถว ${row+1} / ${maxRows}`;
+  document.getElementById("split-prev").disabled=row<=0;
+  document.getElementById("split-next").disabled=row>=maxRows-1;
+  // Labels
+  document.getElementById("split-label-l").textContent=SLOT_COLORS[0].label+" "+recs[0].model;
+  document.getElementById("split-label-r").textContent=SLOT_COLORS[1].label+" "+recs[1].model;
+  document.getElementById("split-badge-l").textContent=SLOT_COLORS[0].label;
+  document.getElementById("split-badge-r").textContent=SLOT_COLORS[1].label;
+  // Load images
+  [0,1].forEach(i=>{
+    const r=recs[i];
+    const photos=r.photos?.[_cmpActiveSection]||[];
+    const ph=photos[row];
+    const imgEl=document.getElementById(i===0?"split-img-l":"split-img-r");
+    if(!ph){imgEl.src="";return;}
+    const folder=r.spFolderName||sanitizeSP(r.folderName||"");
+    const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
+    const ca=sp?(_imgCache[sp]||""):"";
+    if(ca){imgEl.src=ca;}
+    else if(accessToken&&sp){loadSpImg(imgEl,sp);}
+    else imgEl.src=ph.preview||"";
+  });
+  // Reset divider to 50%
+  setSplitPos(50);
+}
+
+function splitNav(dir){
+  const maxRows=Math.max(..._splitRecs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
+  const next=_splitCurrentRow+dir;
+  if(next<0||next>=maxRows)return;
+  _splitCurrentRow=next;
+  loadSplitRow(_splitCurrentRow,_splitRecs);
+}
+
+function closeSplit(){
+  document.getElementById("split-overlay").classList.remove("open");
+}
+
+function setSplitPos(pct){
+  pct=Math.max(5,Math.min(95,pct));
+  document.getElementById("split-left").style.clipPath=`inset(0 ${100-pct}% 0 0)`;
+  document.getElementById("split-right").style.clipPath=`inset(0 0 0 ${pct}%)`;
+  document.getElementById("split-divider").style.left=pct+"%";
+}
+
+function initSplitDrag(){
+  const vp=document.getElementById("split-viewport");
+  const divider=document.getElementById("split-divider");
+  let dragging=false;
+
+  function getX(e){return e.touches?e.touches[0].clientX:e.clientX;}
+
+  function onMove(e){
+    if(!dragging)return;
+    e.preventDefault();
+    const rect=vp.getBoundingClientRect();
+    const pct=((getX(e)-rect.left)/rect.width)*100;
+    setSplitPos(pct);
+  }
+
+  // Remove old listeners by cloning
+  const newVp=vp.cloneNode(true);
+  vp.parentNode.replaceChild(newVp,vp);
+
+  // Re-grab refs after clone
+  const vp2=document.getElementById("split-viewport");
+  const div2=document.getElementById("split-divider");
+
+  div2.addEventListener("mousedown",e=>{dragging=true;e.preventDefault();});
+  div2.addEventListener("touchstart",e=>{dragging=true;},{passive:true});
+  vp2.addEventListener("mousemove",onMove);
+  vp2.addEventListener("touchmove",onMove,{passive:false});
+  vp2.addEventListener("mouseup",()=>dragging=false);
+  vp2.addEventListener("touchend",()=>dragging=false);
+  vp2.addEventListener("mouseleave",()=>dragging=false);
+}
+
+// keyboard nav for split
+document.addEventListener("keydown",e=>{
+  if(!document.getElementById("split-overlay").classList.contains("open"))return;
+  if(e.key==="ArrowLeft")splitNav(-1);
+  if(e.key==="ArrowRight")splitNav(1);
+  if(e.key==="Escape")closeSplit();
+});
 
 // ════════════════════════════════════════════════
 //  SP IMAGE
