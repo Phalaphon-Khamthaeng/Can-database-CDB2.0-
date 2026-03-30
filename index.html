@@ -138,6 +138,18 @@ input{font-family:'DM Sans',sans-serif;}
 .cmp-swap-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1.5px solid var(--purple-light);background:var(--purple-bg);color:var(--purple);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .2s;}
 .cmp-swap-btn:hover{background:var(--purple);color:#fff;}
 
+/* ── COL PHOTO DRAG ── */
+.cph-drag-handle{
+  position:absolute;bottom:5px;right:6px;
+  width:26px;height:26px;border-radius:6px;
+  background:rgba(0,0,0,.55);color:rgba(255,255,255,.85);
+  font-size:13px;display:flex;align-items:center;justify-content:center;
+  cursor:grab;touch-action:none;z-index:3;user-select:none;
+  transition:background .15s;
+}
+.cph-drag-handle:active{cursor:grabbing;background:rgba(124,58,237,.85);}
+.cph-dragging{opacity:.35;outline:2px dashed var(--purple);outline-offset:2px;}
+.cph-drop-over{outline:2px solid var(--purple);outline-offset:2px;background:var(--purple-bg)!important;}
 /* ── ROW REORDER hint ── */
 
 /* old split view CSS removed - using inline styles in bigcmp-overlay */
@@ -711,7 +723,6 @@ function renderCmpBody(recs,filledIdx){
   const maxRows=Math.max(...recs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
   const borderColors=["var(--purple-light)","var(--blue-light)","#FED7AA"];
 
-  // Build columns independently
   const colsHtml=recs.map((r,i)=>{
     const photos=r.photos?.[_cmpActiveSection]||[];
     const total=photos.length;
@@ -729,9 +740,9 @@ function renderCmpBody(recs,filledIdx){
       } else {
         const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
         const ca=sp?(_imgCache[sp]||""):"";
-        const canUp=row>0;
-        const canDown=row<total-1;
-        colHtml+=`<div style="position:relative;border-radius:10px;overflow:hidden;
+        const canUp=row>0, canDown=row<total-1;
+        colHtml+=`<div class="cph-card" data-col="${i}" data-row="${row}"
+          style="position:relative;border-radius:10px;overflow:hidden;
           background:var(--g100);aspect-ratio:1;border:2px solid ${bc};margin-bottom:6px;flex-shrink:0;">
           <img id="ci-${i}-${row}" src="${ca}"
             class="${ca?"detail-img-loaded":"detail-img-loading cmp-skeleton"}"
@@ -755,17 +766,106 @@ function renderCmpBody(recs,filledIdx){
             <span style="background:rgba(0,0,0,.45);color:#fff;font-size:9px;padding:2px 7px;border-radius:8px;pointer-events:none;">⊞ ขยาย</span>
           </div>
           <span style="position:absolute;bottom:5px;left:6px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;padding:2px 6px;border-radius:5px;font-weight:600;">${row+1}/${total}</span>
+          <div class="cph-drag-handle" title="ลากเพื่อเรียงลำดับ">⠿</div>
         </div>`;
       }
     }
-    return `<div style="flex:1;min-width:0;">${colHtml}</div>`;
+    return `<div class="cph-col" data-col="${i}" style="flex:1;min-width:0;">${colHtml}</div>`;
   }).join("");
 
   const tip=`<div style="text-align:center;font-size:11px;color:var(--g400);margin-bottom:8px;padding:6px 12px;background:var(--g100);border-radius:8px;">
-    💡 กด <strong>↑ ↓</strong> บนรูปเพื่อจัดเรียงแต่ละตู้อิสระ &nbsp;·&nbsp; กดรูปเพื่อขยายเปรียบเทียบ
+    💡 <strong>ลาก ⠿</strong> หรือกด <strong>↑ ↓</strong> เพื่อจัดเรียงแต่ละตู้อิสระ &nbsp;·&nbsp; กดรูปเพื่อขยาย
   </div>`;
-  body.innerHTML=`<div style="padding-top:8px;">${tip}<div style="display:flex;gap:6px;align-items:flex-start;">${colsHtml}</div></div>`;
+  body.innerHTML=`<div style="padding-top:8px;">${tip}<div style="display:flex;gap:6px;align-items:flex-start;" id="cmp-cols-wrap">${colsHtml}</div></div>`;
   if(accessToken) loadCmpImages();
+  initColDrag();
+}
+
+// ─── Drag-to-reorder within a column (pointer events, works on touch too) ───
+function initColDrag(){
+  let dragCol=-1, dragRow=-1, overRow=-1;
+  let ghost=null, startY=0, cardH=0;
+
+  function getCard(el){return el.closest(".cph-card");}
+  function getHandle(el){return el.closest(".cph-drag-handle");}
+  function cardsInCol(col){return [...document.querySelectorAll(`.cph-card[data-col="${col}"]`)];}
+
+  function onPointerDown(e){
+    if(!getHandle(e.target)) return;
+    const card=getCard(e.target);
+    if(!card) return;
+    e.preventDefault();
+    dragCol=+card.dataset.col;
+    dragRow=+card.dataset.row;
+    overRow=dragRow;
+    startY=e.clientY||e.touches?.[0]?.clientY||0;
+    cardH=card.getBoundingClientRect().height;
+
+    // ghost
+    ghost=card.cloneNode(true);
+    const r=card.getBoundingClientRect();
+    ghost.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;
+      opacity:.85;pointer-events:none;z-index:9999;border-radius:10px;
+      box-shadow:0 8px 24px rgba(0,0,0,.35);transform:scale(1.04);transition:transform .1s;`;
+    document.body.appendChild(ghost);
+    card.classList.add("cph-dragging");
+    document.addEventListener("pointermove",onPointerMove,{passive:false});
+    document.addEventListener("pointerup",onPointerUp);
+    document.addEventListener("touchmove",e=>e.preventDefault(),{passive:false,once:true});
+  }
+
+  function onPointerMove(e){
+    if(dragCol<0) return;
+    e.preventDefault();
+    const cy=e.clientY||(e.touches?.[0]?.clientY||0);
+    if(ghost) ghost.style.top=(parseFloat(ghost.style.top)+(cy-startY))+"px";
+    startY=cy;
+
+    // find which card the ghost is hovering over
+    const cards=cardsInCol(dragCol);
+    let newOver=overRow;
+    cards.forEach(c=>{
+      const rr=c.getBoundingClientRect();
+      if(cy>=rr.top && cy<=rr.bottom) newOver=+c.dataset.row;
+    });
+    if(newOver!==overRow){
+      cards.forEach(c=>c.classList.remove("cph-drop-over"));
+      const target=cards.find(c=>+c.dataset.row===newOver);
+      if(target && newOver!==dragRow) target.classList.add("cph-drop-over");
+      overRow=newOver;
+    }
+  }
+
+  function onPointerUp(){
+    document.removeEventListener("pointermove",onPointerMove);
+    document.removeEventListener("pointerup",onPointerUp);
+    if(ghost){ghost.remove();ghost=null;}
+    document.querySelectorAll(".cph-dragging,.cph-drop-over").forEach(c=>{
+      c.classList.remove("cph-dragging","cph-drop-over");
+    });
+    if(dragCol>=0 && overRow!==dragRow){
+      const filledIdx=_compareSlots.filter(s=>s!=null);
+      const recs=filledIdx.map(idx=>records[idx]);
+      const r=recs[dragCol];
+      if(r){
+        const photos=r.photos?.[_cmpActiveSection];
+        if(photos){
+          // shift elements between dragRow and overRow
+          const from=dragRow, to=overRow;
+          const item=photos.splice(from,1)[0];
+          photos.splice(to,0,item);
+          renderCmpBody(recs,filledIdx);
+          renderCmpTabs(recs);
+          if(document.getElementById("bigcmp-overlay").style.display!=="none") _buildThumbStrip();
+        }
+      }
+    }
+    dragCol=-1; dragRow=-1; overRow=-1;
+  }
+
+  document.querySelectorAll(".cph-drag-handle").forEach(h=>{
+    h.addEventListener("pointerdown",onPointerDown);
+  });
 }
 
 // ─── click on image in compare → open big overlay ───
