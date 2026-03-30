@@ -1348,47 +1348,47 @@ async function showDetail(idx){
   const r=records[idx];
   document.getElementById("detail-title").textContent=r.model||"ไม่ระบุ";
   document.getElementById("detail-info").innerHTML=`${[["Brand",r.brand],["Model",r.model],["Year",r.year],["Coolant",r.coolant],["Group",r.group],["บันทึกวันที่",r.date]].filter(([,v])=>v).map(([k,v])=>`<div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v}</span></div>`).join("")}${r.uploaded?`<div style="margin-top:10px;padding:8px 12px;background:var(--blue-bg);border-radius:8px;font-size:12px;color:var(--blue);font-weight:600;">☁️ อัปโหลดใน SharePoint แล้ว · 📁 ${r.folderName||""}</div>`:""}`;
-
-  const noPhotosYet=!PS.some(p=>(r.photos?.[p.key]||[]).length>0);
-  if(r.fromSP && accessToken && noPhotosYet){
-    try{ await populateSpPhotos(r); }catch(e){ r._spError=e.message; }
-  }
-
   document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);
   const btnLoad=document.getElementById("btn-detail-load");
   const status=document.getElementById("detail-load-status");
   btnLoad.dataset.idx=idx;
   document.getElementById("btn-detail-delete").dataset.idx=idx;
+  btnLoad.style.display="none";
 
-  if(accessToken){
-    const hasAny=PS.some(p=>(r.photos?.[p.key]||[]).length>0);
-    if(!hasAny){
-      // แสดง debug info
-      const folder=r.spFolderName||sanitizeSP(r.folderName||"");
-      const fileCount=r._spFileCount;
-      const errMsg=r._spError;
-      if(errMsg){
-        status.innerHTML=`❌ ${errMsg}<br><small style="color:var(--g400);">📁 ${folder}</small>`;
-      } else if(fileCount===0){
-        status.innerHTML=`⚠️ โฟลเดอร์ว่างใน SharePoint<br><small style="color:var(--g400);">📁 ${folder}</small>`;
-      } else if(fileCount>0){
-        status.innerHTML=`⚠️ พบ ${fileCount} ไฟล์ แต่ไม่ตรง prefix<br><small style="color:var(--g400);">📁 ${folder}</small>`;
-      } else {
-        status.innerHTML=`⚠️ ไม่พบข้อมูลรูป<br><small style="color:var(--g400);">📁 ${folder}</small>`;
-      }
-      btnLoad.style.display="flex";
-      btnLoad.innerHTML="🔄 ลองโหลดใหม่";
-    } else {
-      btnLoad.style.display="none";
-      status.textContent="⏳ กำลังโหลดรูป...";
-      await _autoLoadDetailImages();
-    }
-  } else {
-    btnLoad.style.display="flex";
-    btnLoad.innerHTML="🖼️ โหลดรูป";
-    status.textContent="🔐 Login เพื่อดูรูป";
-  }
+  // เปิดหน้าก่อนเลย ไม่รอ
   showPage("detail");
+
+  if(!accessToken){
+    btnLoad.style.display="flex"; btnLoad.innerHTML="🖼️ โหลดรูป";
+    status.textContent="🔐 Login เพื่อดูรูป"; return;
+  }
+
+  const hasAny=PS.some(p=>(r.photos?.[p.key]||[]).length>0);
+  if(r.fromSP && !hasAny){
+    status.textContent="⏳ กำลังดึงรายการจาก SharePoint...";
+    try{
+      await populateSpPhotos(r);
+      document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);
+      const nowHas=PS.some(p=>(r.photos?.[p.key]||[]).length>0);
+      if(!nowHas){
+        const fc=r._spFileCount;
+        const folder=r.spFolderName||sanitizeSP(r.folderName||"");
+        status.innerHTML=fc===0
+          ?`⚠️ โฟลเดอร์ว่างใน SharePoint<br><small style="color:var(--g400);">📁 ${folder}</small>`
+          :fc>0
+          ?`⚠️ พบ ${fc} ไฟล์ แต่ไม่ตรง prefix<br><small style="color:var(--g400);">📁 ${folder}</small>`
+          :`⚠️ ไม่พบข้อมูลรูป<br><small style="color:var(--g400);">📁 ${folder}</small>`;
+        btnLoad.style.display="flex"; btnLoad.innerHTML="🔄 ลองใหม่"; return;
+      }
+    }catch(e){
+      const folder=r.spFolderName||sanitizeSP(r.folderName||"");
+      status.innerHTML=`❌ ${e.message}<br><small style="color:var(--g400);">📁 ${folder}</small>`;
+      btnLoad.style.display="flex"; btnLoad.innerHTML="🔄 ลองใหม่"; return;
+    }
+  }
+
+  status.textContent="⏳ กำลังโหลดรูป...";
+  await _autoLoadDetailImages();
 }
 async function populateSpPhotos(r){
   try{
