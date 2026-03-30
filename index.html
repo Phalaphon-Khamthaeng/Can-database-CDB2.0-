@@ -798,76 +798,82 @@ function renderCmpBody(recs,filledIdx){
 // ─── Drag-to-reorder within a column (pointer events, works on touch too) ───
 function initColDrag(){
   let dragCol=-1, dragRow=-1, overRow=-1;
-  let ghost=null, startY=0, cardH=0;
+  let ghost=null;
 
-  function getCard(el){return el.closest(".cph-card");}
-  function getHandle(el){return el.closest(".cph-drag-handle");}
   function cardsInCol(col){return [...document.querySelectorAll(`.cph-card[data-col="${col}"]`)];}
 
   function onPointerDown(e){
-    if(!getHandle(e.target)) return;
-    const card=getCard(e.target);
+    const handle=e.target.closest(".cph-drag-handle");
+    if(!handle) return;
+    const card=handle.closest(".cph-card");
     if(!card) return;
     e.preventDefault();
+    e.stopPropagation();
     dragCol=+card.dataset.col;
     dragRow=+card.dataset.row;
     overRow=dragRow;
-    startY=e.clientY||e.touches?.[0]?.clientY||0;
-    cardH=card.getBoundingClientRect().height;
+
+    // capture so pointermove fires even outside element
+    handle.setPointerCapture(e.pointerId);
 
     // ghost
+    const rect=card.getBoundingClientRect();
     ghost=card.cloneNode(true);
-    const r=card.getBoundingClientRect();
-    ghost.style.cssText=`position:fixed;left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px;
-      opacity:.85;pointer-events:none;z-index:9999;border-radius:10px;
-      box-shadow:0 8px 24px rgba(0,0,0,.35);transform:scale(1.04);transition:transform .1s;`;
+    ghost.style.cssText=`position:fixed;left:${rect.left}px;top:${rect.top}px;
+      width:${rect.width}px;height:${rect.height}px;opacity:.85;pointer-events:none;
+      z-index:9999;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.4);
+      transform:scale(1.05);transition:transform .1s;`;
     document.body.appendChild(ghost);
     card.classList.add("cph-dragging");
-    document.addEventListener("pointermove",onPointerMove,{passive:false});
-    document.addEventListener("pointerup",onPointerUp);
-    document.addEventListener("touchmove",e=>e.preventDefault(),{passive:false,once:true});
+
+    handle.addEventListener("pointermove",onPointerMove);
+    handle.addEventListener("pointerup",onPointerUp);
+    handle.addEventListener("pointercancel",onPointerUp);
   }
 
   function onPointerMove(e){
-    if(dragCol<0) return;
+    if(dragCol<0||!ghost) return;
     e.preventDefault();
-    const cy=e.clientY||(e.touches?.[0]?.clientY||0);
-    if(ghost) ghost.style.top=(parseFloat(ghost.style.top)+(cy-startY))+"px";
-    startY=cy;
+    const cx=e.clientX, cy=e.clientY;
+    ghost.style.left=cx-parseFloat(ghost.style.width)/2+"px";
+    ghost.style.top =cy-parseFloat(ghost.style.height)/2+"px";
 
-    // find which card the ghost is hovering over
-    const cards=cardsInCol(dragCol);
-    let newOver=overRow;
-    cards.forEach(c=>{
-      const rr=c.getBoundingClientRect();
-      if(cy>=rr.top && cy<=rr.bottom) newOver=+c.dataset.row;
-    });
+    // find card under cursor using elementFromPoint (reliable cross-browser)
+    ghost.style.pointerEvents="none";
+    const el=document.elementFromPoint(cx,cy);
+    ghost.style.pointerEvents="none";
+    const targetCard=el?.closest(".cph-card");
+    const newOver=targetCard&&+targetCard.dataset.col===dragCol ? +targetCard.dataset.row : overRow;
+
     if(newOver!==overRow){
-      cards.forEach(c=>c.classList.remove("cph-drop-over"));
-      const target=cards.find(c=>+c.dataset.row===newOver);
-      if(target && newOver!==dragRow) target.classList.add("cph-drop-over");
+      cardsInCol(dragCol).forEach(c=>c.classList.remove("cph-drop-over"));
+      if(newOver!==dragRow){
+        const t=cardsInCol(dragCol).find(c=>+c.dataset.row===newOver);
+        if(t) t.classList.add("cph-drop-over");
+      }
       overRow=newOver;
     }
   }
 
-  function onPointerUp(){
-    document.removeEventListener("pointermove",onPointerMove);
-    document.removeEventListener("pointerup",onPointerUp);
+  function onPointerUp(e){
+    const handle=e.currentTarget;
+    handle.removeEventListener("pointermove",onPointerMove);
+    handle.removeEventListener("pointerup",onPointerUp);
+    handle.removeEventListener("pointercancel",onPointerUp);
+    try{handle.releasePointerCapture(e.pointerId);}catch{}
+
     if(ghost){ghost.remove();ghost=null;}
-    document.querySelectorAll(".cph-dragging,.cph-drop-over").forEach(c=>{
-      c.classList.remove("cph-dragging","cph-drop-over");
-    });
-    if(dragCol>=0 && overRow!==dragRow){
+    cardsInCol(dragCol).forEach(c=>c.classList.remove("cph-dragging","cph-drop-over"));
+
+    if(dragCol>=0 && overRow!==-1 && overRow!==dragRow){
       const filledIdx=_compareSlots.filter(s=>s!=null);
       const recs=filledIdx.map(idx=>records[idx]);
       const r=recs[dragCol];
       if(r){
         const photos=r.photos?.[_cmpActiveSection];
-        if(photos){
-          // shift elements between dragRow and overRow
-          const from=dragRow, to=overRow;
-          const item=photos.splice(from,1)[0];
-          photos.splice(to,0,item);
+        if(photos&&overRow<photos.length){
+          const item=photos.splice(dragRow,1)[0];
+          photos.splice(overRow,0,item);
           renderCmpBody(recs,filledIdx);
           renderCmpTabs(recs);
           if(document.getElementById("bigcmp-overlay").style.display!=="none") _buildThumbStrip();
@@ -1052,14 +1058,29 @@ function _loadBigRow(row){
   const next=document.getElementById("bigcmp-next");
   if(prev) prev.disabled=row<=0;
   if(next) next.disabled=row>=maxRows-1;
+
+  // helper: apply stored rotation to a bigcmp img element
+  function applyRot(el,r,rowIdx){
+    const ph=(r.photos?.[_cmpActiveSection]||[])[rowIdx];
+    if(!ph||!el) return;
+    const rotKey=ph.savedName||ph.name||"";
+    const rot=_cmpRotation[rotKey]||0;
+    el.style.transform=rot?`rotate(${rot}deg)${(rot===90||rot===270)?" scale(.75)":""}` :"";
+    el.style.transition="transform .25s";
+  }
+
   // Side-by-side: load each column image
   recs.forEach((r,i)=>{
-    _loadImgEl(document.getElementById(`bigcmp-img-${i}`),r,row);
+    const el=document.getElementById(`bigcmp-img-${i}`);
+    _loadImgEl(el,r,row);
+    applyRot(el,r,row);
   });
   // Slider (2-col only)
   if(recs.length===2){
-    _loadImgEl(document.getElementById("bcmp-sl-img-l"),recs[0],row);
-    _loadImgEl(document.getElementById("bcmp-sl-img-r"),recs[1],row);
+    const l=document.getElementById("bcmp-sl-img-l");
+    const rr=document.getElementById("bcmp-sl-img-r");
+    _loadImgEl(l,recs[0],row); applyRot(l,recs[0],row);
+    _loadImgEl(rr,recs[1],row); applyRot(rr,recs[1],row);
   }
   // Highlight thumb strip
   document.querySelectorAll(".bigcmp-thumb").forEach((t,i)=>{
