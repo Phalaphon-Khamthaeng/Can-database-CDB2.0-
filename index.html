@@ -78,71 +78,60 @@ input{font-family:'DM Sans',sans-serif;}
 .rec-date{font-size:11px;color:var(--g400);margin-top:5px;}
 .empty{text-align:center;padding:60px 0;color:var(--g400);}
 
-/* ════ FLOATING COMPARE BUTTON ════ */
-.fab-compare{
-  position:fixed;bottom:24px;right:20px;z-index:200;
-  display:flex;flex-direction:column;align-items:flex-end;gap:8px;
+/* ════ COMPARE BAR (bottom) ════ */
+.cmp-bar{
+  position:fixed;bottom:0;left:0;right:0;z-index:200;
+  background:#1F2937;border-top:1px solid #374151;
+  padding:10px 14px;display:none;align-items:center;gap:10px;
+  box-shadow:0 -4px 20px rgba(0,0,0,.3);
 }
-.fab-btn{
-  width:56px;height:56px;border-radius:28px;border:none;
-  background:linear-gradient(135deg,#5B21B6,var(--purple));
-  color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 20px rgba(124,58,237,.45);cursor:pointer;
-  transition:all .25s;position:relative;
+.cmp-bar.show{display:flex;}
+.cmp-bar-label{font-size:11px;font-weight:700;color:rgba(255,255,255,.5);white-space:nowrap;letter-spacing:.5px;}
+.cmp-bar-slots{display:flex;gap:6px;flex:1;min-width:0;overflow-x:auto;}
+.cmp-slot-chip{
+  display:flex;align-items:center;gap:5px;flex-shrink:0;
+  background:rgba(255,255,255,.08);border-radius:20px;
+  padding:4px 8px 4px 5px;font-size:11px;color:#fff;font-weight:600;
+  border:1.5px solid rgba(255,255,255,.15);max-width:130px;
 }
-.fab-btn:hover{transform:scale(1.08);box-shadow:0 6px 24px rgba(124,58,237,.55);}
-.fab-btn.active{background:linear-gradient(135deg,#374151,#6B7280);}
-.fab-count{
-  position:absolute;top:-5px;right:-5px;
-  width:20px;height:20px;border-radius:10px;
-  background:var(--red);color:#fff;font-size:10px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;
-  border:2px solid #fff;
-}
-/* Compare tray (slots preview above FAB) */
-.fab-tray{
-  display:flex;flex-direction:column;gap:6px;align-items:flex-end;
-  pointer-events:none;opacity:0;transform:translateY(8px);
-  transition:all .25s;
-}
-.fab-tray.show{pointer-events:all;opacity:1;transform:translateY(0);}
-.tray-slot{
-  display:flex;align-items:center;gap:8px;
-  background:rgba(255,255,255,.96);border-radius:12px;
-  padding:7px 12px;font-size:12px;font-weight:600;
-  box-shadow:0 2px 12px rgba(0,0,0,.15);min-width:180px;
-  border-left:3px solid var(--g300);
-}
-.tray-slot.slot-0{border-left-color:var(--purple);}
-.tray-slot.slot-1{border-left-color:var(--blue);}
-.tray-slot.slot-2{border-left-color:var(--orange);}
-.tray-slot .slot-dot{width:8px;height:8px;border-radius:4px;flex-shrink:0;}
-.slot-0 .slot-dot{background:var(--purple);}
-.slot-1 .slot-dot{background:var(--blue);}
-.slot-2 .slot-dot{background:var(--orange);}
-.tray-slot .slot-name{flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--g800);}
-.tray-slot .slot-x{color:var(--g400);font-size:14px;cursor:pointer;padding:0 2px;}
-.tray-slot .slot-x:hover{color:var(--red);}
-.tray-actions{display:flex;gap:6px;align-items:center;}
-.tray-go-btn{
-  padding:8px 16px;border-radius:20px;font-size:12px;font-weight:700;border:none;cursor:pointer;
+.cmp-slot-chip.slot-0{border-color:var(--purple-light);}
+.cmp-slot-chip.slot-1{border-color:var(--blue-light);}
+.cmp-slot-chip.slot-2{border-color:#FED7AA;}
+.cmp-slot-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.cmp-slot-chip.slot-0 .cmp-slot-dot{background:var(--purple);}
+.cmp-slot-chip.slot-1 .cmp-slot-dot{background:var(--blue);}
+.cmp-slot-chip.slot-2 .cmp-slot-dot{background:#FB923C;}
+.cmp-slot-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cmp-slot-x{color:rgba(255,255,255,.4);cursor:pointer;font-size:13px;flex-shrink:0;transition:color .15s;}
+.cmp-slot-x:hover{color:#fff;}
+.cmp-bar-go{
+  padding:9px 16px;border-radius:20px;font-size:13px;font-weight:700;
+  border:none;cursor:pointer;white-space:nowrap;flex-shrink:0;
   background:linear-gradient(135deg,#5B21B6,var(--purple));color:#fff;
-  box-shadow:0 2px 10px rgba(124,58,237,.4);white-space:nowrap;
-  opacity:.4;pointer-events:none;transition:all .2s;
+  box-shadow:0 2px 10px rgba(124,58,237,.4);
+  opacity:.35;pointer-events:none;transition:all .2s;
 }
-.tray-go-btn.ready{opacity:1;pointer-events:all;}
-.tray-cancel-btn{
-  padding:8px 12px;border-radius:20px;font-size:11px;font-weight:600;border:none;cursor:pointer;
-  background:var(--g100);color:var(--g600);
+.cmp-bar-go.ready{opacity:1;pointer-events:all;box-shadow:0 3px 14px rgba(124,58,237,.5);}
+.cmp-bar-clear{
+  width:30px;height:30px;border-radius:50%;border:none;cursor:pointer;flex-shrink:0;
+  background:rgba(255,255,255,.08);color:rgba(255,255,255,.5);font-size:15px;
+  display:flex;align-items:center;justify-content:center;transition:all .15s;
 }
-/* mode selection */
-.mode-selector{
-  display:flex;gap:6px;background:rgba(255,255,255,.96);
-  border-radius:12px;padding:8px;box-shadow:0 2px 12px rgba(0,0,0,.15);
+.cmp-bar-clear:hover{background:rgba(215,43,43,.45);color:#fff;}
+
+/* ════ CARD COMPARE BUTTON ════ */
+.card-cmp-btn{
+  position:absolute;top:8px;right:8px;
+  width:26px;height:26px;border-radius:7px;
+  border:1.5px solid var(--g200);background:var(--white);
+  color:var(--g300);font-size:13px;
+  display:flex;align-items:center;justify-content:center;
+  cursor:pointer;transition:all .15s;z-index:2;line-height:1;padding:0;
 }
-.mode-btn{padding:6px 14px;border-radius:8px;font-size:11px;font-weight:700;border:none;cursor:pointer;
-  background:var(--g100);color:var(--g600);transition:all .15s;}
-.mode-btn.active{background:var(--purple);color:#fff;}
+.card-cmp-btn:hover{border-color:var(--purple);color:var(--purple);background:var(--purple-bg);}
+.card-cmp-btn.cmp-sel{background:var(--purple);border-color:var(--purple);color:#fff;}
+.csel-1 .card-cmp-btn.cmp-sel{background:var(--blue);border-color:var(--blue);}
+.csel-2 .card-cmp-btn.cmp-sel{background:var(--orange);border-color:var(--orange);}
 
 /* Swap button */
 .cmp-swap-bar{display:flex;justify-content:center;gap:8px;padding:8px 16px 0;max-width:900px;margin:0 auto;}
@@ -311,28 +300,12 @@ input{font-family:'DM Sans',sans-serif;}
   </div>
 </div>
 
-<!-- ════ FLOATING COMPARE BUTTON ════ -->
-<div class="fab-compare" id="fab-compare" style="display:none;">
-  <!-- Tray (shown when active) -->
-  <div class="fab-tray" id="fab-tray">
-    <!-- Mode selector -->
-    <div class="mode-selector" id="mode-selector">
-      <button class="mode-btn active" id="mode-btn-2" onclick="setCompareMode(2)">2 ตู้</button>
-      <button class="mode-btn" id="mode-btn-3" onclick="setCompareMode(3)">3 ตู้</button>
-    </div>
-    <!-- Slots -->
-    <div id="tray-slots"></div>
-    <!-- Actions -->
-    <div class="tray-actions">
-      <button class="tray-cancel-btn" onclick="cancelCompare()">✕ ยกเลิก</button>
-      <button class="tray-go-btn" id="tray-go-btn" onclick="openComparePage()">⚖️ เปรียบเทียบ →</button>
-    </div>
-  </div>
-  <!-- FAB main button -->
-  <button class="fab-btn" id="fab-btn" onclick="toggleFab()">
-    <span id="fab-icon">⚖️</span>
-    <div class="fab-count" id="fab-count" style="display:none;">0</div>
-  </button>
+<!-- ════ COMPARE BAR (bottom) ════ -->
+<div class="cmp-bar" id="cmp-bar">
+  <span class="cmp-bar-label">⚖️ เทียบ</span>
+  <div class="cmp-bar-slots" id="cmp-bar-slots"></div>
+  <button class="cmp-bar-go" id="cmp-bar-go" onclick="openComparePage()">เปรียบเทียบ →</button>
+  <button class="cmp-bar-clear" onclick="cancelCompare()" title="ยกเลิก">✕</button>
 </div>
 
 <!-- ═══ DETAIL PAGE ═══ -->
@@ -587,79 +560,34 @@ const SLOT_COLORS=[
   {label:"🔵 ตู้ที่ 2",cls:"csel-1",hCls:"h1",bCls:"h1-border",color:"var(--blue)"},
   {label:"🟠 ตู้ที่ 3",cls:"csel-2",hCls:"h2",bCls:"h2-border",color:"var(--orange)"},
 ];
-let _fabOpen=false;
-let _inCompareMode=false; // แยก compare mode กับ tray visibility
-let _compareMax=2;           // 2 or 3
 let _compareSlots=[];        // array of recordIdx (max 3)
 let _cmpActiveSection=null;
 
-function toggleFab(){
-  if(!_inCompareMode){
-    // เปิด compare mode ครั้งแรก
-    _inCompareMode=true;
-    _fabOpen=true;
-    renderList(); // สลับการ์ดเป็น compare mode
-  } else {
-    // อยู่ใน compare mode แล้ว → แค่เปิด/ปิด tray
-    _fabOpen=!_fabOpen;
-  }
-  document.getElementById("fab-tray").classList.toggle("show",_fabOpen);
-  document.getElementById("fab-btn").classList.toggle("active",_fabOpen||_inCompareMode);
-  document.getElementById("fab-icon").textContent=(_inCompareMode&&_fabOpen)?"✕":"⚖️";
-  if(_fabOpen) renderTray();
-}
-
-function setCompareMode(n){
-  _compareMax=n;
-  // trim slots if switching from 3→2
-  if(_compareSlots.length>n) _compareSlots=_compareSlots.slice(0,n);
-  document.getElementById("mode-btn-2").classList.toggle("active",n===2);
-  document.getElementById("mode-btn-3").classList.toggle("active",n===3);
-  renderTray();
-  renderList();
-}
-
-function renderTray(){
-  const sl=document.getElementById("tray-slots");
-  let html="";
-  for(let i=0;i<_compareMax;i++){
-    const idx=_compareSlots[i];
-    const c=SLOT_COLORS[i];
-    if(idx!=null){
-      const r=records[idx];
-      html+=`<div class="tray-slot slot-${i}">
-        <div class="slot-dot"></div>
-        <span class="slot-name">${r.model||r.brand||"ตู้ที่ "+(i+1)}</span>
-        <span class="slot-x" onclick="removeFromSlot(${i})">✕</span>
-      </div>`;
-    } else {
-      html+=`<div class="tray-slot slot-${i}" style="opacity:.55;">
-        <div class="slot-dot" style="opacity:.4;"></div>
-        <span class="slot-name" style="color:var(--g400);">${c.label} (กดเลือก)</span>
-      </div>`;
-    }
-  }
-  sl.innerHTML=html;
-  // Update go btn
-  const filled=_compareSlots.filter(s=>s!=null).length;
-  const goBtn=document.getElementById("tray-go-btn");
-  goBtn.classList.toggle("ready",filled>=2);
-  goBtn.textContent=`⚖️ เทียบ ${filled} ตู้ →`;
-  // Update FAB count badge
-  const badge=document.getElementById("fab-count");
-  if(filled>0){badge.style.display="flex";badge.textContent=filled;}
-  else badge.style.display="none";
+function renderCmpBar(){
+  const bar=document.getElementById("cmp-bar");
+  if(!bar) return;
+  const filled=_compareSlots.filter(s=>s!=null);
+  bar.classList.toggle("show",filled.length>0);
+  // slots chips
+  const slotsEl=document.getElementById("cmp-bar-slots");
+  slotsEl.innerHTML=filled.map((idx,i)=>{
+    const r=records[idx];
+    return `<div class="cmp-slot-chip slot-${i}">
+      <div class="cmp-slot-dot"></div>
+      <span class="cmp-slot-name">${r.model||r.brand||"ตู้ที่ "+(i+1)}</span>
+      <span class="cmp-slot-x" onclick="removeFromSlot(${i})">✕</span>
+    </div>`;
+  }).join("");
+  // go button
+  const goBtn=document.getElementById("cmp-bar-go");
+  goBtn.classList.toggle("ready",filled.length>=2);
+  goBtn.textContent=filled.length>=2?`เปรียบเทียบ ${filled.length} ตู้ →`:`เปรียบเทียบ →`;
 }
 
 function cancelCompare(){
   _compareSlots=[];
-  _fabOpen=false;
-  _inCompareMode=false;
-  document.getElementById("fab-tray").classList.remove("show");
-  document.getElementById("fab-btn").classList.remove("active");
-  document.getElementById("fab-icon").textContent="⚖️";
-  document.getElementById("fab-count").style.display="none";
-  renderList(); // re-render การ์ดกลับเป็น showDetail mode
+  renderCmpBar();
+  renderList();
   showToast("ยกเลิกแล้ว");
 }
 
@@ -667,7 +595,7 @@ function removeFromSlot(i){
   _compareSlots[i]=null;
   // compact
   _compareSlots=_compareSlots.filter(s=>s!=null);
-  renderTray();
+  renderCmpBar();
   renderList();
 }
 
@@ -675,14 +603,14 @@ function selectForCompare(idx){
   // already selected → remove
   const existing=_compareSlots.indexOf(idx);
   if(existing>=0){ removeFromSlot(existing); return; }
-  if(_compareSlots.filter(s=>s!=null).length>=_compareMax){
-    showToast(`⚠️ เลือกได้สูงสุด ${_compareMax} ตู้`);
+  if(_compareSlots.filter(s=>s!=null).length>=3){
+    showToast("⚠️ เลือกได้สูงสุด 3 ตู้");
     return;
   }
   _compareSlots.push(idx);
-  renderTray();
+  renderCmpBar();
   renderList();
-  showToast(SLOT_COLORS[_compareSlots.length-1].label+" เลือกแล้ว");
+  showToast(SLOT_COLORS[_compareSlots.length-1].label+" เลือกแล้ว ✓");
 }
 
 // ════════════════════════════════════════════════
@@ -741,13 +669,8 @@ async function openComparePage(){
   renderCmpTabs(recs);
   renderCmpBody(recs,filledIdx);
   if(accessToken) setTimeout(()=>loadCmpImages(),400);
-  // ปิด tray แต่ยัง keep compare mode ไว้
-  _fabOpen=false;
-  _inCompareMode=false; // reset หลังเปิดหน้า compare แล้ว
-  document.getElementById("fab-tray").classList.remove("show");
-  document.getElementById("fab-btn").classList.remove("active");
-  document.getElementById("fab-icon").textContent="⚖️";
-  document.getElementById("fab-count").style.display="none";
+  // ปิด bar หลังเปิดหน้า compare
+  document.getElementById("cmp-bar").classList.remove("show");
 }
 
 function renderCmpHeaders(recs,filledIdx){
@@ -1133,7 +1056,9 @@ function showPage(n){
   document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
   document.getElementById("page-"+n).classList.add("active");
   // Show FAB only on list page
-  document.getElementById("fab-compare").style.display=(n==="list")?"flex":"none";
+  // compare bar: show on list only if slots filled
+  if(n!=="list"){document.getElementById("cmp-bar").classList.remove("show");}
+  else renderCmpBar();
   if(n==="list") renderList();
 }
 
@@ -1217,16 +1142,17 @@ function renderList(){
     const slotIdx=_compareSlots.indexOf(ri);
     const selCls=slotIdx>=0?`csel-${slotIdx}`:"";
     const badgeTxt=slotIdx>=0?SLOT_COLORS[slotIdx].label:"";
-    const isFabOpen=_inCompareMode; // ใช้ _inCompareMode แทน _fabOpen
-    return `<div class="rec-card ${selCls}" onclick="${isFabOpen?`selectForCompare(${ri})`:`showDetail(${ri})`}">
+    const cmpSelCls=slotIdx>=0?"cmp-sel":"";
+    return `<div class="rec-card ${selCls}" onclick="showDetail(${ri})">
       <div class="csel-badge">${badgeTxt}</div>
+      <button class="card-cmp-btn ${cmpSelCls}" onclick="event.stopPropagation();selectForCompare(${ri})" title="${slotIdx>=0?"เอาออก":"เพิ่มเปรียบเทียบ"}">${slotIdx>=0?"✓":"+"}</button>
       <div class="rec-thumb">${spPath?`<img src="${cached}" class="detail-img-${cached?"loaded":"loading"}" data-sp-path="${spPath}" onerror="this.parentElement.innerHTML='📦'" style="width:100%;height:100%;object-fit:cover;"/>`:"📦"}</div>
       <div class="rec-info">
         <div class="rec-model">${r.model||"ไม่ระบุ Model"}</div>
         <div class="rec-tags">${r.brand?`<span class="tag">${r.brand}</span>`:""}${r.year?`<span class="tag">${r.year}</span>`:""}<span class="tag ${cnt>0?"green":""}">📷 ${cnt} (${sects}/${PS.length})</span>${r.uploaded?`<span class="tag blue">☁️ SP</span>`:""}</div>
         <div class="rec-date">${r.date||""}</div>
       </div>
-      <span style="align-self:center;color:var(--g300);font-size:20px;">${isFabOpen?(slotIdx>=0?"✅":"☐"):"›"}</span>
+      <span style="align-self:center;color:var(--g300);font-size:20px;margin-right:4px;">›</span>
     </div>`;
   }).join("");
 }
