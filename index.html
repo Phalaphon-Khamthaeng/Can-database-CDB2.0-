@@ -1286,7 +1286,10 @@ async function syncFromSharePoint(){
       const brand=String(ws.getCell(2,2).value||""),model=String(ws.getCell(3,2).value||"");if(!model&&!brand)return;
       const year=String(ws.getCell(4,2).value||""),coolant=String(ws.getCell(5,2).value||""),group=String(ws.getCell(6,2).value||"");
       const folderName=[model,brand,year].filter(v=>v&&v!=="—"&&v!=="-").join("_");
-      spRecs.push({id:"sp_"+ws.name,brand,model,year,coolant,group,uploaded:true,folderName,photos:Object.fromEntries(PS.map(p=>[p.key,[]])),date:"SharePoint",fromSP:true});
+      const spFolderName=sanitizeSP(folderName); // folder จริงใน SP ใช้ sanitized name
+      spRecs.push({id:"sp_"+ws.name,brand,model,year,coolant,group,uploaded:true,
+        folderName,spFolderName,
+        photos:Object.fromEntries(PS.map(p=>[p.key,[]])),date:"SharePoint",fromSP:true});
     });
     records=[...spRecs,...records.filter(r=>!r.fromSP&&!spRecs.find(s=>s.folderName===r.folderName))];
     try{localStorage.setItem("cabinet_records",JSON.stringify(records));}catch{}
@@ -1345,34 +1348,168 @@ async function showDetail(idx){
   const r=records[idx];
   document.getElementById("detail-title").textContent=r.model||"ไม่ระบุ";
   document.getElementById("detail-info").innerHTML=`${[["Brand",r.brand],["Model",r.model],["Year",r.year],["Coolant",r.coolant],["Group",r.group],["บันทึกวันที่",r.date]].filter(([,v])=>v).map(([k,v])=>`<div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v}</span></div>`).join("")}${r.uploaded?`<div style="margin-top:10px;padding:8px 12px;background:var(--blue-bg);border-radius:8px;font-size:12px;color:var(--blue);font-weight:600;">☁️ อัปโหลดใน SharePoint แล้ว · 📁 ${r.folderName||""}</div>`:""}`;
-  if(r.fromSP&&accessToken&&!PS.some(p=>(r.photos?.[p.key]||[]).length>0))await populateSpPhotos(r);
+
+  const noPhotosYet=!PS.some(p=>(r.photos?.[p.key]||[]).length>0);
+  if(r.fromSP && accessToken && noPhotosYet){
+    try{ await populateSpPhotos(r); }catch(e){ r._spError=e.message; }
+  }
+
   document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);
-  const btnLoad=document.getElementById("btn-detail-load"),status=document.getElementById("detail-load-status");
-  btnLoad.dataset.idx=idx;document.getElementById("btn-detail-delete").dataset.idx=idx;
+  const btnLoad=document.getElementById("btn-detail-load");
+  const status=document.getElementById("detail-load-status");
+  btnLoad.dataset.idx=idx;
+  document.getElementById("btn-detail-delete").dataset.idx=idx;
+
   if(accessToken){
-    btnLoad.style.display="none";status.textContent="⏳ กำลังโหลดรูป...";
-    if(r.fromSP&&!PS.some(p=>(r.photos?.[p.key]||[]).length>0)){
-      populateSpPhotos(r).then(()=>{document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);const hasAny=PS.some(p=>(r.photos?.[p.key]||[]).length>0);if(hasAny){status.textContent="⏳ กำลังโหลดรูป...";_autoLoadDetailImages();}else{btnLoad.style.display="flex";btnLoad.innerHTML="🔄 ลองโหลดอีกครั้ง";status.textContent="⚠️ ไม่พบรูปใน SharePoint";}});
-    }else _autoLoadDetailImages();
-  }else{btnLoad.style.display="flex";btnLoad.innerHTML="🖼️ โหลดรูป";status.textContent="🔐 Login เพื่อดูรูป";}
+    const hasAny=PS.some(p=>(r.photos?.[p.key]||[]).length>0);
+    if(!hasAny){
+      // แสดง debug info
+      const folder=r.spFolderName||sanitizeSP(r.folderName||"");
+      const fileCount=r._spFileCount;
+      const errMsg=r._spError;
+      if(errMsg){
+        status.innerHTML=`❌ ${errMsg}<br><small style="color:var(--g400);">📁 ${folder}</small>`;
+      } else if(fileCount===0){
+        status.innerHTML=`⚠️ โฟลเดอร์ว่างใน SharePoint<br><small style="color:var(--g400);">📁 ${folder}</small>`;
+      } else if(fileCount>0){
+        status.innerHTML=`⚠️ พบ ${fileCount} ไฟล์ แต่ไม่ตรง prefix<br><small style="color:var(--g400);">📁 ${folder}</small>`;
+      } else {
+        status.innerHTML=`⚠️ ไม่พบข้อมูลรูป<br><small style="color:var(--g400);">📁 ${folder}</small>`;
+      }
+      btnLoad.style.display="flex";
+      btnLoad.innerHTML="🔄 ลองโหลดใหม่";
+    } else {
+      btnLoad.style.display="none";
+      status.textContent="⏳ กำลังโหลดรูป...";
+      await _autoLoadDetailImages();
+    }
+  } else {
+    btnLoad.style.display="flex";
+    btnLoad.innerHTML="🖼️ โหลดรูป";
+    status.textContent="🔐 Login เพื่อดูรูป";
+  }
   showPage("detail");
 }
 async function populateSpPhotos(r){
   try{
-    const safeFolderName=sanitizeSP(r.folderName||"");if(safeFolderName!==r.folderName)r.spFolderName=safeFolderName;
-    const files=await listSpFolder(`${CFG.modelPath}/${safeFolderName}`);
-    PS_BASE.forEach(p=>{const m=files.filter(f=>f.name&&f.name.includes(p.prefix));if(m.length)r.photos[p.key]=m.map(f=>({savedName:f.name,name:f.name,preview:""}));});
-    const knownPrefixes=PS_BASE.map(p=>p.prefix);
-    const unknownFiles=files.filter(f=>f.name&&!knownPrefixes.some(px=>f.name.includes(px)));
+    // สร้าง candidate folder names หลายแบบเพื่อรองรับ mismatch
+    const rawFolder = r.folderName||"";
+    const sanitized = sanitizeSP(rawFolder);
+    // ลอง: 1) spFolderName ที่บันทึกไว้, 2) sanitized, 3) raw (ถ้าต่างกัน)
+    const candidates=[...new Set([
+      r.spFolderName,
+      sanitized,
+      rawFolder,
+    ].filter(Boolean))];
+
+    let files=null, usedFolder="";
+    for(const candidate of candidates){
+      try{
+        const result=await listSpFolder(`${CFG.modelPath}/${candidate}`);
+        files=result; usedFolder=candidate; break;
+      }catch(e){
+        // 404 → ลอง candidate ถัดไป
+        continue;
+      }
+    }
+
+    if(files===null){
+      r._spFileCount=0;
+      r._spError=`ไม่พบโฟลเดอร์ (ลองแล้ว: ${candidates.join(", ")})`;
+      throw new Error(r._spError);
+    }
+
+    // บันทึก folder ที่ใช้ได้จริง
+    r.spFolderName=usedFolder;
+    r._spFileCount=files.length;
+
+    // prefix match — case-insensitive
+    PS_BASE.forEach(p=>{
+      const m=files.filter(f=>f.name&&f.name.toLowerCase().includes(p.prefix.toLowerCase()));
+      if(m.length) r.photos[p.key]=m.map(f=>({savedName:f.name,name:f.name,preview:""}));
+    });
+
+    // detect custom sections from unmatched files
+    const knownPrefixes=PS_BASE.map(p=>p.prefix.toLowerCase());
+    const unknownFiles=files.filter(f=>f.name&&!knownPrefixes.some(px=>f.name.toLowerCase().includes(px)));
     const customGroups={};
-    unknownFiles.forEach(f=>{const parts=f.name.replace(/\.[^.]+$/,"").split("_");const folderParts=safeFolderName.split("_").length;const prefix=parts.slice(folderParts,parts.length-1).join("_");if(!prefix)return;if(!customGroups[prefix])customGroups[prefix]=[];customGroups[prefix].push(f);});
+    unknownFiles.forEach(f=>{
+      const parts=f.name.replace(/\.[^.]+$/,"").split("_");
+      const folderParts=usedFolder.split("_").length;
+      const prefix=parts.slice(folderParts,parts.length-1).join("_");
+      if(!prefix)return;
+      if(!customGroups[prefix])customGroups[prefix]=[];
+      customGroups[prefix].push(f);
+    });
     if(!r.customSections)r.customSections=[];
-    Object.entries(customGroups).forEach(([prefix,grpFiles])=>{const key="custom_"+prefix.toLowerCase()+"_detected";if(!r.customSections.find(c=>c.prefix===prefix))r.customSections.push({key,label:prefix,sub:"รูปภาพ "+prefix,prefix,icon:"📷"});const sect=r.customSections.find(c=>c.prefix===prefix);if(sect)r.photos[sect.key]=grpFiles.map(f=>({savedName:f.name,name:f.name,preview:""}));});
-    if(!PS_BASE.some(p=>(r.photos[p.key]||[]).length>0)&&!r.customSections?.length&&files.length)r.photos["nameplate"]=files.map(f=>({savedName:f.name,name:f.name,preview:""}));
-    try{const cached=JSON.parse(localStorage.getItem("cabinet_records")||"[]");const ci=cached.findIndex(c=>c.folderName===r.folderName);if(ci>=0){cached[ci].spFolderName=safeFolderName;cached[ci].photos=Object.fromEntries(PS_BASE.map(p=>[p.key,(r.photos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))]));cached[ci].customSections=r.customSections;localStorage.setItem("cabinet_records",JSON.stringify(cached));}}catch{}
-  }catch(e){console.warn("populateSpPhotos:",e.message);}
+    Object.entries(customGroups).forEach(([prefix,grpFiles])=>{
+      const key="custom_"+prefix.toLowerCase()+"_detected";
+      if(!r.customSections.find(c=>c.prefix===prefix))
+        r.customSections.push({key,label:prefix,sub:"รูปภาพ "+prefix,prefix,icon:"📷"});
+      const sect=r.customSections.find(c=>c.prefix===prefix);
+      if(sect) r.photos[sect.key]=grpFiles.map(f=>({savedName:f.name,name:f.name,preview:""}));
+    });
+
+    // fallback: ถ้า prefix ไม่ match เลย ใส่ทุกไฟล์เข้า nameplate
+    if(!PS_BASE.some(p=>(r.photos[p.key]||[]).length>0)&&!r.customSections?.length&&files.length)
+      r.photos["nameplate"]=files.map(f=>({savedName:f.name,name:f.name,preview:""}));
+
+    // save to localStorage
+    try{
+      const cached=JSON.parse(localStorage.getItem("cabinet_records")||"[]");
+      const ci=cached.findIndex(c=>c.folderName===r.folderName);
+      if(ci>=0){
+        cached[ci].spFolderName=usedFolder;
+        cached[ci].photos=Object.fromEntries(PS_BASE.map(p=>[p.key,(r.photos[p.key]||[]).map(ph=>({savedName:ph.savedName,name:ph.name,preview:""}))]));
+        cached[ci].customSections=r.customSections;
+        localStorage.setItem("cabinet_records",JSON.stringify(cached));
+      }
+    }catch{}
+  }catch(e){
+    r._spError=r._spError||e.message;
+    console.warn("populateSpPhotos:",e.message);
+    throw e;
+  }
 }
-async function triggerLoadImages(){if(!await ensureToken())return;const btnLoad=document.getElementById("btn-detail-load");const idx=parseInt(btnLoad.dataset.idx||"0");const r=records[idx];btnLoad.style.display="none";const status=document.getElementById("detail-load-status");status.textContent="⏳ กำลังดึงรายการรูปจาก SharePoint...";if(r.fromSP)await populateSpPhotos(r);document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);status.textContent="⏳ กำลังโหลดรูป...";await _autoLoadDetailImages();}
+
+async function triggerLoadImages(){
+  if(!await ensureToken())return;
+  const btnLoad=document.getElementById("btn-detail-load");
+  const status=document.getElementById("detail-load-status");
+  const idx=parseInt(btnLoad.dataset.idx||"0");
+  const r=records[idx];
+
+  btnLoad.style.display="none";
+  status.innerHTML="⏳ กำลังดึงรายการจาก SharePoint...";
+
+  try{
+    if(r.fromSP) await populateSpPhotos(r);
+    document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);
+
+    const hasAny=PS.some(p=>(r.photos?.[p.key]||[]).length>0);
+    if(!hasAny){
+      const fileCount=r._spFileCount??-1;
+      if(fileCount===0){
+        status.innerHTML=`⚠️ โฟลเดอร์ว่างเปล่าใน SharePoint<br><small style="color:var(--g400);">📁 ${r.spFolderName||sanitizeSP(r.folderName||"")}</small>`;
+      } else if(fileCount>0){
+        status.innerHTML=`⚠️ พบ ${fileCount} ไฟล์ แต่ prefix ไม่ตรง<br><small style="color:var(--g400);">📁 ${r.spFolderName||sanitizeSP(r.folderName||"")}</small>`;
+      } else {
+        status.innerHTML=`⚠️ ไม่พบรูป`;
+      }
+      btnLoad.style.display="flex";
+      btnLoad.innerHTML="🔄 ลองใหม่";
+      return;
+    }
+
+    status.textContent="⏳ กำลังโหลดรูป...";
+    await _autoLoadDetailImages();
+
+  }catch(e){
+    status.innerHTML=`❌ ${e.message}<br><small style="color:var(--g400);">📁 ${r.spFolderName||sanitizeSP(r.folderName||"")}</small>`;
+    btnLoad.style.display="flex";
+    btnLoad.innerHTML="🔄 ลองใหม่";
+  }
+}
 async function _autoLoadDetailImages(){const imgs=document.querySelectorAll("#detail-photos img[data-sp-path]");if(!imgs.length){document.getElementById("detail-load-status").textContent="";return;}let loaded=0;const total=imgs.length;const status=document.getElementById("detail-load-status");for(let i=0;i<imgs.length;i+=4){await Promise.all(Array.from(imgs).slice(i,i+4).map(async img=>{if(img.classList.contains("detail-img-loaded")&&img.src.startsWith("blob:"))return;await loadSpImg(img,img.dataset.spPath);status.textContent=`⏳ ${++loaded}/${total} รูป`;}));}status.textContent=`✅ โหลดครบ ${total} รูป`;setTimeout(()=>status.textContent="",3000);}
 function renderDetailPhotosHTML(r){
   const customSects=(r.customSections||[]);const otherSection={key:"other",label:"Other",sub:"รูปภาพอื่นๆ เพิ่มเติม",prefix:"Other",icon:"📌"};const hasOther=(r.photos?.["other"]||[]).length>0;const allPS=[...PS_BASE,...(hasOther?[otherSection]:[]),...customSects];
