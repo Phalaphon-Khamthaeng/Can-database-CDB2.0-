@@ -138,14 +138,7 @@ input{font-family:'DM Sans',sans-serif;}
 .cmp-swap-btn{padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;border:1.5px solid var(--purple-light);background:var(--purple-bg);color:var(--purple);cursor:pointer;display:flex;align-items:center;gap:4px;transition:all .2s;}
 .cmp-swap-btn:hover{background:var(--purple);color:#fff;}
 
-/* ── ROW REORDER BUTTONS ── */
-.row-move-btns{display:flex;flex-direction:column;gap:3px;flex-shrink:0;justify-content:center;}
-.row-move-btn{width:24px;height:24px;border-radius:6px;border:1px solid var(--g200);background:var(--white);
-  color:var(--g400);font-size:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all .15s;line-height:1;padding:0;}
-.row-move-btn:hover{background:var(--purple-bg);border-color:var(--purple-light);color:var(--purple);}
-.row-move-btn:disabled{opacity:.2;cursor:default;}
-.row-num{width:16px;text-align:center;font-size:10px;font-weight:700;color:var(--g300);flex-shrink:0;line-height:1;}
+/* ── ROW REORDER hint ── */
 
 /* old split view CSS removed - using inline styles in bigcmp-overlay */
 
@@ -705,9 +698,6 @@ function switchCmpSection(key){
   if(accessToken) setTimeout(()=>loadCmpImages(),200);
 }
 
-// ─── drag state ───
-let _dragRow=null;
-
 function renderCmpBody(recs,filledIdx){
   const body=document.getElementById("cmp-body");
   const p=PS_BASE.find(s=>s.key===_cmpActiveSection)||{icon:"📷",label:_cmpActiveSection};
@@ -719,85 +709,88 @@ function renderCmpBody(recs,filledIdx){
   }
 
   const maxRows=Math.max(...recs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
+  const borderColors=["var(--purple-light)","var(--blue-light)","#FED7AA"];
 
-  let rowsHtml="";
-  for(let row=0;row<maxRows;row++){
-    const cells=recs.map((r,i)=>{
-      const photos=r.photos?.[_cmpActiveSection]||[];
+  // Build columns independently
+  const colsHtml=recs.map((r,i)=>{
+    const photos=r.photos?.[_cmpActiveSection]||[];
+    const total=photos.length;
+    const bc=borderColors[i];
+    let colHtml="";
+    for(let row=0;row<maxRows;row++){
       const ph=photos[row];
       const folder=r.spFolderName||sanitizeSP(r.folderName||"");
-      const borderColor=["var(--purple-light)","var(--blue-light)","#FED7AA"][i];
       if(!ph){
-        return `<div style="flex:1;aspect-ratio:1;border-radius:10px;border:1.5px dashed var(--g300);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;color:var(--g400);font-size:11px;background:var(--g50);">
+        colHtml+=`<div style="aspect-ratio:1;border-radius:10px;border:1.5px dashed var(--g300);
+          display:flex;flex-direction:column;align-items:center;justify-content:center;
+          gap:4px;color:var(--g400);font-size:11px;background:var(--g50);margin-bottom:6px;">
           <span style="font-size:22px;">${p.icon}</span>ไม่มีรูป
         </div>`;
+      } else {
+        const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
+        const ca=sp?(_imgCache[sp]||""):"";
+        const canUp=row>0;
+        const canDown=row<total-1;
+        colHtml+=`<div style="position:relative;border-radius:10px;overflow:hidden;
+          background:var(--g100);aspect-ratio:1;border:2px solid ${bc};margin-bottom:6px;flex-shrink:0;">
+          <img id="ci-${i}-${row}" src="${ca}"
+            class="${ca?"detail-img-loaded":"detail-img-loading cmp-skeleton"}"
+            ${sp?`data-sp-path="${sp}"`:""}
+            style="width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;"
+            onclick="handleCmpImgClick(${row},${i})"
+            onerror="this.style.opacity='.15'"/>
+          <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:5px;pointer-events:none;">
+            <div style="display:flex;flex-direction:column;gap:3px;pointer-events:all;">
+              <button onclick="event.stopPropagation();moveColPhoto(${i},${row},-1)"
+                ${canUp?"":"disabled"}
+                style="width:22px;height:22px;border-radius:6px;border:none;cursor:${canUp?"pointer":"default"};
+                  background:${canUp?"rgba(0,0,0,.55)":"rgba(0,0,0,.2)"};color:${canUp?"#fff":"rgba(255,255,255,.3)"};
+                  font-size:12px;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;">↑</button>
+              <button onclick="event.stopPropagation();moveColPhoto(${i},${row},1)"
+                ${canDown?"":"disabled"}
+                style="width:22px;height:22px;border-radius:6px;border:none;cursor:${canDown?"pointer":"default"};
+                  background:${canDown?"rgba(0,0,0,.55)":"rgba(0,0,0,.2)"};color:${canDown?"#fff":"rgba(255,255,255,.3)"};
+                  font-size:12px;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;">↓</button>
+            </div>
+            <span style="background:rgba(0,0,0,.45);color:#fff;font-size:9px;padding:2px 7px;border-radius:8px;pointer-events:none;">⊞ ขยาย</span>
+          </div>
+          <span style="position:absolute;bottom:5px;left:6px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;padding:2px 6px;border-radius:5px;font-weight:600;">${row+1}/${total}</span>
+        </div>`;
       }
-      const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
-      const ca=sp?(_imgCache[sp]||""):"";
-      // ถ้ามี 2 ตู้ แสดง hint สำหรับ split view
-      const splitHint=`<span style="position:absolute;top:5px;right:5px;background:rgba(0,0,0,.45);color:#fff;font-size:9px;padding:2px 7px;border-radius:8px;">⊞ ขยาย</span>`;
-      return `<div style="flex:1;position:relative;border-radius:10px;overflow:hidden;background:var(--g100);aspect-ratio:1;border:2px solid ${borderColor};">
-        <img id="ci-${i}-${row}" src="${ca}"
-          class="${ca?"detail-img-loaded":"detail-img-loading cmp-skeleton"}"
-          ${sp?`data-sp-path="${sp}"`:""}
-          style="width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;"
-          onclick="handleCmpImgClick(${row},${i})"
-          onerror="this.style.opacity='.15'"/>
-        ${splitHint}
-        <span style="position:absolute;bottom:5px;left:6px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;padding:2px 6px;border-radius:5px;font-weight:600;">${row+1}/${photos.length}</span>
-      </div>`;
-    }).join("");
+    }
+    return `<div style="flex:1;min-width:0;">${colHtml}</div>`;
+  }).join("");
 
-    const isFirst=row===0, isLast=row===maxRows-1;
-    rowsHtml+=`
-      <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center;">
-        <div class="row-move-btns">
-          <button class="row-move-btn" onclick="moveRow(${row},-1)" ${isFirst?"disabled":""} title="เลื่อนขึ้น">↑</button>
-          <div class="row-num">${row+1}</div>
-          <button class="row-move-btn" onclick="moveRow(${row},1)" ${isLast?"disabled":""} title="เลื่อนลง">↓</button>
-        </div>
-        ${cells}
-      </div>`;
-  }
-
-  body.innerHTML=`<div style="padding-top:8px;">${rowsHtml}</div>`;
-  // re-load images after re-render
+  const tip=`<div style="text-align:center;font-size:11px;color:var(--g400);margin-bottom:8px;padding:6px 12px;background:var(--g100);border-radius:8px;">
+    💡 กด <strong>↑ ↓</strong> บนรูปเพื่อจัดเรียงแต่ละตู้อิสระ &nbsp;·&nbsp; กดรูปเพื่อขยายเปรียบเทียบ
+  </div>`;
+  body.innerHTML=`<div style="padding-top:8px;">${tip}<div style="display:flex;gap:6px;align-items:flex-start;">${colsHtml}</div></div>`;
   if(accessToken) loadCmpImages();
 }
 
-// ─── click on any image in compare → open big compare overlay ───
+// ─── click on image in compare → open big overlay ───
 function handleCmpImgClick(row,colIdx){
   const filledIdx=_compareSlots.filter(s=>s!=null);
   const recs=filledIdx.map(i=>records[i]);
-  if(recs.length>=2){
-    // always open big compare overlay — กดรูปไหนก็เปิด overlay เทียบกัน
-    openSplitView(row,recs);
-  }
+  if(recs.length>=2) openSplitView(row,recs);
 }
 
-// ─── move row up/down buttons ───
-function moveRow(row, dir){
-  const target=row+dir;
+// ─── move photo up/down within its own column only ───
+function moveColPhoto(colIdx,row,dir){
   const filledIdx=_compareSlots.filter(s=>s!=null);
   const recs=filledIdx.map(i=>records[i]);
-  const maxRows=Math.max(...recs.map(r=>(r.photos?.[_cmpActiveSection]||[]).length));
-  if(target<0||target>=maxRows) return;
-  // swap row ↔ target in every rec's photos for this section
-  recs.forEach(r=>{
-    const photos=r.photos?.[_cmpActiveSection];
-    if(!photos) return;
-    // pad shorter arrays
-    while(photos.length<=Math.max(row,target)) photos.push(null);
-    const tmp=photos[row];
-    photos[row]=photos[target];
-    photos[target]=tmp;
-  });
+  const r=recs[colIdx];
+  if(!r) return;
+  const photos=r.photos?.[_cmpActiveSection];
+  if(!photos) return;
+  const target=row+dir;
+  if(target<0||target>=photos.length) return;
+  const tmp=photos[row];
+  photos[row]=photos[target];
+  photos[target]=tmp;
   renderCmpBody(recs,filledIdx);
   renderCmpTabs(recs);
-  // also update bigcmp thumb strip if open
-  if(document.getElementById("bigcmp-overlay").style.display!=="none"){
-    _buildThumbStrip();
-  }
+  if(document.getElementById("bigcmp-overlay").style.display!=="none") _buildThumbStrip();
 }
 
 async function loadCmpImages(){
