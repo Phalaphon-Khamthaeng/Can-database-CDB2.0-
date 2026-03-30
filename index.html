@@ -140,16 +140,18 @@ input{font-family:'DM Sans',sans-serif;}
 
 /* ── COL PHOTO DRAG ── */
 .cph-drag-handle{
-  position:absolute;bottom:5px;right:6px;
-  width:26px;height:26px;border-radius:6px;
-  background:rgba(0,0,0,.55);color:rgba(255,255,255,.85);
-  font-size:13px;display:flex;align-items:center;justify-content:center;
+  position:absolute;bottom:5px;right:5px;
+  width:32px;height:32px;border-radius:8px;
+  background:rgba(124,58,237,.85);color:#fff;
+  font-size:18px;display:flex;align-items:center;justify-content:center;
   cursor:grab;touch-action:none;z-index:3;user-select:none;
-  transition:background .15s;
+  box-shadow:0 2px 6px rgba(0,0,0,.4);
+  transition:background .15s, transform .1s;
 }
-.cph-drag-handle:active{cursor:grabbing;background:rgba(124,58,237,.85);}
-.cph-dragging{opacity:.35;outline:2px dashed var(--purple);outline-offset:2px;}
-.cph-drop-over{outline:2px solid var(--purple);outline-offset:2px;background:var(--purple-bg)!important;}
+.cph-drag-handle:hover{background:rgba(124,58,237,1);transform:scale(1.1);}
+.cph-drag-handle:active{cursor:grabbing;transform:scale(.96);}
+.cph-dragging{opacity:.3;outline:2px dashed var(--purple);outline-offset:2px;}
+.cph-drop-over{outline:3px solid var(--purple);outline-offset:2px;}
 /* ── ROW REORDER hint ── */
 
 /* old split view CSS removed - using inline styles in bigcmp-overlay */
@@ -567,6 +569,7 @@ const SLOT_COLORS=[
 ];
 let _compareSlots=[];        // array of recordIdx (max 3)
 let _cmpActiveSection=null;
+let _cmpRotation={};         // keyed by photo savedName/name → 0/90/180/270
 
 function renderCmpBar(){
   const bar=document.getElementById("cmp-bar");
@@ -702,6 +705,7 @@ function renderCmpTabs(recs){
 
 function switchCmpSection(key){
   _cmpActiveSection=key;
+  _cmpRotation={};  // reset rotations when switching section
   const filledIdx=_compareSlots.filter(s=>s!=null);
   const recs=filledIdx.map(i=>records[i]);
   renderSwapBar(filledIdx.length);
@@ -741,17 +745,24 @@ function renderCmpBody(recs,filledIdx){
         const sp=ph.savedName?`${CFG.modelPath}/${folder}/${ph.savedName}`:"";
         const ca=sp?(_imgCache[sp]||""):"";
         const canUp=row>0, canDown=row<total-1;
+        const rotKey=ph.savedName||ph.name||`${i}-${row}`;
+        const rot=_cmpRotation[rotKey]||0;
+        const needsScalefix=(rot===90||rot===270);
+        const imgStyle=`width:100%;height:100%;object-fit:contain;display:block;cursor:pointer;
+          transform:rotate(${rot}deg)${needsScalefix?" scale(.75)":""};
+          transition:transform .25s;background:#111;`;
         colHtml+=`<div class="cph-card" data-col="${i}" data-row="${row}"
-          style="position:relative;border-radius:10px;overflow:hidden;
-          background:var(--g100);aspect-ratio:1;border:2px solid ${bc};margin-bottom:6px;flex-shrink:0;">
-          <img id="ci-${i}-${row}" src="${ca}"
-            class="${ca?"detail-img-loaded":"detail-img-loading cmp-skeleton"}"
-            ${sp?`data-sp-path="${sp}"`:""}
-            style="width:100%;height:100%;object-fit:cover;display:block;cursor:pointer;"
-            onclick="handleCmpImgClick(${row},${i})"
-            onerror="this.style.opacity='.15'"/>
-          <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:5px;pointer-events:none;">
-            <div style="display:flex;flex-direction:column;gap:3px;pointer-events:all;">
+          style="position:relative;border-radius:10px;aspect-ratio:1;margin-bottom:6px;flex-shrink:0;border:2px solid ${bc};">
+          <div style="position:absolute;inset:0;border-radius:8px;overflow:hidden;background:#111;">
+            <img id="ci-${i}-${row}" src="${ca}"
+              class="${ca?"detail-img-loaded":"detail-img-loading cmp-skeleton"}"
+              ${sp?`data-sp-path="${sp}"`:""}
+              style="${imgStyle}"
+              onclick="handleCmpImgClick(${row},${i})"
+              onerror="this.style.opacity='.15'"/>
+          </div>
+          <div style="position:absolute;top:0;left:0;right:0;display:flex;justify-content:space-between;align-items:flex-start;padding:5px;z-index:2;">
+            <div style="display:flex;flex-direction:column;gap:3px;">
               <button onclick="event.stopPropagation();moveColPhoto(${i},${row},-1)"
                 ${canUp?"":"disabled"}
                 style="width:22px;height:22px;border-radius:6px;border:none;cursor:${canUp?"pointer":"default"};
@@ -763,9 +774,12 @@ function renderCmpBody(recs,filledIdx){
                   background:${canDown?"rgba(0,0,0,.55)":"rgba(0,0,0,.2)"};color:${canDown?"#fff":"rgba(255,255,255,.3)"};
                   font-size:12px;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;">↓</button>
             </div>
-            <span style="background:rgba(0,0,0,.45);color:#fff;font-size:9px;padding:2px 7px;border-radius:8px;pointer-events:none;">⊞ ขยาย</span>
+            <button onclick="event.stopPropagation();rotateCmpImg('${rotKey}','ci-${i}-${row}')"
+              style="width:28px;height:28px;border-radius:8px;border:none;cursor:pointer;
+                background:rgba(0,0,0,.55);color:#fff;font-size:15px;
+                display:flex;align-items:center;justify-content:center;padding:0;z-index:3;">🔄</button>
           </div>
-          <span style="position:absolute;bottom:5px;left:6px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;padding:2px 6px;border-radius:5px;font-weight:600;">${row+1}/${total}</span>
+          <span style="position:absolute;bottom:7px;left:8px;background:rgba(0,0,0,.55);color:#fff;font-size:9px;padding:2px 6px;border-radius:5px;font-weight:600;z-index:2;">${row+1}/${total}${rot?` · ${rot}°`:""}</span>
           <div class="cph-drag-handle" title="ลากเพื่อเรียงลำดับ">⠿</div>
         </div>`;
       }
@@ -891,6 +905,35 @@ function moveColPhoto(colIdx,row,dir){
   renderCmpBody(recs,filledIdx);
   renderCmpTabs(recs);
   if(document.getElementById("bigcmp-overlay").style.display!=="none") _buildThumbStrip();
+}
+
+// ─── rotate image in compare (no full re-render) ───
+function rotateCmpImg(rotKey, imgId){
+  const cur=_cmpRotation[rotKey]||0;
+  const next=(cur+90)%360;
+  _cmpRotation[rotKey]=next;
+  const img=document.getElementById(imgId);
+  if(img){
+    const needsScalefix=(next===90||next===270);
+    img.style.transform=`rotate(${next}deg)${needsScalefix?" scale(.75)":""}`;
+  }
+  // update degree badge
+  const card=img?.closest(".cph-card");
+  if(card){
+    const badge=card.querySelector("span[style*='bottom:7px']");
+    if(badge){
+      const txt=badge.textContent.replace(/·.*$/,"").trim();
+      badge.textContent=next?`${txt} · ${next}°`:txt;
+    }
+  }
+  // also update bigcmp overlay if open
+  const col=imgId.match(/ci-(\d+)-(\d+)/);
+  if(col && document.getElementById("bigcmp-overlay")?.style.display!=="none"){
+    const bImg=document.getElementById(`bigcmp-img-${col[1]}`);
+    if(bImg && parseInt(col[2])===_bigRow){
+      bImg.style.transform=`rotate(${next}deg)${(next===90||next===270)?" scale(.75)":""}`;
+    }
+  }
 }
 
 async function loadCmpImages(){
