@@ -1346,6 +1346,11 @@ function renderList(){
 // ════════════════════════════════════════════════
 async function showDetail(idx){
   const r=records[idx];
+
+  // ── เปิดหน้าทันทีเลย ──
+  showPage("detail");
+
+  // ── render ข้อมูลพื้นฐาน ──
   document.getElementById("detail-title").textContent=r.model||"ไม่ระบุ";
   document.getElementById("detail-info").innerHTML=`${[["Brand",r.brand],["Model",r.model],["Year",r.year],["Coolant",r.coolant],["Group",r.group],["บันทึกวันที่",r.date]].filter(([,v])=>v).map(([k,v])=>`<div class="sum-row"><span class="sum-key">${k}</span><span class="sum-val">${v}</span></div>`).join("")}${r.uploaded?`<div style="margin-top:10px;padding:8px 12px;background:var(--blue-bg);border-radius:8px;font-size:12px;color:var(--blue);font-weight:600;">☁️ อัปโหลดใน SharePoint แล้ว · 📁 ${r.folderName||""}</div>`:""}`;
   document.getElementById("detail-photos").innerHTML=renderDetailPhotosHTML(r);
@@ -1354,14 +1359,15 @@ async function showDetail(idx){
   btnLoad.dataset.idx=idx;
   document.getElementById("btn-detail-delete").dataset.idx=idx;
   btnLoad.style.display="none";
-
-  // เปิดหน้าก่อนเลย ไม่รอ
-  showPage("detail");
+  status.textContent="";
 
   if(!accessToken){
     btnLoad.style.display="flex"; btnLoad.innerHTML="🖼️ โหลดรูป";
     status.textContent="🔐 Login เพื่อดูรูป"; return;
   }
+
+  // ── yield ให้ browser paint ก่อน แล้วค่อยเริ่ม network ──
+  await new Promise(res=>setTimeout(res,0));
 
   const hasAny=PS.some(p=>(r.photos?.[p.key]||[]).length>0);
   if(r.fromSP && !hasAny){
