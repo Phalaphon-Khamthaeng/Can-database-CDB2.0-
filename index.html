@@ -1303,9 +1303,10 @@ async function syncFromSharePoint(){
 // ════════════════════════════════════════════════
 function matchSearch(text,query){
   if(!query)return true;
-  if(query.includes("*")){const pattern=query.replace(/[.+?^${}()|[\]\\]/g,"\\$&").replace(/\*/g,".*");return new RegExp(pattern,"i").test(text);}
-  return text.toLowerCase().includes(query.toLowerCase());
-}
+  const norm=s=>s.replace(/-/g,"").toLowerCase();
+  if(query.includes("*")){const pattern=norm(query).replace(/[.+?^${}()|[\]\\]/g,"\\$&").replace(/\*/g,".*");return new RegExp(pattern,"i").test(norm(text));}
+  return norm(text).includes(norm(query));
+                                }
 function renderList(){
   const q=(document.getElementById("search-input")?.value||"").toLowerCase();
   const filtered=records.filter(r=>{const searchText=[r.brand,r.model,r.year].join(" ");const matchBrand=!_filterBrand||r.brand===_filterBrand;return matchSearch(searchText,q)&&matchBrand;});
